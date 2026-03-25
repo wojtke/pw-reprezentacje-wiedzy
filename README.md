@@ -4,7 +4,7 @@
 
 | Milestone | Data | Materiały |
 |-----------|------|-----------|
-| PK1 | 26.03.2026 15:30 | [checkpoint1.pdf](projekt4/checkpoint1/checkpoint1.pdf) · [tex](projekt4/checkpoint1/checkpoint1.tex) |
+| PK1 | 26.03.2026 15:30 | [checkpoint1.pdf](projekt4/checkpoint1/checkpoint1.pdf) · [tex](projekt4/checkpoint1/checkpoint1.tex) · [v2 (prostsza)](projekt4/checkpoint1/checkpoint1_v2.pdf) · [tex](projekt4/checkpoint1/checkpoint1_v2.tex) |
 | PK2 | 23.04.2026 14:15 | |
 | PK3 | 12.05.2026 15:30 | |
 | PK4 | 11.06.2026 14:15 | |
