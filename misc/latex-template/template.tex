@@ -1,0 +1,68 @@
+\documentclass[12pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage[polish]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage{hyperref}
+
+% Dodatkowe pakiety — odkomentuj w razie potrzeby:
+% \usepackage{enumitem}    % konfiguracja list
+% \usepackage{titlesec}    % formatowanie nagłówków sekcji
+% \usepackage{subcaption}  % subfigure
+% \usepackage{tabularx}    % tabele o zmiennej szerokości
+% \usepackage{booktabs}    % profesjonalne linie w tabelach
+% \usepackage{float}       % wymuszanie pozycji figur [H]
+% \usepackage{url}         % łamanie długich URL-i
+% \usepackage{comment}     % blokowe komentarze
+% \usepackage{ragged2e}    % justowanie tekstu
+
+\newcommand{\coursename}{Nazwa przedmiotu}
+\newcommand{\projecttitle}{Tytuł projektu}
+\newcommand{\authorone}{Imię Nazwisko}
+\newcommand{\authortwo}{Imię Nazwisko}
+\newcommand{\projectdate}{Warszawa, \the\year}
+
+
+\begin{document}
+\sloppy
+
+\begin{titlepage}
+    \centering
+
+    \includegraphics[width=0.8\textwidth]{politechnika.png}\par
+    \vspace{2.5cm}
+
+    {\Large \coursename\par}
+    \vspace{1.2cm}
+
+    {\Huge \bfseries \projecttitle \par}
+    \vspace{2cm}
+
+    {\Large Autorzy:\par}
+    \vspace{0.5cm}
+    {\large \authorone\par}
+    \vspace{0.3cm}
+    {\large \authortwo\par}
+
+    \vfill
+
+    {\large \projectdate\par}
+\end{titlepage}
+\tableofcontents
+\newpage
+
+\section{Wprowadzenie}
+
+\section{Opis problemu}
+
+\section{Cel projektu}
+
+\section{Metodologia}
+
+\section{Wyniki}
+
+\section{Podsumowanie}
+
+\end{document}

@@ -1,0 +1,368 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[polish]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage[hypertexnames=false]{hyperref}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{booktabs}
+
+\newcommand{\coursename}{Reprezentacja Wiedzy}
+\newcommand{\projecttitle}{Projekt nr~4: Procesy działań złożonych\\[0.3em]
+  \Large Punkt kontrolny 1}
+\newcommand{\authorone}{Wojciech Jasiński (koordynator)}
+\newcommand{\authortwo}{}
+\newcommand{\projectdate}{Warszawa, 26 marca 2026}
+
+\newcommand{\causes}{\textbf{causes}}
+\newcommand{\aft}{\textbf{after}}
+\renewcommand{\iff}{\textbf{if}}
+\newcommand{\initially}{\textbf{initially}}
+\newcommand{\always}{\textbf{always}}
+\newcommand{\impossible}{\textbf{impossible}}
+\newcommand{\releases}{\textbf{releases}}
+\newcommand{\noninertial}{\textbf{noninertial}}
+\newcommand{\observable}{\textbf{observable}}
+\newcommand{\necessary}{\textbf{necessary}}
+\newcommand{\possibly}{\textbf{possibly}}
+\newcommand{\executable}{\textbf{executable}}
+\newcommand{\Res}{\mathrm{Res}}
+\newcommand{\New}{\mathrm{New}}
+\newcommand{\Ac}{\mathcal{A}}
+\newcommand{\F}{\mathcal{F}}
+
+\begin{document}
+\sloppy
+
+\begin{titlepage}
+    \centering
+
+    \includegraphics[width=0.8\textwidth]{politechnika.png}\par
+    \vspace{2.5cm}
+
+    {\Large \coursename\par}
+    \vspace{1.2cm}
+
+    {\Huge \bfseries \projecttitle \par}
+    \vspace{2cm}
+
+    {\Large Zespół projektowy nr~4:\par}
+    \vspace{0.5cm}
+    {\large
+        Wojciech Jasiński (koordynator)\\[0.2em]
+        Krzysztof Gryboś\\[0.2em]
+        Jarosław Bieniek\\[0.2em]
+        Filip Filipkowski\\[0.2em]
+        Sebastian Rydz\\[0.2em]
+        Jakub Pietrzak\\[0.2em]
+        Sandra Adamiec\par
+    }
+
+    \vfill
+
+    {\large \projectdate\par}
+\end{titlepage}
+
+% ──────────────────────────────────────────────────────────────────
+\section{Cel projektu}
+
+Zadanie polega na zaprojektowaniu dwóch formalnych języków dla klasy~$\mathit{DS4}$
+systemów dynamicznych:
+\begin{itemize}
+  \item \emph{języka akcji} --- służącego do opisu dziedziny (fluenty, akcje,
+        ich skutki, ograniczenia),
+  \item \emph{języka kwerend} --- pozwalającego zadawać pytania o~wykonywalność
+        procesów i~osiągalność celów.
+\end{itemize}
+
+Klasa $\mathit{DS4}$ łączy cechy kilku języków akcji znanych z~wykładów.
+Mechanizmy inercji, niedeterminizmu, ramifikacji i~niewykonalności pochodzą
+z~języka~$AR$ (wykład~2), natomiast pojęcie akcji złożonej nawiązuje
+do~języka~$AC$ (wykład~5), choć w~formie uproszczonej ---
+zamiast pełnego mechanizmu dekompozycji wystarczy warunek rozłączności
+zbiorów fluentów.
+
+Poniżej przedstawiamy naszą interpretację wymagań, proponowaną składnię
+i~zarys semantyki.
+
+% ──────────────────────────────────────────────────────────────────
+\section{Analiza wymagań klasy DS4}
+
+Klasa~$\mathit{DS4}$ jest scharakteryzowana siedmioma warunkami (Z1--Z7).
+Ich realizację wiążemy z~konkretnymi mechanizmami formalnymi:
+
+\begin{table}[h]
+\centering
+\begin{tabular}{clll}
+\toprule
+& \textbf{Warunek} & \textbf{Mechanizm} & \textbf{Źródło} \\
+\midrule
+Z1 & Prawo inercji & Minimalizacja zbioru $\New$ & $AR$, wyk.~2 \\
+Z2 & Pełna informacja & Dziedzina akcji $D$ & $A$, wyk.~1 \\
+Z3 & Niedeterminizm & Zdanie $\releases$ & $AR$, wyk.~2 \\
+Z4 & Warunek wstępny & Zdanie $\causes \ldots \iff$ & $AR$, wyk.~2 \\
+Z5 & Niewykonalność & Zdanie $\impossible$ & $AR$, wyk.~2 \\
+Z6 & Ramifikacje & $\always$ + $\noninertial$ & $AR$, wyk.~2 \\
+Z7 & Opis częściowy & $\initially$, $\observable$ & $AR$, wyk.~2 \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+Warunki Z1--Z6 odpowiadają niemal dokładnie założeniom języka~$AR$.
+Warunek~Z7 wymusza rozszerzenie struktury o~zbiór stanów początkowych $\Sigma_0$
+zamiast pojedynczego $\sigma_0$ (na wykładach $AR$ stan początkowy jest jeden).
+
+Pojęcia akcji złożonej i~procesu nie występują w~$AR$. Ich obsługę
+projektujemy w~oparciu o~wykład~5 ($AC$), ograniczając się do warunku
+rozłączności zbiorów fluentów --- mechanizm dekompozycji z~$AC$ nie jest
+wymagany.
+
+% ──────────────────────────────────────────────────────────────────
+\section{Język akcji}
+
+\subsection{Sygnatura}
+
+Sygnaturą jest para $\Upsilon = (\F, \Ac)$, gdzie $\F$~to skończony
+zbiór fluentów, a~$\Ac$~--- skończony zbiór akcji prostych.
+Formułą~$\alpha$ jest dowolne wyrażenie zdaniowe nad~$\F$:
+\[
+  \alpha ::= f \mid \neg\alpha \mid \alpha \land \beta \mid
+             \alpha \lor \beta \mid \alpha \to \beta \mid
+             \alpha \leftrightarrow \beta.
+\]
+
+\subsection{Zdania języka akcji}
+
+W~opisach dziedzin występują wyłącznie akcje proste $A \in \Ac$.
+Proponujemy siedem typów zdań (zgodnych z~$AR$).
+Gdy $\pi \equiv \top$, zapis skracamy, np.\ $A\ \causes\ \alpha$.
+
+\begin{table}[h]
+\centering
+\begin{tabular}{cll}
+\toprule
+& \textbf{Zdanie} & \textbf{Typ} \\
+\midrule
+(i)   & $A\ \causes\ \alpha\ \iff\ \pi$ & efektowe \\
+(ii)  & $A\ \releases\ f\ \iff\ \pi$ & zwalniające \\
+(iii) & $\impossible\ A\ \iff\ \pi$ & niewykonalność \\
+(iv)  & $\always\ \alpha$ & warunek integralności \\
+(v)   & $\noninertial\ f$ & fluent nieinercjalny \\
+(vi)  & $\alpha\ \aft\ A_1, \ldots, A_n$ & zdanie wartościujące \\
+      & $\observable\ \alpha\ \aft\ A_1, \ldots, A_n$ & zdanie obserwacyjne \\
+(vii) & $\initially\ \alpha$ & stan początkowy \\
+\bottomrule
+\end{tabular}
+\end{table}
+
+% ──────────────────────────────────────────────────────────────────
+\section{Zarys semantyki}
+
+\subsection{Stany dopuszczalne i~początkowe}
+
+\textbf{Stan}~$\sigma \colon \F \to \{0,1\}$ przypisuje każdemu fluentowi
+wartość logiczną.
+
+Zbiór stanów dopuszczalnych:
+\[
+  \Sigma = \bigl\{\, \sigma : \text{dla każdego }
+  (\always\ \alpha) \in D,\ \sigma \models \alpha \,\bigr\}.
+\]
+Zbiór stanów początkowych:
+\[
+  \Sigma_0 = \bigl\{\, \sigma \in \Sigma :
+  \text{$\sigma$ spełnia wszystkie zdania } \initially
+  \text{ i~jest zgodny z~obserwacjami} \,\bigr\}.
+\]
+
+Rozszerzenie z~pojedynczego~$\sigma_0$ (jak w~wykładowym $AR$) do~zbioru~$\Sigma_0$
+jest konieczne, aby obsłużyć opis częściowy (Z7).
+
+\subsection{Funkcja przejścia dla akcji prostych}
+
+Obliczanie $\Res(A, \sigma)$ przebiega w~trzech krokach (por.\ wykład~2):
+
+\begin{enumerate}
+  \item $\Res_0(A, \sigma)$ --- zbiór stanów z~$\Sigma$
+        spełniających efekty wszystkich zdań $\causes$ dla~$A$,
+        których warunek wstępny zachodzi w~$\sigma$.
+        Jeśli istnieje zdanie $\impossible\ A\ \iff\ \pi$
+        takie, że $\sigma \models \pi$, to $\Res_0 = \varnothing$.
+
+  \item $\New(A, \sigma, \sigma')$ --- zbiór literałów
+        $\tilde{f}$ zachodzących w~$\sigma'$, dla których:
+        \begin{itemize}
+          \item $f$ jest inercjalny i~$\sigma(f) \neq \sigma'(f)$, lub
+          \item istnieje zdanie $A\ \releases\ f\ \iff\ \pi$ w~$D$
+                takie, że $\sigma \models \pi$.
+        \end{itemize}
+
+  \item $\Res(A, \sigma)$ --- stany z~$\Res_0(A, \sigma)$,
+        których zbiory~$\New$ są minimalne ze względu na inkluzję
+        (prawo inercji, Z1).
+\end{enumerate}
+
+\subsection{Akcje złożone}
+
+Akcja złożona $\mathbb{A} = \{A_1, \ldots, A_k\} \subseteq \Ac$ jest
+wykonalna w~stanie~$\sigma$, gdy:
+\begin{enumerate}
+  \item Każda para akcji składowych wpływa na rozłączne zbiory fluentów
+        w~$\sigma$.
+  \item Każda akcja składowa jest indywidualnie wykonalna w~$\sigma$.
+\end{enumerate}
+
+Wynik $\Res(\mathbb{A}, \sigma)$ proponujemy obliczać analogicznie do
+akcji prostej --- zbieramy aktywne efekty wszystkich składowych w~jedną
+koniunkcję (dzięki rozłączności nie mogą być sprzeczne), wyznaczamy $\Res_0$,
+a~następnie minimalizujemy $\New$.
+
+\subsection{Procesy}
+
+Proces $P = (\mathbb{A}_1, \ldots, \mathbb{A}_n)$ to ciąg akcji złożonych
+wykonywanych sekwencyjnie. Zbiór stanów osiągalnych po procesie definiujemy
+rekurencyjnie. Niech $P_{<k} = (\mathbb{A}_1, \ldots, \mathbb{A}_{k-1})$.
+Wówczas:
+\begin{align*}
+  \Psi(\varepsilon, \sigma) &= \{\sigma\}, \\[4pt]
+  \Psi((\mathbb{A}_1, \ldots, \mathbb{A}_k), \sigma)
+    &= \bigcup\nolimits_{\sigma' \in \Psi(P_{<k},\,\sigma)} \Res(\mathbb{A}_k, \sigma').
+\end{align*}
+
+% ──────────────────────────────────────────────────────────────────
+\section{Język kwerend}
+
+Kwerendy dotyczą procesów i~odpowiadają pytaniom Q1 i~Q2
+z~treści zadania.
+
+\medskip
+\noindent\textbf{Q1 --- Wykonywalność procesu:}
+\begin{itemize}
+  \item $\necessary\ \executable\ P$ ---
+    dla każdego $\sigma_0 \in \Sigma_0$ i~każdego odwzorowania~$\Psi_S$
+    na każdym kroku procesu zachodzi $\Res(\mathbb{A}_k, \sigma) \neq \varnothing$.
+  \item $\possibly\ \executable\ P$ ---
+    istnieje $\sigma_0 \in \Sigma_0$ i~odwzorowanie~$\Psi_S$,
+    dla którego każdy krok jest wykonywalny.
+\end{itemize}
+
+\medskip
+\noindent\textbf{Q2 --- Osiągnięcie celu:}
+\begin{itemize}
+  \item $\necessary\ \gamma\ \aft\ P$ ---
+    dla każdego $\sigma_0 \in \Sigma_0$ i~każdego odwzorowania~$\Psi_S$,
+    jeśli proces jest wykonywalny, to stan końcowy spełnia~$\gamma$.
+  \item $\possibly\ \gamma\ \aft\ P$ ---
+    istnieje $\sigma_0 \in \Sigma_0$ i~odwzorowanie~$\Psi_S$, dla którego
+    proces jest wykonywalny i~stan końcowy spełnia~$\gamma$.
+\end{itemize}
+
+Semantyka kwantyfikatorów $\necessary / \possibly$ wzorowana jest na
+wykładzie~3, z~rozszerzeniem o~kwantyfikację po zbiorze~$\Sigma_0$
+(zamiast pojedynczego~$\sigma_0$) oraz o~procesy (zamiast ciągów akcji
+prostych).
+
+% ──────────────────────────────────────────────────────────────────
+\section{Przykład}
+
+Rozważmy system z~dwoma przełącznikami ($s_1$, $s_2$) i~alarmem.
+
+\medskip
+\noindent\textbf{Sygnatura:}
+$\F = \{s_1, s_2, \mathit{alarm}\}$, \quad
+$\Ac = \{T_1, T_2\}$.
+
+\medskip
+\noindent\textbf{Dziedzina~$D$:}
+\begin{align*}
+  &\noninertial\ \mathit{alarm} \\
+  &\initially\ s_1 \land s_2 \\
+  &\always\ \mathit{alarm} \leftrightarrow (s_1 \leftrightarrow s_2) \\
+  &T_1\ \causes\ \neg s_1\ \iff\ s_1
+  \qquad T_1\ \causes\ s_1\ \iff\ \neg s_1 \\
+  &T_2\ \causes\ \neg s_2\ \iff\ s_2
+  \qquad T_2\ \causes\ s_2\ \iff\ \neg s_2
+\end{align*}
+
+\noindent\textbf{Stany dopuszczalne} (filtrowane przez $\always$):
+\[
+  \Sigma = \{
+    \underbrace{\{s_1, s_2, a\}}_{\sigma_0},\
+    \underbrace{\{\neg s_1, \neg s_2, a\}}_{\sigma_1},\
+    \underbrace{\{s_1, \neg s_2, \neg a\}}_{\sigma_2},\
+    \underbrace{\{\neg s_1, s_2, \neg a\}}_{\sigma_3}
+  \}
+\]
+gdzie $a$ oznacza $\mathit{alarm}$.
+Stan początkowy: $\Sigma_0 = \{\sigma_0\}$.
+
+\medskip
+\noindent\textbf{Obliczenie $\Res(T_1, \sigma_0)$:}
+
+Aktywny efekt w~$\sigma_0$: $\neg s_1$ (bo $\sigma_0 \models s_1$).
+$\Res_0(T_1, \sigma_0) = \{\sigma_1, \sigma_3\}$ (stany z~$\Sigma$ spełniające $\neg s_1$).
+\begin{itemize}
+  \item $\New(T_1, \sigma_0, \sigma_1) = \{\neg s_1, \neg s_2\}$
+    \quad ($s_1$ i~$s_2$ inercjalne, oba się zmieniły; $\mathit{alarm}$ nieinercjalny)
+  \item $\New(T_1, \sigma_0, \sigma_3) = \{\neg s_1\}$
+    \quad (zmienił się tylko $s_1$)
+\end{itemize}
+$\{\neg s_1\} \subset \{\neg s_1, \neg s_2\}$, więc
+$\Res(T_1, \sigma_0) = \{\sigma_3\}$.
+
+Fluent $\mathit{alarm}$ zmienił wartość z~1 na~0 (ramifikacja wymuszona
+przez warunek $\always$), lecz jako nieinercjalny nie wpłynął na $\New$.
+
+\medskip
+\noindent\textbf{Kwerenda:} $\necessary\ \neg\mathit{alarm}\ \aft\ (\{T_1\})$
+
+$\Res(\{T_1\}, \sigma_0) = \{\sigma_3\}$, \quad
+$\sigma_3 \models \neg\mathit{alarm}$ \quad$\Rightarrow$\quad \textbf{TAK}.
+
+\medskip
+\noindent\textbf{Kwerenda:} $\necessary\ \mathit{alarm}\ \aft\ (\{T_1, T_2\})$
+
+Akcja złożona $\{T_1, T_2\}$: zbiory fluentów $\{s_1\} \cap \{s_2\} = \varnothing$
+--- rozłączne, obie składowe wykonalne. Łączne efekty: $\neg s_1 \land \neg s_2$.
+Jedyny stan z~$\Sigma$ to $\sigma_1 = \{\neg s_1, \neg s_2, a\}$.
+
+$\sigma_1 \models \mathit{alarm}$ \quad$\Rightarrow$\quad \textbf{TAK}.
+
+% ──────────────────────────────────────────────────────────────────
+\section{Zagadnienia wymagające doprecyzowania}
+
+\begin{enumerate}
+  \item \textbf{Ramifikacje a~kwalifikacje (Z6).}
+    Sformułowanie ,,warunki integralności wpływają na skutki uboczne''
+    sugeruje podejście $AR$ (ramifikacje --- stany niedopuszczalne
+    odrzucane \emph{przed} minimalizacją).
+    Czy można wykluczyć potrzebę podejścia $AQ$ (kwalifikacje ---
+    odrzucanie \emph{po} minimalizacji, wykład~3)?
+
+  \item \textbf{Zbiór fluentów, na które wpływa akcja.}
+    Warunek rozłączności przy akcjach złożonych wymaga precyzyjnej
+    definicji tego zbioru. Rozważamy dwa warianty:
+    (a)~wyłącznie fluenty jawnie wymienione w~aktywnych zdaniach
+    $\causes$ i~$\releases$,
+    (b)~dodatkowo fluenty zmieniane pośrednio przez ramifikacje.
+    Który wariant jest zgodny z~intencją zadania?
+
+  \item \textbf{Zakres opisu częściowego (Z7).}
+    Opis częściowy stanu początkowego realizujemy przez
+    zbiór~$\Sigma_0$. Czy ,,opis częściowy stanów wynikowych''
+    odnosi się wyłącznie do zdań obserwacyjnych
+    ($\observable\ \alpha\ \aft\ \ldots$ oraz
+    $\alpha\ \aft\ \ldots$), czy wymaga dodatkowego mechanizmu?
+
+  \item \textbf{Kwantyfikacja po modelach.}
+    Na wykładzie~3 kwerendy kwantyfikują po \emph{wszystkich modelach}
+    dziedziny~$D$. Jeśli dziedzina jest spójna, model jest wyznaczony
+    jednoznacznie (z~dokładnością do~$\Sigma_0$). Czy w~naszym projekcie
+    wystarczy kwantyfikacja po stanach początkowych w~ramach jednego modelu?
+\end{enumerate}
+
+\end{document}
