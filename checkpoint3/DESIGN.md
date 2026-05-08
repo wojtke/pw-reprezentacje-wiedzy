@@ -1,401 +1,219 @@
-# Checkpoint 3 — Design dokumentu i podział pracy
+# Checkpoint 3 — Design (v2, high-level)
 
-## 1. Filozofia architektoniczna
+> Zakres tego dokumentu: cele PK3, decyzje techniczne, architektura i UX — na poziomie ogólnym.
+> Specyfikację dziedziny, składnię języków i semantykę bierzemy z:
+> - [`docs/Projekt_nr_4___2026.pdf`](../docs/Projekt_nr_4___2026.pdf) — treść projektu (Z1–Z7, Q1/Q2),
+> - [`checkpoint2/checkpoint2.pdf`](../checkpoint2/checkpoint2.pdf) — sformalizowana teoria (do poprawienia wg uwag z PK2 przed PK4).
 
-**Główna zasada:** rdzeń (silnik + parser) jest **czystą biblioteką Python bez żadnych zależności GUI**. UI jest cienką nakładką, którą można wymienić.
+## 1. Cele i decyzje techniczne
 
-```
-┌──────────────────────────────────────────────────────────┐
-│        FRONTEND (wymienny)                                │
-│   ┌────────────────┐         ┌─────────────────────┐    │
-│   │  Tkinter app   │   lub   │  Flask/FastAPI      │    │
-│   │  (PK3 primary) │         │  + HTML/JS (PK4+)   │    │
-│   └────────┬───────┘         └──────────┬──────────┘    │
-└────────────┼─────────────────────────────┼───────────────┘
-             │                             │
-             ▼                             ▼
-┌──────────────────────────────────────────────────────────┐
-│        FACADE / API (ds4.api)                             │
-│   - solve(domain_text, query_text) -> dict (JSON-able)    │
-│   - load_example(name) -> dict                            │
-│   - validate(domain_text) -> dict                         │
-│   Wszystko: stringi w wejściu, dict w wyjściu             │
-└──────────────────────────────────────────────────────────┘
-             │
-             ▼
-┌──────────────────────────────────────────────────────────┐
-│        CORE (ds4.engine + ds4.parser, pure Python)        │
-│   - bez importów tkinter / flask / fastapi                │
-│   - testowalne unit-testami                               │
-│   - reużywalne w CLI, web, GUI, notebooku Jupyter         │
-└──────────────────────────────────────────────────────────┘
-```
+### 1.1. Cele PK3 (12.05)
 
-**Konsekwencja:** ten sam `solve()` z facade działa w Tkinterze (PK3) i w Flasku (PK4 web wariant). Frontendy dzielą tylko stringi i JSON, niczego więcej.
+- **C1.** Aplikacja desktop GUI: edytor dziedziny + edytor kwerendy → odpowiedź TAK/NIE + krok-po-kroku trace procesu.
+- **C2.** Pojedynczy `.exe` na Windows (PyInstaller), uruchamialny dwuklikiem na czystej maszynie.
+- **C3.** Wbudowane przykłady z menu (kilka, dobrane tak, by łącznie pokryć Z1, Z3, Z5, Z6 i oba kwantyfikatory), każdy z 2–3 kwerendami i znanymi oczekiwanymi odpowiedziami; oczekiwane odpowiedzi pełnią rolę oracle'a w testach. Konkretny zestaw — do uzgodnienia w O6.
+- **C4.** Core (parser + engine) jako pure-Python z zerową zależnością od UI — żeby alternatywny frontend (np. web) był *możliwy*, nawet jeśli go nie budujemy.
+- **C5.** Testy: pokrycie każdego modułu core'a + e2e na każdy przykład przez facade.
 
-## 2. Struktura katalogów
+### 1.2. Decyzje techniczne
+
+- **Python 3.9+** — najszerszy realny zakres; dataclasses i generyki natywne (PEP 585: `list[…]`, `dict[…]`) są dostępne. Świadomie nie używamy `match` (3.10+) ani `X | Y` w runtime'owych aliasach (3.10+) — w nich używamy `typing.Union`.
+- **Tkinter (stdlib)** jako jedyna technologia UI — żeby nie dorzucać zależności runtime do `.exe` (C2).
+- **Pure-Python core, bez importów UI** — wymóg z C4; pozwala testować engine bez GUI i potencjalnie podmienić frontend.
+- **Ręczny parser recursive descent**, bez ANTLR/Lark — składnia DS4 jest mała i zna ją cały zespół; zewnętrzna gramatyka byłaby narzutem na build i naukę.
+- **PyInstaller** do produkcji `.exe` — to najprostsze narzędzie spełniające C2.
+- **pytest** — standardowy runner, jednolity format dla unit-testów i golden-testów przykładów.
+- **Granica frontend ↔ core: `str` na wejściu, JSON-able `dict` na wyjściu** — dzięki temu cały kontrakt da się serializować, mockować w testach i podpiąć do innego frontendu bez zmian w core.
+
+## 2. Architektura
 
 ```
-checkpoint3/
-├── pyproject.toml              ← deklaracja paczki ds4
-├── requirements.txt            ← customtkinter (opcjonalnie), pyinstaller
-├── main.py                     ← entry point: uruchamia GUI Tkinter
-├── main_web.py                 ← (opcjonalny) entry point Flask
-├── ds4/                        ← główna paczka
-│   ├── __init__.py
-│   ├── api.py                  ← FACADE (publiczny interfejs)
-│   ├── engine/
-│   │   ├── __init__.py
-│   │   ├── model.py            ← struktury danych (Fluent, Action, State, Statement)
-│   │   ├── formula.py          ← AST formuł, ewaluacja, DNF
-│   │   ├── states.py           ← generacja Σ, Σ₀
-│   │   ├── transitions.py      ← Res₀, New, Res dla akcji prostych
-│   │   ├── compound.py         ← Res dla akcji złożonych
-│   │   ├── process.py          ← Ψ, ewaluacja procesu
-│   │   └── queries.py          ← Q1, Q2, necessary/possibly
-│   ├── parser/
-│   │   ├── __init__.py
-│   │   ├── lexer.py            ← tokenizer
-│   │   ├── domain_parser.py    ← parsuje dziedzinę
-│   │   └── query_parser.py     ← parsuje kwerendy
-│   ├── examples/
-│   │   ├── switches.txt
-│   │   ├── ysp.txt
-│   │   └── russian_turkey.txt
-│   └── utils/
-│       └── trace.py            ← formater "step-by-step trace"
-├── gui/                        ← FRONTEND #1: Tkinter
-│   ├── __init__.py
-│   ├── app.py                  ← główne okno
-│   ├── widgets.py              ← niestandardowe widgety (np. trace viewer)
-│   └── themes.py               ← kolory, czcionki
-├── web/                        ← FRONTEND #2 (opcjonalny, PK4)
-│   ├── __init__.py
-│   ├── server.py               ← Flask app
-│   └── static/
-│       ├── index.html
-│       ├── app.js
-│       └── style.css
-└── tests/
-    ├── test_formula.py
-    ├── test_transitions.py
-    ├── test_compound.py
-    ├── test_queries.py
-    ├── test_parser.py
-    └── test_api.py             ← testy facade'a (kluczowe!)
+┌─────────────────────────────────────────────────────────────┐
+│ FRONTEND  (Tkinter)  —  zna tylko facade                     │
+└──────────────────────────┬──────────────────────────────────┘
+                           │  str → solve() → dict
+┌──────────────────────────▼──────────────────────────────────┐
+│ FACADE  (ds4.api)                                            │
+│   solve · validate_domain · list_examples · load_example     │
+└──────────────────────────┬──────────────────────────────────┘
+                           │
+┌──────────────────────────▼──────────────────────────────────┐
+│ CORE  (pure-Python)                                          │
+│                                                               │
+│   ACTION LANGUAGE          │   QUERY LANGUAGE                 │
+│   model, formuły, Σ/Σ₀,    │   akcje złożone, procesy,        │
+│   res₀ / new / res         │   Q1/Q2 × {necessary, possibly}  │
+│                                                               │
+│   PARSER                                                      │
+│   lexer · domain_parser · query_parser                        │
+└─────────────────────────────────────────────────────────────┘
 ```
 
-## 3. Kluczowy kontrakt: `ds4/api.py`
+**Zasady architektoniczne:**
 
-Facade to **jedyny** sposób, w jaki frontend rozmawia z silnikiem. Wszystko serializowalne do JSON.
+1. **Core nie wie o UI.** Zero importów `tkinter` w `ds4/`; facade zwraca tylko JSON-serializowalne dict-y. To trzyma core testowalnym i otwartym na alternatywny frontend bez pisania go.
+2. **Action language ≠ query language.** Akcje złożone i procesy żyją wyłącznie po stronie query language — osobny moduł, osobny parser, osobne testy.
+3. **Składnia i semantyka biorą się z PK2.** Język akcji ma 8 rodzajów zdań (PK2 §3.2): `causes`, `releases`, `impossible`, `always`, `noninertial`, `initially`, `after`, `observable after`. Cukier syntaktyczny: `impossible A if π` ≡ `A causes ⊥ if π`, `initially α` ≡ `α after ε` — desugaring po stronie parsera (O4). **`noninertial f` *nie* jest cukrem** — to osobne zdanie strukturalne wyznaczające zbiór fluentów inercyjnych $\mathcal{F}_I$ używany przez `New` w O2 (PK2 §4.4); musi przeżyć w AST i być eksponowane przez `Domain`. Pozostałe zdania (`causes`, `releases`, `always`, `noninertial`, `after`, `observable after`) trzymamy w AST. Konkretny kształt węzłów — decyzja O1+O4.
+4. **Facade jest jedynym kontraktem dla frontendu.**
 
-```python
-# ds4/api.py
-
-from typing import TypedDict, Literal
-
-class Step(TypedDict):
-    step_index: int                  # 0, 1, 2, ...
-    compound_action: list[str]       # ["T1", "T2"]
-    incoming_states: list[dict]      # [{"s1": True, "s2": True, "alarm": True}]
-    outgoing_states: list[dict]      # po Res
-    executable: bool                 # czy Res != 0 dla wszystkich incoming
-    notes: list[str]                 # ["Akcja zlozona wykonalna", ...]
-
-class SolveResult(TypedDict):
-    ok: bool
-    error: str | None                # tekst bledu parsowania, jesli ok=False
-    sigma_size: int                  # |Σ|
-    sigma0_size: int                 # |Σ_0|
-    sigma: list[dict]                # wszystkie dopuszczalne stany
-    sigma0: list[dict]               # stany poczatkowe
-    query_kind: Literal["Q1_executable", "Q2_after"] | None
-    quantifier: Literal["necessary", "possibly"] | None
-    answer: bool | None              # wynik kwerendy
-    trace: list[Step]                # krok po kroku
-    final_states: list[dict]         # stany po wszystkich krokach
-    goal_satisfied_by: list[dict]    # ktore final_states spelniaja gamma (Q2)
-
-def solve(domain_text: str, query_text: str) -> SolveResult: ...
-
-def validate_domain(domain_text: str) -> dict:
-    """Zwraca {'ok': bool, 'errors': [...], 'fluents': [...], 'actions': [...]}."""
-    ...
-
-def list_examples() -> list[dict]:
-    """Zwraca [{'id': 'switches', 'name': '...', 'description': '...'}, ...]."""
-    ...
-
-def load_example(example_id: str) -> dict:
-    """Zwraca {'domain': '...', 'queries': ['...', '...']}."""
-    ...
-```
-
-Każdy frontend (Tkinter, Flask) wywołuje **tylko** te funkcje. Żaden frontend nie importuje `ds4.engine.*` bezpośrednio.
-
-## 4. Podział pracy — moduły = osoby
-
-Każdy moduł ma **jednego właściciela** odpowiedzialnego za działanie + testy. Moduły komunikują się przez wąskie interfejsy.
-
-| Moduł | Właściciel | Odpowiada za | Wejście | Wyjście |
-|-------|------------|--------------|---------|---------|
-| `engine/model.py` | **P4** | Klasy danych: `Fluent`, `Action`, `State`, `Domain`, `Statement` (i podtypy), `CompoundAction`, `Process` | — | klasy do importu |
-| `engine/formula.py` | **P2** | AST formuł, parsowanie `"a and not b"`, `evaluate(formula, state)`, `to_dnf(formula)` | string formuły | bool / list literałów |
-| `engine/states.py` | **P4** | `generate_sigma(domain)`, `generate_sigma0(domain, sigma)` | `Domain` | `list[State]` |
-| `engine/transitions.py` | **P4** | `compute_res0`, `compute_new`, `compute_res` dla **akcji prostej** | `Action`, `State`, `Domain`, `Σ` | `set[State]` |
-| `engine/compound.py` | **P5** | `affected_fluents`, `is_executable`, `compute_compound_res` dla 𝔸 | `CompoundAction`, `State`, `Domain`, `Σ` | `set[State]` |
-| `engine/process.py` | **P5** | `execute_process` — iteracja Ψ, zwraca trace listy zbiorów osiągalnych | `Process`, `Σ_0`, `Domain`, `Σ` | `list[set[State]]` + trace |
-| `engine/queries.py` | **P3** | `evaluate_q1_executable`, `evaluate_q2_after` × {necessary, possibly} | `Query`, trace | `bool` + uzasadnienie |
-| `parser/lexer.py` | **P6** | tokenizer (regex) | string | `list[Token]` |
-| `parser/domain_parser.py` | **P6** | parsuje plik dziedziny → `Domain` | string | `Domain` |
-| `parser/query_parser.py` | **P6** | parsuje kwerendę → `Query` | string | `Query` |
-| `ds4/api.py` | **P1** | facade `solve()`, `validate()`, `load_example()` — łączy wszystko | strings | `dict` (JSON-able) |
-| `gui/app.py` | **P7** | okno Tkinter, layout, eventy | wywołuje `ds4.api` | UI |
-| `gui/widgets.py` | **P7** | trace viewer, podświetlanie składni, examples picker | — | widgety |
-| `examples/*.txt` | **P3** | 3 przykłady z kwerendami i oczekiwanymi odpowiedziami | — | pliki tekstowe |
-| `tests/*.py` | wszyscy | każdy testuje swój moduł | — | pytest |
-
-**Klucz do paralelizacji:** każdy może pracować niezależnie, mockując sąsiednie moduły. P7 nie czeka na P6 — używa hardcodowanej `Domain` z `model.py` do pisania GUI. P3 nie czeka na P5 — pisze kwerendy zakładając, że `process.execute_process` zwraca pewną strukturę.
-
-## 5. Kontrakty między modułami (dataflow)
+## 3. UX
 
 ```
-              parser              engine                       api          gui
-                                                                            
-domain_text ──> domain_parser ──> Domain ────────────────────> solve() ──> render
-                                    │                            │
-                                    ├── states.generate ──> Σ    │
-                                    │                       Σ_0  │
-                                    │                            │
-                                    │   query_parser → Query     │
-                                    │                            │
-                                    └── transitions.compute_res ─┤
-                                        compound.compute_res ────┤
-                                        process.execute ─────────┤
-                                        queries.evaluate ────────┤
-                                                                 │
-                                                     SolveResult ┘
-                                                  (czysty dict)
-```
-
-## 6. UX — jak wygląda i jak się jej używa
-
-### 6.1. Layout głównego okna (1100 × 750)
-
-```
-┌─────────────────────────────────────────────────────────────────────┐
-│ DS4 Reasoner — Procesy działań złożonych                    _ □ ✕   │
-├─────────────────────────────────────────────────────────────────────┤
-│ [Plik ▼] [Przykłady ▼] [Pomoc ▼]                                    │
+┌──────────────────────────────────────────────────────────────────────┐
+│ DS4 Reasoner                                              _ □ ✕      │
+├──────────────────────────────────────────────────────────────────────┤
+│ [Plik] [Przykłady] [Pomoc]                                            │
 ├──────────────────────────────────┬──────────────────────────────────┤
-│ DZIEDZINA                        │ KWERENDA                          │
-│ ┌──────────────────────────────┐ │ ┌──────────────────────────────┐ │
-│ │ fluent s1                    │ │ │ necessary alarm after        │ │
-│ │ fluent s2                    │ │ │   {T1, T2}                   │ │
-│ │ fluent alarm                 │ │ │                              │ │
-│ │ noninertial alarm            │ │ └──────────────────────────────┘ │
-│ │ action T1                    │ │ [▶ Oblicz]   [Wyczyść]            │
-│ │ action T2                    │ │                                   │
-│ │                              │ ├──────────────────────────────────┤
-│ │ initially s1 and s2          │ │ WYNIK                             │
-│ │ always alarm <-> (s1 <-> s2) │ │ ┌──────────────────────────────┐ │
-│ │ T1 causes not s1 if s1       │ │ │ Odpowiedź: TAK ✓             │ │
-│ │ T1 causes s1 if not s1       │ │ │                              │ │
-│ │ T2 causes not s2 if s2       │ │ │ Σ:  4 stany                  │ │
-│ │ T2 causes s2 if not s2       │ │ │ Σ₀: 1 stan                   │ │
-│ │                              │ │ │                              │ │
-│ │                              │ │ │ ▼ Krok 1: {T1, T2}           │ │
-│ │                              │ │ │   wejście: {s1,s2,alarm}     │ │
-│ │                              │ │ │   wykonalna: TAK             │ │
-│ │                              │ │ │   wyjście:  {¬s1,¬s2,alarm}  │ │
-│ │                              │ │ │                              │ │
-│ │                              │ │ │ Stany końcowe spełniające    │ │
-│ │                              │ │ │ alarm: 1/1 ✓                 │ │
-│ └──────────────────────────────┘ │ └──────────────────────────────┘ │
+│  DZIEDZINA  (edytor)              │  KWERENDA  (edytor)  [▶ Oblicz]  │
+│                                   ├──────────────────────────────────┤
+│                                   │  WYNIK  (odpowiedź + trace)      │
 ├──────────────────────────────────┴──────────────────────────────────┤
-│ ● Gotowe · 4 stany · 1 stan początkowy · Czas: 12 ms                │
-└─────────────────────────────────────────────────────────────────────┘
+│ ● Status · |Σ|, |Σ₀| · czas obliczenia · błędy walidacji              │
+└──────────────────────────────────────────────────────────────────────┘
 ```
 
-### 6.2. Komponenty UI
+**Edytor dziedziny (lewa).** Pole tekstowe na opis dziedziny.
 
-**Lewa strona (Dziedzina):**
-- Edytor tekstowy z prostą podświetlaniem słów kluczowych (causes, releases, impossible, always, noninertial, initially, fluent, action) — kolor pomarańczowy
-- Numerowanie linii
-- Auto-walidacja w tle: po 500 ms od ostatniej zmiany wywołuje `api.validate_domain()` i podkreśla błędne linie na czerwono
-- W stopce mini-info: "5 fluentów, 2 akcje, 6 zdań"
+**Edytor kwerendy + Oblicz (prawa góra).** Pole na pojedynczą kwerendę i przycisk uruchamiający `solve()`.
 
-**Prawa góra (Kwerenda):**
-- Mniejszy edytor jednoliniowy/wieloliniowy
-- Dropdown z szablonami: "necessary executable...", "possibly ... after ...", itd.
-- Przycisk **Oblicz** (główna akcja, niebieski/zielony)
-- Skrót klawiszowy **Ctrl+Enter** = Oblicz
+**Panel wyniku (prawa dół).** Odpowiedź TAK/NIE/błąd, liczbowe podsumowanie (`|Σ|`, `|Σ₀|`), trace procesu krok po kroku z oznaczeniem stanów, w których akcja złożona jest niewykonalna i krótkim uzasadnieniem; dla Q2 dodatkowo stany końcowe spełniające `γ`.
 
-**Prawa dół (Wynik):**
-- Górna sekcja "Odpowiedź" — wielką literą TAK/NIE z ikoną ✓/✗
-- Sekcja "Stany" — `Σ` i `Σ₀` jako liczby + rozwijana lista (treeview)
-- Sekcja "Trace" — accordion z każdym krokiem procesu:
-  - rozwijalna sekcja per krok
-  - wejście (zbiór stanów) → akcja → wyjście (zbiór stanów)
-  - jeśli `Res = ∅` → czerwona ikonka i komentarz dlaczego (rozłączność / impossible / niespełniony warunek)
-- Sekcja "Cel" (tylko Q2) — które stany końcowe spełniają γ
+**Menu *Przykłady*.** Wbudowane przykłady — jedno kliknięcie wypełnia oba edytory. Te same wejścia są oracle'em w testach e2e (C3, C5).
 
-**Pasek statusu:**
-- Status (Gotowe / Obliczam / Błąd)
-- Liczba stanów / czas obliczeń
-- Kropka zielona/czerwona
+## 4. Proponowany podział obszarów odpowiedzialności
 
-### 6.3. Pasek menu
+### O1. Model i formuły (action language: dane)
 
-| Menu | Akcje |
-|------|-------|
-| **Plik** | Nowy · Otwórz dziedzinę... · Zapisz dziedzinę... · Eksportuj wynik (TXT/JSON) · Wyjście |
-| **Przykłady** | System przełączników · Yale Shooting · Rosyjska ruletka · (więcej...) |
-| **Pomoc** | Składnia języka akcji · Składnia kwerend · O programie |
+**Co robi:** definiuje wszystkie typy danych domeny i logikę formuł zdaniowych. Wejście: nic (fundament). Wyjście: importowalne klasy + funkcje na formułach.
 
-**Ważne:** "Przykłady" to killer-feature na demo — klik i prowadząca widzi wszystko skonfigurowane.
+**Założenia:**
+- Niezależny od parserów i od dynamiki — to czysta warstwa danych.
+- AST pokrywa zdania PK2 §3.2 po desugaringu (`impossible`, `initially` znikają, reszta zostaje).
+- `Domain` eksponuje pochodne potrzebne dalej, m.in. zbiór fluentów inercyjnych $\mathcal{F}_I$ (z `noninertial`) — używany przez O2 w `New`.
+- Formuły: AST + ewaluacja na stanie + **DNF** (PK2 §5.2 i §8.0) — wymagany przez O3 do wykrywania konfliktów.
 
-### 6.4. Flow użytkownika (happy path)
+**TODO:**
+- `Fluent`, `Action`, `State`, `Domain`, `Statement` (warianty wg decyzji O1, zgodnie z punktem 3 z §2).
+- AST formuł, ewaluacja na stanie, konwersja do DNF.
 
-1. Otwiera aplikację → puste pola, status "Gotowe"
-2. **Przykłady → System przełączników** → lewy panel wypełnia się dziedziną, prawy gornie pierwszą kwerendą
-3. Klika **Oblicz** (lub Ctrl+Enter)
-4. Wynik pojawia się w panelu prawym dolnym w <100 ms
-5. Może przewinąć trace, rozwinąć kroki, zmienić kwerendę i odpalić ponownie
+**Łączy się z:** O2 (eksportuje typy), O3 (eksportuje typy + ewaluację), O4 (parser produkuje `Domain`), O5 (facade konsumuje `Domain` i `State`).
 
-### 6.5. Flow błędu
+### O2. Dynamika akcji prostej (action language: semantyka)
 
-1. Wpisuje błędną dziedzinę: `Tx causes alive if loaded` (akcja `Tx` nie zadeklarowana)
-2. Walidacja w tle podkreśla linię na czerwono, w stopce: "❌ 1 błąd"
-3. Klika Oblicz mimo to → panel wyniku pokazuje czerwoną ramkę z opisem: "Akcja 'Tx' nie jest zadeklarowana w dziedzinie (linia 7)"
-4. Poprawia → status wraca na zielony
+**Co robi:** dostarcza całą „fizykę" dziedziny dla pojedynczej akcji oraz buduje model na poziomie akcji prostych. Wejście: `Domain` z O1. Wyjście: `Σ`, `Σ₀` oraz `res(action, state) → set[State]`.
 
-### 6.6. Estetyka
+**Założenia:**
+- Operuje wyłącznie na akcjach prostych — akcje złożone i procesy są poza tym obszarem (O3).
+- Σ, Σ₀ i `res` zgodne z definicjami z PK2 §4 (łącznie z minimalizacją `New` przy fluentach inercyjnych $\mathcal{F}_I$ z O1, niedeterminizmem i priorytetem `impossible`); reszta systemu widzi tylko `set[State]`.
+- **Σ₀ należy do O2.** Filtracja Σ₀ przez `initially`, `after` i `observable after` (PK2 §4.2, §8.3) wymaga odwrotnego stosowania `res` dla akcji prostych — czyli rzeczy, które już są w O2. O3 tej filtracji nie dotyka.
+- Ramifikacje (Z6) z `always` są realizowane wyłącznie przez ograniczenie kandydatów w `res₀` do Σ — nie ma osobnego mechanizmu „indirect effects".
 
-**Tkinter (stdlib):**
-- Motyw `ttk` `clam` lub `vista` (na Windows `vista` wygląda OK)
-- Czcionka kodowa: **Cascadia Mono / Consolas** dla edytorów, **Segoe UI** dla labelek
-- Jasny motyw z jednym kolorem akcentowym (#2563eb — niebieski) dla przycisku Oblicz i podświetleń
-- Dark mode opcjonalny (jeden checkbox w Pomoc)
+**TODO:**
+- Generacja Σ z `always`; generacja Σ₀ z `initially` + `after` + `observable after`.
+- `res₀`, `new`, `res` dla akcji prostej.
 
-**Jeśli CustomTkinter** — to samo, ale automatyczny dark/light + zaokrąglone rogi.
+**Łączy się z:** O1 (typy + ewaluacja formuł), O3 (eksportuje `res`, `Σ`, `Σ₀`), O5 (facade konsumuje `Σ`, `Σ₀` w wyniku).
 
-## 7. Dlaczego ta architektura wspiera webową wersję
+### O3. Query language — akcje złożone, procesy, kwerendy
 
-Web wariant (PK4 lub demo bonusowe) wymaga **tylko**:
+**Co robi:** odpowiada na kwerendy. Wejście: `Domain`, `Σ₀` i sparsowana kwerenda. Wyjście: bool + trace strukturyzowany dla GUI.
 
-1. Plik `web/server.py` (~30 linii Flask):
-   ```python
-   from flask import Flask, request, jsonify
-   from ds4 import api
-   
-   app = Flask(__name__, static_folder="static", static_url_path="")
-   
-   @app.post("/api/solve")
-   def solve():
-       data = request.json
-       result = api.solve(data["domain"], data["query"])
-       return jsonify(result)
-   
-   @app.get("/api/examples")
-   def examples():
-       return jsonify(api.list_examples())
-   
-   @app.get("/")
-   def index():
-       return app.send_static_file("index.html")
-   ```
+**Założenia:**
+- Korzysta z `res` z O2, typów z O1 oraz **DNF z O1** (do wykrywania konfliktów wg PK2 §5.2). Sam nie buduje Σ ani Σ₀.
+- Akcje złożone, dekompozycje i `res(A,σ)` zgodnie z PK2 §5 (mechanizm AC: graf konfliktu + dekompozycje). Uwaga: warunek „rozłącznych fluentów" z treści projektu jest *słabszy* — nie wystarczy do PK4. Implementujemy AC.
+- Semantyka kwantyfikatorów wg PK2 §7.3: `necessary` = ∀σ₀ ∀Ψ; `possibly` = ∃σ₀ ∃Ψ. Q1 patrzy na wykonalność procesu, Q2 dodatkowo na cel `γ`; `necessary γ after P` implikuje `necessary executable P`.
+- Ewaluacja procesu jest **drzewem** (PK2 §8.7), nie zbiorem stanów osiągalnych — inaczej `necessary executable` policzy się błędnie. Trace ma kształt drzewa zakorzenionego w każdym σ₀ ∈ Σ₀, z gałęziami dla niedeterminizmu `Res` i z polem „powód niewykonalności" w węzłach blokowanych. Konkretny kształt — decyzja O3 z O5/O7.
 
-2. `static/index.html` + `app.js` z fetch `/api/solve` — to samo UX co w Tkinterze, tylko jako strona
+**TODO:**
+- Akcje złożone wg PK2 §5 (konflikty, dekompozycje, `res` przez sumę po dekompozycjach).
+- Procesy: iteracja `Ψ`, drzewo wykonania, agregacja stanów + trace.
+- Q1, Q2 × {necessary, possibly} jako cztery funkcje ewaluujące drzewo + `γ`.
 
-3. `pip install flask` i `python main_web.py` → `localhost:5000`
+**Łączy się z:** O1 (typy), O2 (`res`, `Σ`, `Σ₀`), O4 (dostaje sparsowaną kwerendę), O5 (zwraca trace + odpowiedź).
 
-**Nic w `ds4/` się nie zmienia.** To dosłownie dwa nowe pliki + opcjonalny endpoint. Dlatego facade `api.py` zwracający czyste `dict`-y jest tak ważny — to jest punkt rozdziału desktop/web.
+### O4. Parser — text → AST
 
-## 8. Decyzje techniczne — co wybieramy
+**Co robi:** tłumaczy tekst dziedziny i tekst kwerendy na typy z O1/O3. Wejście: stringi. Wyjście: `Domain`, `Query`, lub strukturalny błąd.
 
-| Wybór | Decyzja | Dlaczego |
-|-------|---------|----------|
-| Język | Python 3.11+ | dataclasses, lepsze typing, match-case dla parsera |
-| GUI primary | **Tkinter (stdlib)** | 0 zależności, najprostsze pakowanie, fallback bezpieczny |
-| GUI alternatywa | CustomTkinter | jeśli wystarczy czasu pod koniec — drop-in replacement |
-| Parser | ręczny rekurencyjny zstępujący | brak zależności (ANTLR/Lark to dodatkowe paczki); składnia jest prosta |
-| Pakowanie | PyInstaller `--onefile --windowed` | jeden `.exe`, brak instalacji u użytkownika |
-| Testy | pytest | standard de facto |
-| Web (secondary) | Flask + vanilla JS | minimalne zależności; React niepotrzebny dla jednego formularza |
-| Stan w GUI | trzymany w jednym dict-cie sesji | łatwy do serializacji (zapis/odczyt) |
+**Założenia:**
+- Dwa osobne parsery: `domain_parser` (8 typów zdań z PK2 §3.2) i `query_parser` (akcje złożone, procesy, Q1/Q2 × {necessary, possibly}).
+- Desugaring `impossible` i `initially` (patrz §2 zasada 3) — w jednym miejscu w parserze.
+- Produkuje **typowane** AST: identyfikatory są windowane do `Fluent`/`Action` z O1 na podstawie pozycji składniowej (akcje pojawiają się tylko w pozycji akcji, fluenty tylko w formułach — brak konfliktu nazw). O5 nie powtarza tej pracy. Błędy: `kind="syntax"` + `Location` (linia, kolumna).
 
-## 9. Plan dzienny (07.05–11.05) — z przypisaniem osób
+**TODO:**
+- Lexer z lokalizacją tokenów.
+- `domain_parser` produkujący `Domain` z O1.
+- `query_parser` produkujący `Query` zgodny z oczekiwaniem O3.
 
-### Czw 07.05 — Fundament
+**Łączy się z:** O1 (produkuje typy), O3 (produkuje `Query`), O5 (wywoływany z `solve` / `validate_domain`), O7 (przez format błędu).
 
-| Osoba | Task | Deliverable |
-|-------|------|-------------|
-| P4 | `ds4/engine/model.py` (klasy danych) | importowalne klasy + 1 ręcznie złożona `Domain` w teście |
-| P2 | `ds4/engine/formula.py` (parser formuł, evaluate) | `evaluate("a and not b", {a:1,b:0}) == True` |
-| P4 | `ds4/engine/states.py` | `generate_sigma` na przykładzie przełączników → 4 stany |
-| P1 | repo + `pyproject.toml` + szkielet `ds4/api.py` (stuby) | `pip install -e .` działa |
-| P7 | szkielet `gui/app.py` (puste okno z layoutem) | uruchamia się, wyświetla 3 panele |
+### O5. Facade i testy e2e
 
-### Pią 08.05 — Akcje proste
+**Co robi:** definiuje publiczny kontrakt API i jest jedynym punktem styku frontendu z resztą. Wejście: stringi. Wyjście: JSON-able dict (`SolveResult`, `ValidationResult` itp.).
 
-| Osoba | Task |
-|-------|------|
-| P4 | `transitions.py`: Res₀, New, Res + minimalizacja |
-| P4 | testy: YSP, Russian Turkey (Spin), system przełączników |
-| P3 | szkic `examples/*.txt` z oczekiwanymi odpowiedziami |
-| P7 | edytor + podświetlanie składni w `gui/widgets.py` |
-| P6 | `parser/lexer.py` |
+**Założenia:**
+- Facade orkiestruje O4 → O1/O2 → O3 i pakuje wynik w JSON-serializowalny `dict` (nie wycieka typami z core'a).
+- Testy e2e idą wyłącznie przez facade. Każdy przykład × każda kwerenda z O6 = jeden test.
+- Kształt zwracanych dict-ów żyje w `ds4/api.py` (`SolveResult`, `Step`, `Branch`, `Error`, …). `SolveResult` musi unieść (a) odpowiedź TAK/NIE, (b) trace z O3, (c) dla Q2 — stany końcowe spełniające `γ`, (d) podsumowanie ($|\Sigma|$, $|\Sigma_0|$, czas) dla paska statusu w O7.
+- Walidacja semantyczna na poziomie modelu (`kind="semantic"`): pusta Σ (sprzeczne `always`), pusta Σ₀ (sprzeczne `initially` / `after` / `observable after`). `solve()` zatrzymuje się przed ewaluacją jeśli model jest pusty.
 
-### Sob 09.05 — Złożone + procesy + kwerendy
+**TODO:**
+- Implementacja `solve`, `validate_domain`, `list_examples`, `load_example` (te dwa ostatnie czytają z O6).
+- Testy e2e konsumujące pliki + odpowiedzi z O6 i jadące przez facade.
 
-| Osoba | Task |
-|-------|------|
-| P5 | `compound.py` (rozłączność, Res złożonej) |
-| P5 | `process.py` (Ψ z trace) |
-| P3 | `queries.py` (4 typy kwerend) |
-| P6 | `parser/domain_parser.py` |
-| P7 | trace viewer (accordion z krokami) |
+**Łączy się z:** O4 + O1/O2 + O3 (wywołuje), O6 (konsumuje przykłady i oczekiwane odpowiedzi), O7 (jedyny kontrakt dla GUI).
 
-### Nie 10.05 — Integracja
+### O6. Oracle przykładów (ground truth)
 
-| Osoba | Task |
-|-------|------|
-| P1 | wypełnia `ds4/api.py` faktyczną logiką `solve()` |
-| P6 | `parser/query_parser.py` |
-| P7 | podpina GUI do `api.solve()`, format wyniku |
-| P2/P3 | `examples/` finalne, każdy przykład z 2–3 kwerendami |
-| wszyscy | end-to-end manual test każdego przykładu z GUI |
+**Co robi:** dostarcza wbudowane przykłady i ich poprawne odpowiedzi — jednocześnie zawartość menu *Przykłady* w GUI i oracle dla testów e2e (C3, C5).
 
-### Pon 11.05 — Pakowanie + demo
+**Założenia:**
+- Wymaga starannego wyprowadzenia odpowiedzi z semantyki, nie kodowania.
+- Każdy przykład = plik z dziedziną + 2–3 kwerendy + dla każdej kwerendy: oczekiwana odpowiedź TAK/NIE i krótka notatka „skąd" (jakie σ₀, którędy idzie trace).
+- Łącznie przykłady mają pokrywać Z1, Z3, Z5, Z6, **Z7** (inercja, niedeterminizm, niewykonalność, ramifications, częściowy opis stanu początkowego — czyli `|Σ₀| > 1`) oraz wszystkie cztery formy kwerend (`Q1` i `Q2`, każda w wariancie `necessary` i `possibly`).
+- **Domyślny zestaw**: cztery przykłady wyprowadzone już w PK2 §10 (YSP z rosyjską ruletką, producent i konsumenci, dwa przełączniki, dwóch robotników) — odpowiedzi i trace są tam policzone, więc oracle praktycznie istnieje. Zestaw można rozszerzyć, ale nie ma powodu wymyślać od zera.
+- Format plików (struktura katalogu, nazewnictwo, sposób trzymania oczekiwanych odpowiedzi) ustalany wspólnie z O5.
 
-| Osoba | Task |
-|-------|------|
-| P1 | sanity check całości, scenariusz demo |
-| P7 | `pyinstaller --onefile --windowed`, test na czystym Windowsie |
-| P4/P5/P6 | bug fixes, polish |
-| P2/P3 | przygotowanie prezentacji (slajdy / co pokazujemy) |
+**Łączy się z:** O5 (oracle dla e2e + źródło dla `list_examples`/`load_example`), O7 (zawartość menu *Przykłady*).
 
-## 10. Ryzyka i kontrolki
+### O7. GUI
 
-| Ryzyko | Sygnał wczesny | Mitygacja |
-|--------|----------------|-----------|
-| Parser blokuje GUI | piątek wieczór, parser nie działa | GUI używa hardcoded `Domain` z `model.py` (P7 wpisze przykład wprost w kod). Demo bez parsera dalej możliwe |
-| `.exe` nie startuje na obcej maszynie | niedziela test | `--onedir` zamiast `--onefile`, `--collect-all`, sprawdzić logi w `dist/main/main.log` |
-| Brak Windows w zespole | znane od razu | GitHub Actions `windows-latest` buduje `.exe`, pobierany z artifacts |
-| Złożoność `necessary` blokuje | sobota | implementacja przez śledzenie zbiorów `reachable[k]` i sprawdzanie czy każdy stan ma `Res ≠ ∅` — wystarcza dla 50% |
-| Konflikt `release` + minimalizacja | testy nie przechodzą | unit testy z cheatsheet (rosyjska ruletka) jako benchmark; jeśli wynik się różni → bug |
+**Co robi:** desktopowa aplikacja Tkinter — jedyny frontend dostarczany w PK3. Wejście: facade z O5. Wyjście: użyteczny program.
 
-## 11. Definicja "Gotowe" dla PK3
+**Założenia:**
+- Zero importów z `ds4.engine` / `ds4.parser` — GUI zna tylko facade.
+- Renderuje `SolveResult` i błędy wprost ze struktury dict-a; cała logika decyzyjna („akcja niewykonalna w σ₃ bo X") pochodzi z O3 i jest tylko wyświetlana.
+- Menu *Przykłady* zasilane przez `facade.list_examples()` / `load_example()` (które pod spodem czytają O6).
 
-Aplikacja przeszła próbę:
+**TODO:**
+- Layout głównego okna z trzema strefami i paskiem statusu.
+- Renderer `SolveResult` (odpowiedź, podsumowanie, trace per-krok, dla Q2 stany spełniające γ).
+- Renderer błędów z lokalizacją (linia/kolumna) z O4.
+- Podpięcie menu *Przykłady* do facade.
 
-1. ☐ `dist/DS4Reasoner.exe` istnieje i jest <50 MB
-2. ☐ Kopiowany na czysty Windows odpala się dwuklikiem
-3. ☐ Menu **Przykłady → System przełączników** wypełnia oba edytory
-4. ☐ Klik **Oblicz** zwraca poprawny wynik w <500 ms
-5. ☐ Trace pokazuje krok po kroku stany pośrednie
-6. ☐ Wszystkie 3 przykłady (switches, YSP, Russian Turkey) działają end-to-end z minimum 2 kwerendami każdy
-7. ☐ Błędna składnia → komunikat błędu, nie crash
-8. ☐ Pytest: ≥30 testów jednostkowych zielone
-9. ☐ README w `checkpoint3/` opisuje jak uruchomić, jak zbudować `.exe`
+**Łączy się z:** O5 (jedyny kontrakt).
+
+### O8. Pakowanie + Windows-build
+
+**Co robi:** zamienia źródło Pythona w pojedynczy `.exe` uruchamialny dwuklikiem na czystym Windowsie (C2). Wejście: drzewo źródeł. Wyjście: artefakt dystrybucji + dowód, że działa.
+
+**Założenia:**
+- Pierwszy artefakt: „pusty exe z zaślepką GUI" działający na czystym Windowsie — weryfikacja toolchainu przed finałowym pakowaniem.
+
+**TODO:**
+- Konfiguracja PyInstallera (entry point, ikona, ścieżki danych jeśli będą).
+- Pierwszy `hello.exe` ze szkieletem z O7 — smoke-test toolchainu.
+- Finalny build + test na czystym Windowsie.
+
+**Łączy się z:** O7 (pakuje jego output), O5 (pakuje pakiet `ds4`), reszta — pośrednio.
+
+## 5. Otwarte kwestie / do uzgodnienia
+
+Drobiazgi, które trzeba rozstrzygnąć, ale nie blokują startu prac. Każdy punkt wymaga 15-minutowej decyzji właścicieli wymienionych w nawiasie.
+
+- **Kształt `trace` i `Query` AST** (O3 + O4 + O5 + O7). Trace musi być drzewem (patrz O3) i unieść świadków γ dla Q2; konkretne pola węzła i shape `Query` — domówić zanim O3 i O7 napiszą cokolwiek niezmiennikowego.
+- **`SolveResult` — pola statusu** (O5 + O7). `|Σ|`, `|Σ₀|`, czas obliczenia, świadki γ — albo wchodzą do `SolveResult`, albo znikają z UX. Wybrać.
+- **Zachowanie `solve()` przy pustym modelu** (O5 + O7). Kiedy Σ = ∅ lub Σ₀ = ∅: błąd `kind="semantic"` z komunikatem, czy odpowiedź vacuous-true/false dla każdej kwerendy? Pinujemy konwencję, GUI ją renderuje.
+- **Format plików przykładów** (O6 + O5 + O8). `pyproject.toml` zakłada `*.txt` w `ds4/examples` + odpowiedzi po stronie Pythona — uzgodnić układ pliku (jeden plik na przykład vs katalog) i jak są w nim trzymane kwerendy + oczekiwane odpowiedzi.
+- **GUI a wiele kwerend per przykład** (O7 + O6). Po `load_example` przykład ma 2–3 kwerendy; menu pokazuje listę wyboru, dropdown czy podmenu — drobny UX, ale O7 musi wiedzieć.
+
