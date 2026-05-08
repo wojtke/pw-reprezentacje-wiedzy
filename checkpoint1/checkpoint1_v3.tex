@@ -1,0 +1,498 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[polish]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage[hypertexnames=false]{hyperref}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\setlength{\parindent}{0pt}
+
+\newcommand{\coursename}{Reprezentacja Wiedzy}
+\newcommand{\projecttitle}{Procesy działań złożonych\\[0.3em]
+  \Large Punkt kontrolny 1}
+\newcommand{\projectdate}{Warszawa, 26 marca 2026}
+
+\newcommand{\causes}{\textbf{causes}}
+\newcommand{\aft}{\textbf{after}}
+\renewcommand{\iff}{\textbf{if}}
+\newcommand{\initially}{\textbf{initially}}
+\newcommand{\always}{\textbf{always}}
+\newcommand{\impossible}{\textbf{impossible}}
+\newcommand{\releases}{\textbf{releases}}
+\newcommand{\noninertial}{\textbf{noninertial}}
+\newcommand{\observable}{\textbf{observable}}
+\newcommand{\necessary}{\textbf{necessary}}
+\newcommand{\possibly}{\textbf{possibly}}
+\newcommand{\executable}{\textbf{executable}}
+\newcommand{\DNF}{\mathrm{DNF}}
+
+\begin{document}
+\sloppy
+
+\begin{titlepage}
+    \centering
+
+    \includegraphics[width=0.8\textwidth]{politechnika.png}\par
+    \vspace{2.5cm}
+
+    {\Large \coursename\par}
+    \vspace{1.2cm}
+
+    {\Huge \bfseries \projecttitle \par}
+    \vspace{2cm}
+
+    {\Large Zespół projektowy nr~4:\par}
+    \vspace{0.5cm}
+    {\large
+        Wojciech Jasiński (koordynator)\\[0.2em]
+        Krzysztof Gryboś\\[0.2em]
+        Jarosław Bieniek\\[0.2em]
+        Filip Filipkowski\\[0.2em]
+        Sebastian Rydz\\[0.2em]
+        Jakub Pietrzak\\[0.2em]
+        Sandra Adamiec\par
+    }
+
+    \vfill
+
+    {\large \projectdate\par}
+\end{titlepage}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Cel projektu}
+
+Zadanie polega na zaprojektowaniu dwóch formalnych języków dla klasy~$\mathit{DS4}$
+systemów dynamicznych:
+\begin{itemize}
+  \item \emph{języka akcji} --- służącego do opisu dziedziny (fluenty, akcje,
+        ich skutki, ograniczenia),
+  \item \emph{języka kwerend} --- pozwalającego zadawać pytania o~wykonywalność
+        procesów i~osiągalność celów.
+\end{itemize}
+
+Klasa $\mathit{DS4}$ łączy cechy kilku języków akcji znanych z~wykładów.
+Mechanizmy inercji, niedeterminizmu, ramifikacji i~niewykonalności
+pochodzą z~języka~$AR$ (wykład~2). Obsługę akcji złożonych projektujemy
+w~oparciu o~język~$AC$ (wykład~5) --- adaptujemy mechanizm detekcji
+konfliktów i~dekompozycji do~warunków~$\mathit{DS4}$,
+w~których opisy dziedzin zawierają wyłącznie akcje proste.
+
+% ══════════════════════════════════════════════════════════════════
+\section{Język akcji}
+
+\begin{table}[h]
+\begin{tabular*}{\textwidth}{@{}l@{\hspace{1.5em}}p{\dimexpr\textwidth-5cm\relax}@{\extracolsep{\fill}}@{}}
+\toprule
+\textbf{Zdanie} & \textbf{Co oznacza} \\
+\midrule
+$A$ \causes{} $\alpha$ \iff{} $\pi$
+  & Akcja $A$ powoduje efekt~$\alpha$, o~ile zachodzi warunek~$\pi$. \\
+$A$ \releases{} $f$ \iff{} $\pi$
+  & Akcja $A$ ,,zwalnia'' fluent~$f$ --- może, ale nie musi się zmienić
+    (niedeterminizm). \\
+\impossible{} $A$ \iff{} $\pi$
+  & Akcja $A$ jest niewykonalna, gdy zachodzi~$\pi$. \\
+\always{} $\alpha$
+  & Formuła $\alpha$ musi być prawdziwa w~każdym stanie (ograniczenie). \\
+\noninertial{} $f$
+  & Fluent $f$ nie podlega inercji --- może się zmieniać jako skutek uboczny. \\
+\initially{} $\alpha$
+  & Na początku zachodzi~$\alpha$. \\
+$\alpha$ \aft{} $A_1, \ldots, A_n$
+  & Po wykonaniu ciągu akcji na pewno zachodzi~$\alpha$. \\
+\observable{} $\alpha$ \aft{} $A_1, \ldots, A_n$
+  & Po wykonaniu ciągu akcji może zachodzić~$\alpha$. \\
+\bottomrule
+\end{tabular*}
+\end{table}
+
+Wszystkie powyższe zdania dotyczą wyłącznie akcji prostych $A \in \mathcal{A}$.
+Akcje złożone pojawiają się dopiero w~języku kwerend (w~procesach).
+
+% ══════════════════════════════════════════════════════════════════
+\section{Semantyka}
+
+\subsection*{Stany}
+
+Stan to przypisanie wartości prawda/fałsz każdemu fluentowi.
+Nie każdy stan jest dopuszczalny --- odrzucamy te, które łamią
+ograniczenia \always{}.
+Na początku bierzemy stany dopuszczalne spełniające zdania \initially{}
+i~obserwacje --- to zbiór stanów początkowych~$\Sigma_0$
+(może ich być wiele, jeśli opis jest częściowy).
+
+\subsection*{Wykonanie akcji prostej}
+
+Żeby obliczyć, co się dzieje po wykonaniu akcji~$A$ w~stanie~$\sigma$:
+\begin{enumerate}
+  \item Sprawdzamy, czy $A$ nie jest niewykonalna
+        (czy nie ma aktywnego \impossible{}).
+  \item Zbieramy efekty --- patrzymy, które zdania \causes{} mają spełniony
+        warunek wstępny w~$\sigma$, i~łączymy ich efekty.
+  \item Szukamy stanów dopuszczalnych, w~których te efekty zachodzą.
+  \item Spośród nich wybieramy te, które zmieniły się \emph{jak najmniej}
+        w~porównaniu do~$\sigma$ (inercja). Fluenty \noninertial{} nie liczą się
+        przy tym porównaniu --- mogą się zmieniać ,,za darmo''.
+\end{enumerate}
+Wynikiem może być kilka stanów (niedeterminizm z~\releases{}),
+jeden stan, albo żaden (niewykonalność).
+
+\subsection*{Konflikty między akcjami}
+
+Pojęcie konfliktu adaptujemy z~języka~$AC$ (wykład~5).
+Przez $\DNF(\alpha)$ oznaczamy dysjunkcyjną postać normalną
+formuły~$\alpha$ (alternatywa koniunkcji literałów).
+
+\medskip
+Dwie akcje proste $A, B \in \mathcal{A}$ \emph{są w~konflikcie
+w~stanie~$\sigma$}, jeśli zachodzi co najmniej jeden z~warunków:
+
+\medskip
+\noindent\textbf{Przypadek~1} (\causes{} vs.\ \causes{}).
+Istnieją zdania $(A\ \causes\ \alpha\ \iff\ \pi)$ i~$(B\ \causes\ \beta\ \iff\ \psi)$
+takie, że $\sigma \models \pi \land \psi$ oraz pewien składnik
+$\DNF(\alpha)$ zawiera literał komplementarny do~literału w~pewnym
+składniku $\DNF(\beta)$.
+
+\medskip
+\noindent\textbf{Przypadek~2} (\causes{} vs.\ \releases{}).
+Istnieją zdania $(A\ \causes\ \alpha\ \iff\ \pi)$ i~$(B\ \releases\ f\ \iff\ \psi)$
+(lub odwrotnie) takie, że $\sigma \models \pi \land \psi$ oraz
+$f$ lub~$\neg f$ występuje w~pewnym składniku $\DNF(\alpha)$.
+
+\medskip
+Intuicyjnie: dwie akcje kolidują, gdy mogą wymusić sprzeczne wartości
+tego samego fluenta --- albo bezpośrednio (Przypadek~1),
+albo jedna wymusza wartość, a~druga ją ,,zwalnia'' (Przypadek~2).
+
+\subsection*{Akcje złożone --- dekompozycja}
+
+Akcja złożona $\mathbb{A} = \{A_1, \ldots, A_k\} \subseteq \mathcal{A}$
+to zbiór akcji prostych wykonywanych równocześnie.
+Jeśli pewne składowe kolidują ze sobą, nie wykonujemy wszystkich naraz ---
+zamiast tego szukamy \emph{maksymalnych} podzbiorów,
+które można bezpiecznie uruchomić razem.
+Mechanizm ten adaptujemy z~$AC$ (wykład~5).
+
+\medskip
+\noindent\textbf{Definicja.}
+Podzbiór $S \subseteq \mathbb{A}$ jest \emph{dekompozycją}
+akcji złożonej~$\mathbb{A}$ w~stanie~$\sigma$, gdy:
+\begin{enumerate}
+  \item[\textbf{(D1)}] Każda akcja $A_i \in S$ jest indywidualnie wykonalna
+        w~$\sigma$ (brak aktywnego \impossible{}).
+  \item[\textbf{(D2)}] Żadne dwie różne akcje $A_i, A_j \in S$ nie są
+        w~konflikcie w~$\sigma$.
+  \item[\textbf{(D3)}] $S$ jest \emph{maksymalny} --- nie da się dołożyć żadnej
+        akcji z~$\mathbb{A} \setminus S$ bez naruszenia (D1) lub (D2).
+\end{enumerate}
+
+Dekompozycji może być kilka --- oznaczamy je
+$\Delta_1(\mathbb{A}, \sigma), \ldots, \Delta_n(\mathbb{A}, \sigma)$.
+Istnienie wielu dekompozycji jest nowym, niezależnym źródłem
+niedeterminizmu (obok \releases{}).
+
+\medskip
+Jeśli żadna akcja ze~składowych nie jest indywidualnie wykonalna,
+dekompozycja nie istnieje i~$\mathrm{Res}(\mathbb{A}, \sigma) = \varnothing$.
+Jeśli żadna para akcji nie koliduje, jedyna dekompozycja to
+$S = \mathbb{A}$ i~obliczamy wynik tak jak dla akcji prostej
+--- łącząc efekty wszystkich składowych.
+
+\medskip
+Ponieważ w~$\mathit{DS4}$ dziedzina opisuje tylko akcje proste,
+nie pojawia się mechanizm ,,ograniczonego dziedziczenia'' (restricted inheritance)
+z~pełnego~$AC$ --- efekty akcji prostych są zawsze dziedziczone w~całości.
+
+\subsection*{Stany wynikowe akcji złożonej}
+
+Dla każdej dekompozycji $\Delta_i$ wynik obliczamy osobno ---
+zbieramy aktywne efekty akcji z~$\Delta_i$, szukamy pasujących stanów
+dopuszczalnych i~stosujemy minimalizację (inercja), tak jak dla akcji prostej.
+Wynik końcowy to suma wyników ze~wszystkich dekompozycji:
+\[
+  \mathrm{Res}(\mathbb{A}, \sigma)
+    = \bigcup_{i=1}^{n} \mathrm{Res}(\Delta_i, \sigma).
+\]
+
+\subsection*{Procesy}
+
+Proces $P = (\mathbb{A}_1, \ldots, \mathbb{A}_n)$ to ciąg akcji złożonych
+wykonywanych jedna po drugiej.
+Zbiór stanów osiągalnych po wykonaniu procesu $P$ ze~stanu~$\sigma$
+definiujemy rekurencyjnie:
+\[
+  \Psi(\varepsilon,\,\sigma) = \{\sigma\},
+  \qquad
+  \Psi((\mathbb{A}_1,\ldots,\mathbb{A}_k),\,\sigma)
+    = \bigcup_{\sigma' \in \Psi((\mathbb{A}_1,\ldots,\mathbb{A}_{k-1}),\,\sigma)}
+      \mathrm{Res}(\mathbb{A}_k,\,\sigma').
+\]
+Na każdym kroku rozpatrujemy wszystkie stany z~poprzedniego kroku
+i~zbieramy wyniki ze~wszystkich ścieżek.
+
+% ══════════════════════════════════════════════════════════════════
+\section{Język kwerend}
+
+Język kwerend pozwala zadawać dwa rodzaje pytań o~procesy:
+
+\begin{itemize}
+  \item \textbf{Czy proces jest wykonywalny?}
+    \begin{itemize}
+      \item $\necessary$ $\executable$ $P$ --- ,,Czy $P$ zawsze da się wykonać,
+        niezależnie od~stanu początkowego i~niedeterminizmu?''
+      \item $\possibly$ $\executable$ $P$ --- ,,Czy istnieje choć jedna ścieżka,
+        na której cały $P$ da się wykonać?''
+    \end{itemize}
+
+  \item \textbf{Czy po procesie osiągamy cel?}
+    \begin{itemize}
+      \item $\necessary$ $\gamma$ $\aft$ $P$ --- ,,Czy $\gamma$ zachodzi \emph{zawsze}
+        po wykonaniu $P$?''
+      \item $\possibly$ $\gamma$ $\aft$ $P$ --- ,,Czy \emph{istnieje} ścieżka
+        wykonania $P$, po~której zachodzi~$\gamma$?''
+    \end{itemize}
+\end{itemize}
+
+\necessary{} oznacza ,,dla każdego możliwego przebiegu'',
+a~\possibly{} --- ,,istnieje taki przebieg''.
+
+% ══════════════════════════════════════════════════════════════════
+\section{Przykłady}
+
+% ──────────────────────────────────────────────────────────────────
+\subsection{YSP z~rosyjską ruletką}
+
+\noindent Scenariusz oparty na rosyjskim indyku (wykład~2), ilustrujący
+niedeterminizm (\releases{}), niewykonalność (\impossible{})
+i~częściowy opis stanu początkowego.
+
+\medskip
+\noindent\textbf{Sygnatura:}
+$\mathcal{F} = \{\mathit{loaded},\, \mathit{alive}\}$, \quad
+$\mathcal{A} = \{\mathit{Load},\, \mathit{Shoot},\, \mathit{Spin}\}$.
+
+\medskip
+\noindent\textbf{Dziedzina~$D$:}
+\begin{align*}
+  &\initially\ \mathit{alive}
+    && \text{(stan broni nieznany --- opis częściowy)} \\
+  &\mathit{Load}\ \causes\ \mathit{loaded}
+    && \\
+  &\impossible\ \mathit{Load}\ \iff\ \mathit{loaded}
+    && \text{(nie można ładować naładowanej)} \\
+  &\mathit{Shoot}\ \causes\ \neg\mathit{loaded}
+    && \\
+  &\mathit{Shoot}\ \causes\ \neg\mathit{alive}\ \iff\ \mathit{loaded}
+    && \\
+  &\mathit{Spin}\ \releases\ \mathit{loaded}
+    && \text{(kręcenie bębenkiem --- niedeterminizm)}
+\end{align*}
+
+\noindent\textbf{Stany dopuszczalne}
+(brak \always{}, wszystkie 4 stany dopuszczalne):
+\[
+  \sigma_0 = \{\mathit{loaded},\,\mathit{alive}\}, \quad
+  \sigma_1 = \{\mathit{loaded},\,\neg\mathit{alive}\}, \quad
+  \sigma_2 = \{\neg\mathit{loaded},\,\mathit{alive}\}, \quad
+  \sigma_3 = \{\neg\mathit{loaded},\,\neg\mathit{alive}\}
+\]
+$\Sigma_0 = \{\sigma_0,\, \sigma_2\}$ --- dwa możliwe stany początkowe,
+bo~$\mathit{loaded}$ nie jest opisane w~zdaniu \initially{}.
+
+\medskip
+\noindent\textbf{Proces $P = (\{\mathit{Load}\},\, \{\mathit{Spin}\},\, \{\mathit{Shoot}\})$.}
+
+\smallskip
+Z~$\sigma_0$: $\mathit{Load}$ jest \emph{niewykonalne}
+(bo $\sigma_0 \models \mathit{loaded}$, a~\impossible{} $\mathit{Load}$~\iff{}~$\mathit{loaded}$).
+Proces nie może startować z~$\sigma_0$.
+
+\newpage\noindent
+Z~$\sigma_2$:
+\begin{enumerate}
+  \item $\mathit{Load}$ w~$\sigma_2$: efekt $\mathit{loaded}$
+        $\Rightarrow \sigma_0 = \{\mathit{loaded},\,\mathit{alive}\}$.
+  \item $\mathit{Spin}$ w~$\sigma_0$: fluent $\mathit{loaded}$ jest zwolniony
+        (\releases{}).
+        Oba stany $\sigma_0$ i~$\sigma_2$ zmieniają się minimalnie,
+        więc $\mathrm{Res}(\mathit{Spin}, \sigma_0) = \{\sigma_0,\, \sigma_2\}$
+        (niedeterminizm).
+  \item $\mathit{Shoot}$ po każdej gałęzi:
+    \begin{itemize}
+      \item ze~$\sigma_0$ (broń naładowana):
+            efekty $\neg\mathit{loaded} \land \neg\mathit{alive}$
+            $\Rightarrow \sigma_3$.
+      \item ze~$\sigma_2$ (broń pusta):
+            efekt $\neg\mathit{loaded}$ już spełniony,
+            warunek \iff{} $\mathit{loaded}$ fałszywy
+            $\Rightarrow$ efekt pusty, $\sigma_2$ bez zmian.
+    \end{itemize}
+\end{enumerate}
+
+Stany końcowe: $\{\sigma_2,\, \sigma_3\}$.
+
+\medskip
+\noindent\textbf{Kwerendy:}
+\begin{itemize}
+  \item $\necessary\ \executable\ P$~---
+    z~$\sigma_0 \in \Sigma_0$ pierwszy krok jest niewykonalny.
+    \textbf{NIE}.
+
+  \item $\possibly\ \executable\ P$~---
+    z~$\sigma_2$ proces przechodzi wszystkie kroki.
+    \textbf{TAK}.
+
+  \item $\necessary\ \neg\mathit{alive}\ \aft\ P$~---
+    gałąź przez $\sigma_2$ (po $\mathit{Spin}$) kończy się w~$\sigma_2$
+    z~$\mathit{alive}$.
+    \textbf{NIE}.
+
+  \item $\possibly\ \neg\mathit{alive}\ \aft\ P$~---
+    gałąź przez $\sigma_0$ (po $\mathit{Spin}$) kończy się w~$\sigma_3$.
+    \textbf{TAK}.
+\end{itemize}
+
+% ──────────────────────────────────────────────────────────────────
+\subsection{Producent i~konsumenci}
+
+\noindent Scenariusz oparty na przykładzie~5.8 z~wykładu~5.
+W~odróżnieniu od~oryginału nie blokujemy sytuacji, w~której obaj
+konsumenci pobierają produkt jednocześnie --- w~$\mathit{DS4}$
+nie można wyrazić \impossible{} dla akcji złożonej.
+Daje to dodatkową dekompozycję i~dodatkowy niedeterminizm.
+
+Producent napełnia bufor, dwaj konsumenci A~i~B pobierają z~niego
+produkt i~zużywają go.
+
+\medskip
+\noindent\textbf{Sygnatura:}
+$\mathcal{F} = \{\mathit{empty},\, \mathit{hasA},\, \mathit{hasB}\}$, \quad
+$\mathcal{A} = \{\mathit{Put},\, \mathit{GetA},\, \mathit{GetB},\,
+  \mathit{ConsumeA},\, \mathit{ConsumeB}\}$.
+
+\medskip
+\noindent\textbf{Dziedzina~$D$:}
+\begin{align*}
+  &\initially\ \neg\mathit{empty} \land \mathit{hasA} \land \mathit{hasB} \\
+  &\mathit{Put}\ \causes\ \neg\mathit{empty} \\
+  &\mathit{GetA}\ \causes\ \mathit{empty} \land \mathit{hasA}\ \iff\ \neg\mathit{empty} \\
+  &\mathit{GetB}\ \causes\ \mathit{empty} \land \mathit{hasB}\ \iff\ \neg\mathit{empty} \\
+  &\mathit{ConsumeA}\ \causes\ \neg\mathit{hasA}\ \iff\ \mathit{hasA} \\
+  &\mathit{ConsumeB}\ \causes\ \neg\mathit{hasB}\ \iff\ \mathit{hasB}
+\end{align*}
+
+Brak \always{} --- wszystkie $2^3 = 8$ stanów jest dopuszczalnych.
+Stan początkowy: $\Sigma_0 = \{\sigma\}$ gdzie
+$\sigma = \{\neg\mathit{empty},\, \mathit{hasA},\, \mathit{hasB}\}$
+(bufor pełny, obaj konsumenci mają produkt).
+
+\medskip
+\noindent\textbf{Akcja złożona $\mathbb{A} = \{\mathit{Put}, \mathit{GetA}, \mathit{GetB},
+\mathit{ConsumeA}, \mathit{ConsumeB}\}$ w~$\sigma$.}
+
+\smallskip\noindent
+Konflikty w~$\sigma$ (oba warunki wstępne spełnione):
+\begin{itemize}
+  \item $\mathit{Put}$ vs.\ $\mathit{GetA}$:
+        $\mathit{Put}$ daje $\neg\mathit{empty}$,
+        $\mathit{GetA}$ daje $\mathit{empty} \land \mathit{hasA}$ ---
+        literały $\neg\mathit{empty}$ i~$\mathit{empty}$ są komplementarne.
+        \textbf{Konflikt} (Przypadek~1).
+  \item $\mathit{Put}$ vs.\ $\mathit{GetB}$: analogicznie. \textbf{Konflikt}.
+  \item $\mathit{GetA}$ vs.\ $\mathit{ConsumeA}$:
+        $\mathit{GetA}$ daje $\mathit{empty} \land \mathit{hasA}$,
+        $\mathit{ConsumeA}$ daje $\neg\mathit{hasA}$ ---
+        $\mathit{hasA}$ i~$\neg\mathit{hasA}$ komplementarne.
+        \textbf{Konflikt}.
+  \item $\mathit{GetB}$ vs.\ $\mathit{ConsumeB}$: analogicznie. \textbf{Konflikt}.
+  \item $\mathit{GetA}$ vs.\ $\mathit{GetB}$:
+        oba dają $\mathit{empty}$ (ten sam znak) i~różne fluenty $\mathit{hasA}$,
+        $\mathit{hasB}$ --- \textbf{brak konfliktu}.
+        W~oryginalnym przykładzie~5.8 z~wykładu $\mathit{GetA}$ i~$\mathit{GetB}$
+        są wykluczone zdaniem \impossible{} $\{\mathit{GetA}, \mathit{GetB}\}$.
+        W~$\mathit{DS4}$ \impossible{} dotyczy tylko akcji prostych, więc
+        tej pary nie możemy tak zablokować.
+  \item $\mathit{ConsumeA}$ vs.\ $\mathit{ConsumeB}$,
+        $\mathit{Put}$ vs.\ $\mathit{ConsumeA}/\mathit{ConsumeB}$,
+        $\mathit{GetA}$ vs.\ $\mathit{ConsumeB}$,
+        $\mathit{GetB}$ vs.\ $\mathit{ConsumeA}$: brak konfliktu.
+\end{itemize}
+
+\noindent Dekompozycje --- maksymalne podzbiory bez konfliktu:
+\begin{itemize}
+  \item $\Delta_1 = \{\mathit{Put}, \mathit{ConsumeA}, \mathit{ConsumeB}\}$ ---
+        nie da się dołożyć $\mathit{GetA}$ ani $\mathit{GetB}$
+        (oba kolidują z~$\mathit{Put}$).
+  \item $\Delta_2 = \{\mathit{GetA}, \mathit{GetB}\}$ ---
+        nie da się dołożyć $\mathit{Put}$, $\mathit{ConsumeA}$
+        ani $\mathit{ConsumeB}$ (konflikty).
+        \emph{Ta dekompozycja nie istnieje w~oryginalnym przykładzie~5.8.}
+  \item $\Delta_3 = \{\mathit{GetA}, \mathit{ConsumeB}\}$ ---
+        nie da się dołożyć $\mathit{Put}$, $\mathit{GetB}$
+        ani $\mathit{ConsumeA}$ (konflikty).
+  \item $\Delta_4 = \{\mathit{GetB}, \mathit{ConsumeA}\}$ --- analogicznie.
+\end{itemize}
+
+\noindent Wyniki z~$\sigma = \{\neg\mathit{empty},\, \mathit{hasA},\, \mathit{hasB}\}$:
+\begin{itemize}
+  \item $\Delta_1$: $\neg\mathit{empty} \land \neg\mathit{hasA} \land \neg\mathit{hasB}$
+        $\Rightarrow \sigma_1$.
+  \item $\Delta_2$: $\mathit{empty} \land \mathit{hasA} \land \mathit{hasB}$
+        $\Rightarrow \sigma_2$.
+  \item $\Delta_3$: $\mathit{empty} \land \mathit{hasA} \land \neg\mathit{hasB}$
+        $\Rightarrow \sigma_3$.
+  \item $\Delta_4$: $\mathit{empty} \land \neg\mathit{hasA} \land \mathit{hasB}$
+        $\Rightarrow \sigma_4$.
+\end{itemize}
+
+$\mathrm{Res}(\mathbb{A}, \sigma) = \{\sigma_1, \sigma_2, \sigma_3, \sigma_4\}$.
+Wykład~5 daje tylko $\{\sigma_1, \sigma_3, \sigma_4\}$ --- brak $\sigma_2$,
+bo tam $\mathit{GetA}$ i~$\mathit{GetB}$ są razem niemożliwe.
+
+\medskip
+\noindent\textbf{Proces $P = (\mathbb{A},\; \{\mathit{ConsumeA}, \mathit{ConsumeB}\})$.}
+
+Krok~2 --- $\{\mathit{ConsumeA}, \mathit{ConsumeB}\}$ w~każdym stanie
+wynikowym (brak konfliktu, bo $\neg\mathit{hasA}$ i~$\neg\mathit{hasB}$
+dotyczą różnych fluentów):
+\begin{itemize}
+  \item $\sigma_1 = \{\neg e, \neg A, \neg B\}$:
+        oba warunki ($\mathit{hasA}$, $\mathit{hasB}$) niespełnione
+        --- efekt pusty, stan bez zmian.
+  \item $\sigma_2 = \{e, A, B\}$: obaj konsumenci konsumują
+        $\Rightarrow \sigma_0 = \{e, \neg A, \neg B\}$.
+  \item $\sigma_3 = \{e, A, \neg B\}$: tylko A konsumuje
+        $\Rightarrow \sigma_0$.
+  \item $\sigma_4 = \{e, \neg A, B\}$: tylko B konsumuje
+        $\Rightarrow \sigma_0$.
+\end{itemize}
+
+(Używamy skrótu $e = \mathit{empty}$, $A = \mathit{hasA}$, $B = \mathit{hasB}$.)
+
+Po procesie $P$: $\mathrm{Res} = \{\sigma_0, \sigma_1\}$.
+
+\medskip
+\noindent\textbf{Kwerendy:}
+\begin{itemize}
+  \item $\necessary\ \executable\ P$~---
+    oba kroki mają $\mathrm{Res} \neq \varnothing$. \textbf{TAK}.
+
+  \item $\possibly\ \mathit{empty}\ \aft\ P$~---
+    $\sigma_0$ spełnia $\mathit{empty}$. \textbf{TAK}.
+
+  \item $\necessary\ \mathit{empty}\ \aft\ P$~---
+    $\sigma_1$ spełnia $\neg\mathit{empty}$. \textbf{NIE}.
+
+  \item $\necessary\ \neg\mathit{hasA} \land \neg\mathit{hasB}\ \aft\ P$~---
+    zarówno $\sigma_0$, jak i~$\sigma_1$ spełniają $\neg\mathit{hasA} \land \neg\mathit{hasB}$.
+    \textbf{TAK} --- niezależnie od~przebiegu, po procesie żaden konsument
+    nie ma produktu.
+\end{itemize}
+
+\end{document}
