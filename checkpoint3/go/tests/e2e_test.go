@@ -6,6 +6,7 @@
 package tests
 
 import (
+	"context"
 	"fmt"
 	"testing"
 
@@ -37,7 +38,7 @@ func TestExamplesOracle(t *testing.T) {
 				q := q
 				t.Run(formatQueryName(i, q.Text), func(t *testing.T) {
 					t.Skip("TODO O5: hook up goldie + assert q.Expected once core is wired")
-					_ = api.Solve(domain, q.Text)
+					_ = api.Solve(context.Background(), domain, q.Text)
 				})
 			}
 		})

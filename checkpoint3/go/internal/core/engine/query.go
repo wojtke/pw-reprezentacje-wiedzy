@@ -1,9 +1,14 @@
 package engine
 
-import "ds4/internal/core/model"
+import (
+	"context"
+
+	"ds4/internal/core/model"
+)
 
 // Query is the AST of a parsed query (Q1 / Q2 × {necessary, possibly}).
-// The exact shape is finalized in O3 + O4 (open question §5).
+// Shape committed below; concrete Process iteration support is finalized
+// during O3 + O4 implementation.
 //
 // go-sumtype:decl Query
 type Query interface {
@@ -53,8 +58,11 @@ type Answer struct {
 	Witness []model.State // states satisfying γ for Q2 (∃-witness or ∀-min set)
 }
 
-// Evaluate runs O3 over a (Domain, Σ, Σ₀, Query) tuple. (TODO O3)
-func Evaluate(d *model.Domain, sigma, sigma0 StateSet, q Query) Answer {
-	_, _, _, _ = d, sigma, sigma0, q
+// Evaluate runs O3 over a (Domain, Σ, Σ₀, Query) tuple. ctx is checked
+// between σ₀ branches and at process-tree decomposition points so a
+// cancelled api.Solve drops out promptly. On ctx.Err(), returns
+// Answer{} and the error. (TODO O3)
+func Evaluate(ctx context.Context, d *model.Domain, sigma, sigma0 StateSet, q Query) (Answer, error) {
+	_, _, _, _, _ = ctx, d, sigma, sigma0, q
 	panic("engine.Evaluate: TODO O3")
 }

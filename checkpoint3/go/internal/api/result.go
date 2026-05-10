@@ -11,8 +11,9 @@ package api
 
 // SolveResult is what Solve() returns to the UI layer.
 //
-// Open question (DESIGN_go.md §5): final field set. The shape below is
-// the agreed-on starting point and MUST stay JSON-serializable.
+// Field set committed (DESIGN_go.md §O5, TODO.md §O5): Answer + Trace
+// (per-σ₀) + optional Witness (Q2) + Summary + Error. MUST stay
+// JSON-serializable — web variant marshals it via encoding/json directly.
 type SolveResult struct {
 	Answer  Answer   `json:"answer"`
 	Trace   []Branch `json:"trace"`             // one Branch per σ₀

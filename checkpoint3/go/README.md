@@ -22,11 +22,6 @@ go/
 └── tests/                  # e2e via api facade (goldie)
 ```
 
-## Architectural rules (enforced by `depguard` in `golangci-lint`)
-
-- `internal/core/...` MUST NOT import `fyne.io/...` or `net/http`.
-- `cmd/ds4/...` and `cmd/ds4-web/...` MUST NOT import `internal/core/...` directly — only `internal/api`.
-
 ## Dev workflow
 
 | Target              | Command                                                                          |

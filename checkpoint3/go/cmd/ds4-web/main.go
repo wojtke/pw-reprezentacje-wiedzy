@@ -84,13 +84,13 @@ func openBrowser(url string) error {
 
 // --- handlers (thin marshal/unmarshal wrappers around internal/api) ---
 
-func handleListExamples(w http.ResponseWriter, _ *http.Request) {
-	writeJSON(w, http.StatusOK, api.ListExamples())
+func handleListExamples(w http.ResponseWriter, r *http.Request) {
+	writeJSON(w, http.StatusOK, api.ListExamples(r.Context()))
 }
 
 func handleLoadExample(w http.ResponseWriter, r *http.Request) {
 	id := r.PathValue("id")
-	ex, apiErr := api.LoadExample(id)
+	ex, apiErr := api.LoadExample(r.Context(), id)
 	if apiErr != nil {
 		writeJSON(w, http.StatusNotFound, apiErr)
 		return
@@ -107,7 +107,9 @@ func handleSolve(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, api.Error{Kind: api.ErrorKindInternal, Message: err.Error()})
 		return
 	}
-	writeJSON(w, http.StatusOK, api.Solve(body.Domain, body.Query))
+	// r.Context() is cancelled when the client closes the connection,
+	// so closing the browser tab kills in-flight Solve.
+	writeJSON(w, http.StatusOK, api.Solve(r.Context(), body.Domain, body.Query))
 }
 
 func handleValidate(w http.ResponseWriter, r *http.Request) {
@@ -118,7 +120,7 @@ func handleValidate(w http.ResponseWriter, r *http.Request) {
 		writeJSON(w, http.StatusBadRequest, api.Error{Kind: api.ErrorKindInternal, Message: err.Error()})
 		return
 	}
-	writeJSON(w, http.StatusOK, api.ValidateDomain(body.Domain))
+	writeJSON(w, http.StatusOK, api.ValidateDomain(r.Context(), body.Domain))
 }
 
 func writeJSON(w http.ResponseWriter, status int, v any) {
