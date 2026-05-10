@@ -1,0 +1,6 @@
+# name: TAK 03 - Otwarcie drzwi
+# description: Klucz jest dostępny, więc unlock koniecznie prowadzi do door_open.
+fluents key, door_open
+actions unlock
+initially key and !door_open
+unlock causes door_open if key

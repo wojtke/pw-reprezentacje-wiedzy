@@ -1,0 +1,15 @@
+JAK URUCHOMIC W VISUAL STUDIO
+
+1. Otworz plik: Ds4Reasoner.sln
+2. W Solution Explorer kliknij prawym na Ds4.Gui
+3. Wybierz: Set as Startup Project / Ustaw jako projekt startowy
+4. Kliknij zielony przycisk Start
+
+Nie uruchamiaj Ds4.Core. To jest biblioteka klas, czyli silnik projektu.
+Uruchamialne projekty to:
+- Ds4.Gui  - aplikacja okienkowa
+- Ds4.Cli  - aplikacja konsolowa
+
+Szybkie uruchomienie bez Visual Studio:
+- RUN_GUI.bat
+- RUN_CLI_EXAMPLE.bat

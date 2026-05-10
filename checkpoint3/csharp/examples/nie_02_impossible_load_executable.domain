@@ -1,0 +1,7 @@
+# name: NIE 02 - Load niewykonalne
+# description: Stan początkowy ma loaded=true, a wtedy load jest impossible.
+fluents loaded
+actions load
+initially loaded
+impossible load if loaded
+load causes loaded if !loaded

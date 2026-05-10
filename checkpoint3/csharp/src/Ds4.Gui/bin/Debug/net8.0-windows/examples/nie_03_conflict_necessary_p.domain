@@ -1,0 +1,7 @@
+# name: NIE 03 - Konflikt akcji
+# description: Dekompozycje konfliktu prowadzą do alternatywnych stanów, więc p nie jest konieczne.
+fluents p
+actions make_p, make_not_p
+initially !p
+make_p causes p if true
+make_not_p causes !p if true

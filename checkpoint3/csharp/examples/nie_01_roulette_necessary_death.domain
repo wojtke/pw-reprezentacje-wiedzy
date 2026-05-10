@@ -1,0 +1,9 @@
+# name: NIE 01 - Ruletka: śmierć nie jest konieczna
+# description: Po spin możliwe jest loaded=false, więc shoot nie musi zabić.
+fluents loaded, alive
+actions spin, shoot, load
+initially alive
+spin releases loaded if true
+shoot causes !alive if loaded
+impossible load if loaded
+load causes loaded if !loaded
