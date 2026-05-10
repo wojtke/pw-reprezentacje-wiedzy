@@ -32,3 +32,13 @@ __pycache__/
 build/
 dist/
 .pytest_cache/
+
+# Go
+*.exe
+*.test
+*.out
+coverage.*
+checkpoint3/go/ds4
+checkpoint3/go/ds4-web
+checkpoint3/go/dist/
+checkpoint3/go/bin/
