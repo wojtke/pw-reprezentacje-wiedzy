@@ -3,8 +3,6 @@
 # source: dodatkowy przykład testowy
 # expected: NIE
 
-fluents loaded
-actions load
 initially true
 impossible load if loaded
 load causes loaded if !loaded

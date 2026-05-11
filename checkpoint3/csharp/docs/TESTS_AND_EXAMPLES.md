@@ -4,10 +4,10 @@ Ta wersja projektu ma rozbudowany folder `examples` i testy C# w xUnit.
 
 ## Przykłady
 
-Liczba przykładów: 40.
+Liczba przykładów: 42.
 
-- TAK: 23
-- NIE: 17
+- TAK: 24
+- NIE: 18
 
 Każdy przykład ma trzy pliki:
 
@@ -29,7 +29,8 @@ Testy znajdują się w `tests/Ds4.Tests`. Są podzielone według obszarów proje
 - `CompositeActionTests.cs`,
 - `ProcessAndQueryTests.cs`,
 - `FacadeAndExamplesTests.cs`,
-- `StaticProjectTests.cs`.
+- `ConditionalCauseRegressionTests.cs`,
+- `FullSemanticsIntegrationTests.cs`.
 
 Zakres testów:
 

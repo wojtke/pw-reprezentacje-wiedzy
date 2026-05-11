@@ -3,8 +3,6 @@
 # source: checkpoint2_v1.tex, sekcja Dwóch robotników P2
 # expected: NIE
 
-fluents holdA, holdB, tableUp, doorOpen, broken, outside
-actions liftA, liftB, dropA, dropB, openA, openB, closeA, closeB, carryOut
 always tableUp <-> (holdA and holdB)
 noninertial tableUp
 liftA causes holdA if true

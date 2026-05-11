@@ -3,8 +3,6 @@
 # source: checkpoint2_v1.tex, sekcja YSP z rosyjską ruletką
 # expected: TAK
 
-fluents loaded, alive
-actions load, shoot, spin
 initially alive
 load causes loaded if true
 impossible load if loaded

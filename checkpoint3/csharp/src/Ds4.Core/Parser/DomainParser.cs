@@ -9,18 +9,14 @@ public static class DomainParser
     public static Domain Parse(string text)
     {
         var domain = new Domain();
-        var lines = text.Replace("\r\n", "\n").Split('\n');
+        var statements = SplitStatements(text);
 
-        for (var lineNo = 0; lineNo < lines.Length; lineNo++)
+        foreach (var statement in statements)
         {
-            var line = StripComment(lines[lineNo]).Trim();
-            if (line.Length == 0) continue;
-            if (line.EndsWith('.')) line = line[..^1].Trim();
-
-            try { ParseLine(domain, line); }
+            try { ParseStatement(domain, statement.Text); }
             catch (Exception ex) when (ex is ParseException or ArgumentException)
             {
-                throw new ParseException($"Line {lineNo + 1}: {ex.Message}");
+                throw new ParseException($"Statement {statement.Number}: {ex.Message}");
             }
         }
 
@@ -28,44 +24,8 @@ public static class DomainParser
         return domain;
     }
 
-    private static void ParseLine(Domain domain, string line)
+    private static void ParseStatement(Domain domain, string line)
     {
-        // Important: transition rules are checked before declaration keywords.
-        // Otherwise an action literally named "action" would make a line like
-        // "action causes q if p" look like an action declaration.
-        var causesIdx = IndexOfKeyword(line, "causes");
-        if (causesIdx >= 0)
-        {
-            var action = line[..causesIdx].Trim();
-            var rest = line[(causesIdx + "causes".Length)..].Trim();
-            var ifIdx = IndexOfKeyword(rest, "if");
-            var effectText = ifIdx >= 0 ? rest[..ifIdx].Trim() : rest;
-            var conditionText = ifIdx >= 0 ? rest[(ifIdx + "if".Length)..].Trim() : "true";
-            var effect = FormulaParser.Parse(effectText);
-            var condition = FormulaParser.Parse(conditionText);
-            domain.AddAction(action);
-            domain.RegisterFormula(effect);
-            domain.RegisterFormula(condition);
-            domain.CauseRules.Add(new CauseRule(action, effect, condition));
-            return;
-        }
-
-        var releasesIdx = IndexOfKeyword(line, "releases");
-        if (releasesIdx >= 0)
-        {
-            var action = line[..releasesIdx].Trim();
-            var rest = line[(releasesIdx + "releases".Length)..].Trim();
-            var ifIdx = IndexOfKeyword(rest, "if");
-            var fluent = ifIdx >= 0 ? rest[..ifIdx].Trim() : rest;
-            var conditionText = ifIdx >= 0 ? rest[(ifIdx + "if".Length)..].Trim() : "true";
-            var condition = FormulaParser.Parse(conditionText);
-            domain.AddAction(action);
-            domain.AddFluent(fluent);
-            domain.RegisterFormula(condition);
-            domain.ReleaseRules.Add(new ReleaseRule(action, fluent, condition));
-            return;
-        }
-
         if (StartsWithKeyword(line, "always"))
         {
             var formula = FormulaParser.Parse(RemoveFirstWord(line));
@@ -73,6 +33,7 @@ public static class DomainParser
             domain.AlwaysConstraints.Add(new AlwaysConstraint(formula));
             return;
         }
+
         if (StartsWithKeyword(line, "initially"))
         {
             var formula = FormulaParser.Parse(RemoveFirstWord(line));
@@ -80,13 +41,16 @@ public static class DomainParser
             domain.InitiallyConstraints.Add(new InitiallyConstraint(formula));
             return;
         }
+
         if (StartsWithKeyword(line, "noninertial"))
         {
             var fluent = RemoveFirstWord(line).Trim();
+            if (fluent.Length == 0) throw new ParseException("noninertial statement must name a fluent.");
             domain.AddFluent(fluent);
             domain.NonInertialFluents.Add(fluent);
             return;
         }
+
         if (StartsWithKeyword(line, "observable"))
         {
             var rest = RemoveFirstWord(line);
@@ -99,6 +63,7 @@ public static class DomainParser
             domain.AfterAssertions.Add(new AfterAssertion(goal, process, Observable: true));
             return;
         }
+
         if (StartsWithKeyword(line, "impossible"))
         {
             var rest = RemoveFirstWord(line).Trim();
@@ -115,9 +80,47 @@ public static class DomainParser
                 action = rest;
                 condition = FormulaTools.True;
             }
+            if (action.Length == 0) throw new ParseException("impossible statement must name an action.");
             domain.AddAction(action);
             domain.RegisterFormula(condition);
             domain.ImpossibleRules.Add(new ImpossibleRule(action, condition));
+            return;
+        }
+
+        var causesIdx = IndexOfKeyword(line, "causes");
+        if (causesIdx >= 0)
+        {
+            var action = line[..causesIdx].Trim();
+            if (action.Length == 0) throw new ParseException("causes statement must name an action.");
+            var rest = line[(causesIdx + "causes".Length)..].Trim();
+            var ifIdx = IndexOfKeyword(rest, "if");
+            var effectText = ifIdx >= 0 ? rest[..ifIdx].Trim() : rest;
+            var conditionText = ifIdx >= 0 ? rest[(ifIdx + "if".Length)..].Trim() : "true";
+            if (effectText.Length == 0) throw new ParseException("causes statement must contain an effect formula.");
+            var effect = FormulaParser.Parse(effectText);
+            var condition = FormulaParser.Parse(conditionText);
+            domain.AddAction(action);
+            domain.RegisterFormula(effect);
+            domain.RegisterFormula(condition);
+            domain.CauseRules.Add(new CauseRule(action, effect, condition));
+            return;
+        }
+
+        var releasesIdx = IndexOfKeyword(line, "releases");
+        if (releasesIdx >= 0)
+        {
+            var action = line[..releasesIdx].Trim();
+            if (action.Length == 0) throw new ParseException("releases statement must name an action.");
+            var rest = line[(releasesIdx + "releases".Length)..].Trim();
+            var ifIdx = IndexOfKeyword(rest, "if");
+            var fluent = ifIdx >= 0 ? rest[..ifIdx].Trim() : rest;
+            var conditionText = ifIdx >= 0 ? rest[(ifIdx + "if".Length)..].Trim() : "true";
+            if (fluent.Length == 0) throw new ParseException("releases statement must name a fluent.");
+            var condition = FormulaParser.Parse(conditionText);
+            domain.AddAction(action);
+            domain.AddFluent(fluent);
+            domain.RegisterFormula(condition);
+            domain.ReleaseRules.Add(new ReleaseRule(action, fluent, condition));
             return;
         }
 
@@ -132,18 +135,56 @@ public static class DomainParser
             return;
         }
 
-        if (StartsWithKeyword(line, "fluent") || StartsWithKeyword(line, "fluents"))
+        // Optional convenience declarations. They are not required by the project language:
+        // fluents and actions are normally inferred from formulas and action statements.
+        // These declarations are parsed after effect statements so an action literally named
+        // "action" still works in a line like: action causes q if p.
+        if (StartsWithKeyword(line, "fluents"))
         {
             foreach (var f in SplitNames(RemoveFirstWord(line))) domain.AddFluent(f);
             return;
         }
-        if (StartsWithKeyword(line, "action") || StartsWithKeyword(line, "actions"))
+        if (StartsWithKeyword(line, "actions"))
         {
             foreach (var a in SplitNames(RemoveFirstWord(line))) domain.AddAction(a);
             return;
         }
 
         throw new ParseException("Unknown statement: " + line);
+    }
+
+    private static IReadOnlyList<StatementText> SplitStatements(string text)
+    {
+        var result = new List<StatementText>();
+        var lines = text.Replace("\r\n", "\n").Replace("\r", "\n").Split('\n');
+
+        for (var lineNo = 0; lineNo < lines.Length; lineNo++)
+        {
+            var line = StripComment(lines[lineNo]).Trim();
+            if (line.Length == 0) continue;
+
+            foreach (var part in SplitLineStatements(line))
+            {
+                var statement = TrimTerminator(part.Trim());
+                if (statement.Length > 0) result.Add(new StatementText(lineNo + 1, statement));
+            }
+        }
+        return result;
+    }
+
+    private static IEnumerable<string> SplitLineStatements(string line)
+    {
+        // In domain descriptions from the lecture, semicolons usually terminate statements.
+        // In our project, after/observable statements may also contain semicolons inside a process.
+        // For such lines we keep the whole line intact.
+        if (IndexOfKeyword(line, "after") >= 0) return new[] { line };
+        return ProcessParser.SplitTopLevel(line, ';');
+    }
+
+    private static string TrimTerminator(string line)
+    {
+        while (line.EndsWith('.') || line.EndsWith(';')) line = line[..^1].Trim();
+        return line;
     }
 
     private static void InferSymbols(Domain domain)
@@ -187,4 +228,6 @@ public static class DomainParser
         if (!match.Success) return -1;
         return match.Index + (match.Value.StartsWith(' ') ? 1 : 0);
     }
+
+    private sealed record StatementText(int Number, string Text);
 }

@@ -3,8 +3,6 @@
 # source: checkpoint2_v1.tex, sekcja Dwa przełączniki
 # expected: TAK
 
-fluents sw1, sw2, light, alarm
-actions toggle1, toggle2, on, flicker
 always light <-> (sw1 or sw2)
 always light -> alarm
 noninertial alarm

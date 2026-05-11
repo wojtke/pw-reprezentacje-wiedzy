@@ -63,6 +63,21 @@ public sealed class CompositeActionTests
         Assert.False(conflict);
     }
 
+
+    [Fact]
+    public void ConflictDetector_Treats_Same_Affected_Fluent_As_Conflict_For_Ds4()
+    {
+        var env = Build("""
+            initially !p
+            make_p_left causes p if true
+            make_p_right causes p if true
+            """);
+
+        var conflict = env.Conflicts.AreInConflict("make_p_left", "make_p_right", env.Model.Sigma0.Single());
+
+        Assert.True(conflict);
+    }
+
     [Fact]
     public void DecompositionGenerator_Returns_One_Set_For_No_Conflict()
     {

@@ -3,6 +3,4 @@
 # source: dodatkowy przykład testowy
 # expected: NIE
 
-fluents p
-actions wait
 initially !p

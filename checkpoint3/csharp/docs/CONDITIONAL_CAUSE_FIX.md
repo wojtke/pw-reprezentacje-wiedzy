@@ -1,10 +1,8 @@
 # Poprawka conditional cause
 
-Naprawiany przypadek regresyjny:
+Naprawiany przypadek regresyjny, bez deklaracji fluents/actions:
 
 ```text
-fluents p, q
-actions action
 initially !q
 action causes q if p
 ```

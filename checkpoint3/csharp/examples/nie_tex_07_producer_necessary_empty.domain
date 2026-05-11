@@ -3,8 +3,6 @@
 # source: checkpoint2_v1.tex, sekcja Producent i konsumenci
 # expected: NIE
 
-fluents empty, hasA, hasB
-actions put, getA, getB, consumeA, consumeB
 initially !empty and hasA and hasB
 put causes !empty if true
 getA causes empty and hasA if !empty

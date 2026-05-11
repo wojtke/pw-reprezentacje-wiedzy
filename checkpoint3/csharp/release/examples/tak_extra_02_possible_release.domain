@@ -3,7 +3,5 @@
 # source: dodatkowy przykład testowy
 # expected: TAK
 
-fluents p
-actions toss
 initially !p
 toss releases p if true

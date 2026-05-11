@@ -3,8 +3,6 @@
 # source: dodatkowy przykład testowy
 # expected: NIE
 
-fluents p
-actions a, b
 initially p
 a causes !p if true
 impossible b if !p

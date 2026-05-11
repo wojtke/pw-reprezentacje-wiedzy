@@ -1,49 +1,27 @@
 # DS4 Reasoner C#
 
-Projekt implementuje prosty reasoner dla języka akcji klasy DS4. Aplikacja pozwala opisywać dziedziny dynamiczne, wykonywać procesy akcji prostych i złożonych oraz sprawdzać kwerendy typu `possibly` i `necessary`.
+Aplikacja demonstracyjna do projektu z Reprezentacji Wiedzy: procesy działań złożonych w klasie DS4.
 
-Projekt zawiera:
+## Co jest w środku
 
-- bibliotekę logiki `Ds4.Core`,
-- aplikację konsolową `Ds4.Cli`,
-- GUI Windows `Ds4.Gui`,
-- GUI cross-platform `Ds4.CrossGui`,
-- testy jednostkowe i integracyjne `Ds4.Tests`,
-- przykłady domen i kwerend w folderze `examples`,
-- gotowe pliki wykonywalne w folderze `release`.
-
-## Struktura projektu
-
-```text
-.
-├── Ds4Reasoner.sln
-├── README.md
-├── examples/
-│   ├── *.domain
-│   ├── *.query
-│   └── *.expected
-├── src/
-│   ├── Ds4.Core/
-│   ├── Ds4.Cli/
-│   ├── Ds4.Gui/
-│   └── Ds4.CrossGui/
-├── tests/
-│   └── Ds4.Tests/
-└── release/
-    ├── Ds4.Gui.exe
-    ├── Ds4.CrossGui
-    └── examples/
+- `src/Ds4.Core` - parser, model, semantyka i ewaluacja kwerend.
+- `src/Ds4.Cli` - wersja konsolowa do testów i automatyzacji.
+- `src/Ds4.Gui` - proste GUI WinForms.
+- `examples` - przykłady ładowane przez GUI i CLI.
+- `tests/Ds4.Tests` - testy C# w xUnit.
 
 ## Przykłady
 
-Folder `examples` zawiera 40 przypadków:
+Folder `examples` zawiera 42 przypadki:
 
-- 23 przypadki z odpowiedzią TAK,
-- 17 przypadków z odpowiedzią NIE.
+- 24 przypadki z odpowiedzią TAK,
+- 18 przypadków z odpowiedzią NIE.
 
 Przykłady z prefiksem `tex` zostały przepisane z pliku `checkpoint2_v1.tex`. Przykłady z prefiksem `extra` są dodatkowymi przypadkami testowymi.
 
 GUI nie korzysta już z hardcodowanych przykładów. Lista w GUI jest budowana z plików `.domain` i `.query` w folderze `examples`.
+
+Pliki `.domain` nie wymagają deklaracji `fluents` ani `actions`. Program zbiera fluenty z formuł oraz akcje z reguł typu `A causes ...`, `A releases ...`, `impossible A ...` i z kwerendy. Deklaracje `fluents` oraz `actions` są tylko opcjonalną wygodą dla starszych przykładów.
 
 ## Uruchomienie GUI
 

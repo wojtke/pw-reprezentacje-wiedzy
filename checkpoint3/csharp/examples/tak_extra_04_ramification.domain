@@ -3,8 +3,6 @@
 # source: dodatkowy przykład testowy
 # expected: TAK
 
-fluents p, q
-actions makeP
 always p -> q
 initially !p and !q
 makeP causes p if true

@@ -3,8 +3,6 @@
 # source: dodatkowy przykład testowy
 # expected: TAK
 
-fluents light, alarm
-actions on
 always light -> alarm
 noninertial alarm
 initially !light

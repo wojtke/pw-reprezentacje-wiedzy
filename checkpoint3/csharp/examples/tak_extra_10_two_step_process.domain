@@ -3,8 +3,6 @@
 # source: dodatkowy przykład testowy
 # expected: TAK
 
-fluents key, opened
-actions getKey, open
 initially !key and !opened
 getKey causes key if true
 open causes opened if key

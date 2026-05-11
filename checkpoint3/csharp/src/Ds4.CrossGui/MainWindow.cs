@@ -46,7 +46,6 @@ public sealed class MainWindow : Window
         load.Click += (_, _) => LoadSelectedExample();
         solve.Click += (_, _) => SolveCurrentInput();
         clear.Click += (_, _) => _result.Text = string.Empty;
-        _examples.SelectionChanged += (_, _) => LoadSelectedExample();
 
         top.Children.Add(new TextBlock { Text = "Przykład:", VerticalAlignment = VerticalAlignment.Center });
         top.Children.Add(_examples);
