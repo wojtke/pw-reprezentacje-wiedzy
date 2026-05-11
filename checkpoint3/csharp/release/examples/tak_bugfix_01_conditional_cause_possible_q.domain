@@ -1,0 +1,7 @@
+# name: TAK bugfix 01 conditional cause possible q
+# description: Regression case. If p is initially possible, action must produce q on the p branch.
+
+fluents p, q
+actions action
+initially !q
+action causes q if p

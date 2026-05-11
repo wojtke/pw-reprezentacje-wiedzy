@@ -1,116 +1,103 @@
-# DS4 Reasoner - C# prototype
+# DS4 Reasoner C#
 
-## Najszybsze uruchomienie w Visual Studio
+Projekt implementuje prosty reasoner dla języka akcji klasy DS4. Aplikacja pozwala opisywać dziedziny dynamiczne, wykonywać procesy akcji prostych i złożonych oraz sprawdzać kwerendy typu `possibly` i `necessary`.
 
-Otwórz `Ds4Reasoner.sln`, potem w **Solution Explorer** kliknij prawym na `Ds4.Gui` i wybierz **Set as Startup Project**. Nie uruchamiaj `Ds4.Core`, bo to jest biblioteka klas, nie program wykonywalny.
+Projekt zawiera:
 
-Uruchamialne projekty to:
+- bibliotekę logiki `Ds4.Core`,
+- aplikację konsolową `Ds4.Cli`,
+- GUI Windows `Ds4.Gui`,
+- GUI cross-platform `Ds4.CrossGui`,
+- testy jednostkowe i integracyjne `Ds4.Tests`,
+- przykłady domen i kwerend w folderze `examples`,
+- gotowe pliki wykonywalne w folderze `release`.
 
-- `Ds4.Gui` - aplikacja okienkowa WinForms,
-- `Ds4.Cli` - aplikacja konsolowa,
-- `Ds4.Core` - biblioteka z logiką DS4.
-
-Możesz też kliknąć `RUN_GUI.bat`.
-
----
-
-To jest prototyp aplikacji do projektu **Procesy działań złożonych** z Reprezentacji Wiedzy.
-Kod jest przepisany jako mały, samodzielny projekt C#/.NET: core + parser + ewaluator + CLI + prosty WinForms GUI.
-
-## Struktura
+## Struktura projektu
 
 ```text
-src/Ds4.Core   - model domeny, formuły, parser, semantyka, facade
-src/Ds4.Cli    - proste uruchamianie z terminala
-src/Ds4.Gui    - proste GUI WinForms dla Windows
-examples/      - przykładowe dziedziny i kwerendy; GUI ładuje listę z tego folderu
-```
+.
+├── Ds4Reasoner.sln
+├── README.md
+├── examples/
+│   ├── *.domain
+│   ├── *.query
+│   └── *.expected
+├── src/
+│   ├── Ds4.Core/
+│   ├── Ds4.Cli/
+│   ├── Ds4.Gui/
+│   └── Ds4.CrossGui/
+├── tests/
+│   └── Ds4.Tests/
+└── release/
+    ├── Ds4.Gui.exe
+    ├── Ds4.CrossGui
+    └── examples/
 
-## Uruchomienie CLI
+## Przykłady
 
-```bash
-dotnet run --project src/Ds4.Cli -- examples/tak_01_switches_necessary_alarm.domain examples/tak_01_switches_necessary_alarm.query
-```
+Folder `examples` zawiera 40 przypadków:
 
-Lista przykładów z folderu `examples`:
+- 23 przypadki z odpowiedzią TAK,
+- 17 przypadków z odpowiedzią NIE.
 
-```bash
-dotnet run --project src/Ds4.Cli -- --examples
-```
+Przykłady z prefiksem `tex` zostały przepisane z pliku `checkpoint2_v1.tex`. Przykłady z prefiksem `extra` są dodatkowymi przypadkami testowymi.
 
-Podgląd przykładu:
-
-```bash
-dotnet run --project src/Ds4.Cli -- --example tak_01_switches_necessary_alarm
-```
+GUI nie korzysta już z hardcodowanych przykładów. Lista w GUI jest budowana z plików `.domain` i `.query` w folderze `examples`.
 
 ## Uruchomienie GUI
 
-Na Windowsie:
+```powershell
+dotnet run --project src\Ds4.Gui\Ds4.Gui.csproj
+```
+
+Albo kliknij `RUN_GUI.bat`.
+
+## Uruchomienie CLI
+
+```powershell
+dotnet run --project src\Ds4.Cli\Ds4.Cli.csproj -- examples\tak_extra_01_simple_cause.domain examples\tak_extra_01_simple_cause.query
+```
+
+Lista przykładów:
+
+```powershell
+dotnet run --project src\Ds4.Cli\Ds4.Cli.csproj -- --examples
+```
+
+## Testy C#
+
+Testy są w `tests/Ds4.Tests` i używają xUnit.
+
+```powershell
+dotnet restore
+dotnet test Ds4Reasoner.sln
+```
+
+Albo kliknij `RUN_TESTS.bat`.
+
+Testy sprawdzają parsery, formuły, model stanów, semantykę akcji prostych, konflikty, dekompozycje, procesy, kwerendy oraz wszystkie przykłady z folderu `examples`.
+
+## Publikacja EXE
+
+```powershell
+dotnet publish src\Ds4.Gui\Ds4.Gui.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true
+```
+
+Do oddania prowadzącej skopiuj cały folder `publish`, nie tylko sam plik exe, ponieważ przykłady są kopiowane jako dane aplikacji.
+
+## Linux GUI
+
+Dla Linuxa użyj projektu `Ds4.CrossGui`, który bazuje na Avalonia UI:
 
 ```bash
-dotnet run --project src/Ds4.Gui
+dotnet run --project src/Ds4.CrossGui/Ds4.CrossGui.csproj
 ```
 
-## Publikacja jednoplikowego EXE
-
-Przykładowo dla GUI na Windows x64:
+Publikacja Linux x64:
 
 ```bash
-dotnet publish src/Ds4.Gui -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true
+dotnet publish src/Ds4.CrossGui/Ds4.CrossGui.csproj -c Release -r linux-x64 --self-contained true /p:PublishSingleFile=true
 ```
 
-## Przykłady w GUI
-
-GUI ładuje przypadki z folderu `examples`. Każdy przypadek to para plików `<id>.domain` i `<id>.query`. Aktualnie folder zawiera trzy przypadki z odpowiedzią TAK i trzy z odpowiedzią NIE. Szczegóły są w `docs/EXAMPLES_FROM_FOLDER.md`.
-
-## Obsługiwana składnia dziedziny
-
-```text
-fluents p, q, r
-actions A, B
-always p -> q
-initially !p and q
-noninertial q
-A causes p if q
-A releases r if true
-impossible A if !q
-```
-
-Obsługiwane spójniki formuł:
-
-```text
-! albo not
-& albo and
-| albo or
-->
-<->
-(...)
-true, false
-```
-
-## Obsługiwana składnia kwerend
-
-```text
-possibly executable after A; {B,C}
-necessary executable after A; {B,C}
-possibly p after A; {B,C}
-necessary p after A; {B,C}
-```
-
-Proces składa się z kroków rozdzielonych średnikiem. Krok może być akcją prostą `A` albo akcją złożoną `{A,B}`.
-
-## Co implementuje core
-
-- generację stanów dopuszczalnych `Σ` przez filtrację `always`,
-- generację stanów początkowych `Σ₀` przez `initially`,
-- `Res(A, σ)` dla akcji prostej: `impossible`, aktywne efekty, `releases`, minimalizacja `New`,
-- wykrywanie konfliktów dla akcji złożonych,
-- generowanie maksymalnych bezkonfliktowych dekompozycji,
-- `Res(𝔄, σ)` przez sumę wyników po dekompozycjach,
-- budowę drzewa wykonania procesu,
-- cztery typy kwerend: `possibly/necessary executable` oraz `possibly/necessary γ after P`.
-
-## Uwaga uczciwa
-
-To jest prototyp projektowy, nie przemysłowy solver logiczny. Świadomie używa pełnej eksploracji stanów i podzbiorów akcji, bo przykłady projektowe są małe, a takie podejście najczytelniej odpowiada semantyce z dokumentu.
+WinForms `Ds4.Gui` zostaje dla Windows. CLI `Ds4.Cli` działa cross-platform.

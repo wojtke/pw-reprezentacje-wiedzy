@@ -1,0 +1,10 @@
+# name: NIE EXTRA 06 - Always blokuje efekt
+# description: Efekt bad byłby sprzeczny z always !bad.
+# source: dodatkowy przykład testowy
+# expected: NIE
+
+fluents bad
+actions makeBad
+always !bad
+initially !bad
+makeBad causes bad if true

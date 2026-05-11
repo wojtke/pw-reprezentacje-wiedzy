@@ -1,0 +1,10 @@
+# name: TAK EXTRA 06 - Akcja złożona bez konfliktu
+# description: Dwie niezależne akcje ustawiają p i q.
+# source: dodatkowy przykład testowy
+# expected: TAK
+
+fluents p, q
+actions makeP, makeQ
+initially !p and !q
+makeP causes p if true
+makeQ causes q if true

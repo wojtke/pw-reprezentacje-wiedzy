@@ -1,0 +1,13 @@
+# name: TAK TEX 06 - Producent possibly empty
+# description: Istnieje ścieżka kończąca się pustym buforem.
+# source: checkpoint2_v1.tex, sekcja Producent i konsumenci
+# expected: TAK
+
+fluents empty, hasA, hasB
+actions put, getA, getB, consumeA, consumeB
+initially !empty and hasA and hasB
+put causes !empty if true
+getA causes empty and hasA if !empty
+getB causes empty and hasB if !empty
+consumeA causes !hasA if hasA
+consumeB causes !hasB if hasB

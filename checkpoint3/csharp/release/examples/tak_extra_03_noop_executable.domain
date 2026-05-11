@@ -1,0 +1,8 @@
+# name: TAK EXTRA 03 - Akcja bez reguł wykonalna
+# description: Akcja wait bez efektów ma niepusty wynik przez inercję.
+# source: dodatkowy przykład testowy
+# expected: TAK
+
+fluents p
+actions wait
+initially p

@@ -13,7 +13,7 @@ public static class Ds4Facade
         try
         {
             var domain = DomainParser.Parse(domainText);
-            var query = QueryParser.Parse(queryText);
+            var query = QueryParser.Parse(PrepareQueryText(queryText));
             RegisterQuerySymbols(domain, query);
             var model = ModelBuilder.Build(domain);
 
@@ -60,9 +60,9 @@ public static class Ds4Facade
 
     public static IReadOnlyList<ExampleSummary> ListExamples()
     {
-        var fromFolder = LoadExamplesFromFolder().Select(e => new ExampleSummary(e.Id, e.Name, e.Description)).ToArray();
-        if (fromFolder.Length > 0) return fromFolder;
-        return BuiltInExamples().Select(e => new ExampleSummary(e.Id, e.Name, e.Description)).ToArray();
+        return LoadExamplesFromFolder()
+            .Select(e => new ExampleSummary(e.Id, e.Name, e.Description))
+            .ToArray();
     }
 
     public static Example LoadExample(string id)
@@ -70,11 +70,6 @@ public static class Ds4Facade
         var fromFolder = LoadExamplesFromFolder()
             .FirstOrDefault(e => string.Equals(e.Id, id, StringComparison.OrdinalIgnoreCase));
         if (fromFolder is not null) return fromFolder;
-
-        var builtIn = BuiltInExamples()
-            .FirstOrDefault(e => string.Equals(e.Id, id, StringComparison.OrdinalIgnoreCase));
-        if (builtIn is not null) return builtIn;
-
         throw new ArgumentException("Unknown example id: " + id);
     }
 
@@ -104,6 +99,25 @@ public static class Ds4Facade
             examples.Add(new Example(id, name, description, domainText, queryLines));
         }
         return examples;
+    }
+
+    private static string PrepareQueryText(string queryText)
+    {
+        var lines = queryText.Replace("\r\n", "\n").Replace("\r", "\n")
+            .Split('\n')
+            .Select(StripQueryComment)
+            .Select(line => line.Trim())
+            .Where(line => line.Length > 0)
+            .ToArray();
+        return string.Join(" ", lines);
+    }
+
+    private static string StripQueryComment(string line)
+    {
+        var hash = line.IndexOf('#');
+        var slash = line.IndexOf("//", StringComparison.Ordinal);
+        var cut = new[] { hash, slash }.Where(i => i >= 0).DefaultIfEmpty(line.Length).Min();
+        return line[..cut];
     }
 
     private static string? FindExamplesDirectory()
@@ -155,91 +169,6 @@ public static class Ds4Facade
 
     private static string NormalizeLineEndings(string text)
         => text.Replace("\r\n", "\n").Replace("\r", "\n").Replace("\n", Environment.NewLine);
-
-    private static IReadOnlyList<Example> BuiltInExamples() => new[]
-    {
-        new Example(
-            "tak_01_switches_necessary_alarm",
-            "TAK 01 - Dwa przełączniki",
-            "Ramifikacja always: wykonanie obu przełączników koniecznie włącza alarm.",
-            """
-            fluents s1, s2, light, alarm
-            actions toggle1, toggle2
-            always (s1 or s2) -> light
-            always light -> alarm
-            noninertial light
-            noninertial alarm
-            initially !s1 and !s2
-            toggle1 causes s1 if !s1
-            toggle1 causes !s1 if s1
-            toggle2 causes s2 if !s2
-            toggle2 causes !s2 if s2
-            """,
-            new[] { "necessary alarm after {toggle1,toggle2}" }),
-        new Example(
-            "tak_02_roulette_possibly_death",
-            "TAK 02 - Ruletka: możliwa śmierć",
-            "Po spin możliwy jest stan loaded, więc shoot może spowodować !alive.",
-            """
-            fluents loaded, alive
-            actions spin, shoot, load
-            initially alive
-            spin releases loaded if true
-            shoot causes !alive if loaded
-            impossible load if loaded
-            load causes loaded if !loaded
-            """,
-            new[] { "possibly !alive after spin; shoot" }),
-        new Example(
-            "tak_03_unlock_necessary_open",
-            "TAK 03 - Otwarcie drzwi",
-            "Klucz jest dostępny, więc unlock koniecznie prowadzi do door_open.",
-            """
-            fluents key, door_open
-            actions unlock
-            initially key and !door_open
-            unlock causes door_open if key
-            """,
-            new[] { "necessary door_open after unlock" }),
-        new Example(
-            "nie_01_roulette_necessary_death",
-            "NIE 01 - Ruletka: śmierć nie jest konieczna",
-            "Po spin możliwe jest loaded=false, więc shoot nie musi zabić.",
-            """
-            fluents loaded, alive
-            actions spin, shoot, load
-            initially alive
-            spin releases loaded if true
-            shoot causes !alive if loaded
-            impossible load if loaded
-            load causes loaded if !loaded
-            """,
-            new[] { "necessary !alive after spin; shoot" }),
-        new Example(
-            "nie_02_impossible_load_executable",
-            "NIE 02 - Load niewykonalne",
-            "Stan początkowy ma loaded=true, a wtedy load jest impossible.",
-            """
-            fluents loaded
-            actions load
-            initially loaded
-            impossible load if loaded
-            load causes loaded if !loaded
-            """,
-            new[] { "possibly executable after load" }),
-        new Example(
-            "nie_03_conflict_necessary_p",
-            "NIE 03 - Konflikt akcji",
-            "Dekompozycje konfliktu prowadzą do alternatywnych stanów, więc p nie jest konieczne.",
-            """
-            fluents p
-            actions make_p, make_not_p
-            initially !p
-            make_p causes p if true
-            make_not_p causes !p if true
-            """,
-            new[] { "necessary p after {make_p,make_not_p}" })
-    };
 
     private static void RegisterQuerySymbols(Domain domain, Ds4Query query)
     {

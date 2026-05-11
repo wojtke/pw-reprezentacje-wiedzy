@@ -1,0 +1,11 @@
+# name: TAK EXTRA 05 - Alarm nieinercyjny
+# description: Światło wymusza alarm przez always.
+# source: dodatkowy przykład testowy
+# expected: TAK
+
+fluents light, alarm
+actions on
+always light -> alarm
+noninertial alarm
+initially !light
+on causes light if true

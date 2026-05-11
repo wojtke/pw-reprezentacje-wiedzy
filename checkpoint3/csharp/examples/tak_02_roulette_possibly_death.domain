@@ -1,9 +1,0 @@
-# name: TAK 02 - Ruletka: możliwa śmierć
-# description: Po spin możliwy jest stan loaded, więc shoot może spowodować !alive.
-fluents loaded, alive
-actions spin, shoot, load
-initially alive
-spin releases loaded if true
-shoot causes !alive if loaded
-impossible load if loaded
-load causes loaded if !loaded

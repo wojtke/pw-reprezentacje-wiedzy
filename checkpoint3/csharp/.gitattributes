@@ -1,1 +1,2 @@
-Ds4.Gui.exe filter=lfs diff=lfs merge=lfs -text
+release/Ds4.CrossGui filter=lfs diff=lfs merge=lfs -text
+release/Ds4.Gui.exe filter=lfs diff=lfs merge=lfs -text

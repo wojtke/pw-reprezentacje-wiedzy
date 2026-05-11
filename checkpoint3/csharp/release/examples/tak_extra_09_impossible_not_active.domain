@@ -1,0 +1,10 @@
+# name: TAK EXTRA 09 - Impossible nieaktywne
+# description: Drzwi da się otworzyć, bo locked jest fałszywe.
+# source: dodatkowy przykład testowy
+# expected: TAK
+
+fluents locked, opened
+actions open
+initially !locked and !opened
+impossible open if locked
+open causes opened if true

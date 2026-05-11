@@ -1,0 +1,9 @@
+# name: TAK EXTRA 01 - Prosty efekt
+# description: Akcja make wymusza p.
+# source: dodatkowy przykład testowy
+# expected: TAK
+
+fluents p
+actions make
+initially !p
+make causes p if true

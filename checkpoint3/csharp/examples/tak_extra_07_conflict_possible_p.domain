@@ -1,0 +1,10 @@
+# name: TAK EXTRA 07 - Konflikt i możliwe p
+# description: Jedna z dekompozycji konfliktu prowadzi do p.
+# source: dodatkowy przykład testowy
+# expected: TAK
+
+fluents p
+actions makeP, clearP
+initially !p
+makeP causes p if true
+clearP causes !p if true

@@ -1,0 +1,1 @@
+necessary !hasA and !hasB after {put,getA,getB,consumeA,consumeB}; {consumeA,consumeB}

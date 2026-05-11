@@ -34,7 +34,6 @@ dist/
 .pytest_cache/
 
 # Go
-*.exe
 *.test
 *.out
 coverage.*

@@ -30,16 +30,42 @@ public static class DomainParser
 
     private static void ParseLine(Domain domain, string line)
     {
-        if (StartsWithKeyword(line, "fluent") || StartsWithKeyword(line, "fluents"))
+        // Important: transition rules are checked before declaration keywords.
+        // Otherwise an action literally named "action" would make a line like
+        // "action causes q if p" look like an action declaration.
+        var causesIdx = IndexOfKeyword(line, "causes");
+        if (causesIdx >= 0)
         {
-            foreach (var f in SplitNames(RemoveFirstWord(line))) domain.AddFluent(f);
+            var action = line[..causesIdx].Trim();
+            var rest = line[(causesIdx + "causes".Length)..].Trim();
+            var ifIdx = IndexOfKeyword(rest, "if");
+            var effectText = ifIdx >= 0 ? rest[..ifIdx].Trim() : rest;
+            var conditionText = ifIdx >= 0 ? rest[(ifIdx + "if".Length)..].Trim() : "true";
+            var effect = FormulaParser.Parse(effectText);
+            var condition = FormulaParser.Parse(conditionText);
+            domain.AddAction(action);
+            domain.RegisterFormula(effect);
+            domain.RegisterFormula(condition);
+            domain.CauseRules.Add(new CauseRule(action, effect, condition));
             return;
         }
-        if (StartsWithKeyword(line, "action") || StartsWithKeyword(line, "actions"))
+
+        var releasesIdx = IndexOfKeyword(line, "releases");
+        if (releasesIdx >= 0)
         {
-            foreach (var a in SplitNames(RemoveFirstWord(line))) domain.AddAction(a);
+            var action = line[..releasesIdx].Trim();
+            var rest = line[(releasesIdx + "releases".Length)..].Trim();
+            var ifIdx = IndexOfKeyword(rest, "if");
+            var fluent = ifIdx >= 0 ? rest[..ifIdx].Trim() : rest;
+            var conditionText = ifIdx >= 0 ? rest[(ifIdx + "if".Length)..].Trim() : "true";
+            var condition = FormulaParser.Parse(conditionText);
+            domain.AddAction(action);
+            domain.AddFluent(fluent);
+            domain.RegisterFormula(condition);
+            domain.ReleaseRules.Add(new ReleaseRule(action, fluent, condition));
             return;
         }
+
         if (StartsWithKeyword(line, "always"))
         {
             var formula = FormulaParser.Parse(RemoveFirstWord(line));
@@ -95,39 +121,6 @@ public static class DomainParser
             return;
         }
 
-        var causesIdx = IndexOfKeyword(line, "causes");
-        if (causesIdx >= 0)
-        {
-            var action = line[..causesIdx].Trim();
-            var rest = line[(causesIdx + "causes".Length)..].Trim();
-            var ifIdx = IndexOfKeyword(rest, "if");
-            var effectText = ifIdx >= 0 ? rest[..ifIdx].Trim() : rest;
-            var conditionText = ifIdx >= 0 ? rest[(ifIdx + "if".Length)..].Trim() : "true";
-            var effect = FormulaParser.Parse(effectText);
-            var condition = FormulaParser.Parse(conditionText);
-            domain.AddAction(action);
-            domain.RegisterFormula(effect);
-            domain.RegisterFormula(condition);
-            domain.CauseRules.Add(new CauseRule(action, effect, condition));
-            return;
-        }
-
-        var releasesIdx = IndexOfKeyword(line, "releases");
-        if (releasesIdx >= 0)
-        {
-            var action = line[..releasesIdx].Trim();
-            var rest = line[(releasesIdx + "releases".Length)..].Trim();
-            var ifIdx = IndexOfKeyword(rest, "if");
-            var fluent = ifIdx >= 0 ? rest[..ifIdx].Trim() : rest;
-            var conditionText = ifIdx >= 0 ? rest[(ifIdx + "if".Length)..].Trim() : "true";
-            var condition = FormulaParser.Parse(conditionText);
-            domain.AddAction(action);
-            domain.AddFluent(fluent);
-            domain.RegisterFormula(condition);
-            domain.ReleaseRules.Add(new ReleaseRule(action, fluent, condition));
-            return;
-        }
-
         var afterIdx = IndexOfKeyword(line, "after");
         if (afterIdx >= 0)
         {
@@ -136,6 +129,17 @@ public static class DomainParser
             domain.RegisterFormula(goal);
             RegisterProcess(domain, process);
             domain.AfterAssertions.Add(new AfterAssertion(goal, process, Observable: false));
+            return;
+        }
+
+        if (StartsWithKeyword(line, "fluent") || StartsWithKeyword(line, "fluents"))
+        {
+            foreach (var f in SplitNames(RemoveFirstWord(line))) domain.AddFluent(f);
+            return;
+        }
+        if (StartsWithKeyword(line, "action") || StartsWithKeyword(line, "actions"))
+        {
+            foreach (var a in SplitNames(RemoveFirstWord(line))) domain.AddAction(a);
             return;
         }
 

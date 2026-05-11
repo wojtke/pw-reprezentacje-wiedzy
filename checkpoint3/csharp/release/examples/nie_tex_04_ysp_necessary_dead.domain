@@ -1,0 +1,14 @@
+# name: NIE TEX 04 - YSP necessary not alive
+# description: Po spin istnieje gałąź, w której indyk zostaje alive.
+# source: checkpoint2_v1.tex, sekcja YSP z rosyjską ruletką
+# expected: NIE
+
+fluents loaded, alive
+actions load, shoot, spin
+initially alive
+load causes loaded if true
+impossible load if loaded
+shoot causes !loaded if true
+shoot causes !alive if loaded
+spin releases loaded if true
+!loaded after shoot

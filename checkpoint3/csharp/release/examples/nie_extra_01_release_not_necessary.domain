@@ -1,0 +1,9 @@
+# name: NIE EXTRA 01 - Releases nie daje konieczności
+# description: Po toss p jest możliwe, ale nie jest konieczne.
+# source: dodatkowy przykład testowy
+# expected: NIE
+
+fluents p
+actions toss
+initially !p
+toss releases p if true

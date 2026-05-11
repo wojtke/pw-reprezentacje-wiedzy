@@ -42,15 +42,26 @@ public sealed class SimpleActionEngine
         State state)
     {
         var effectList = effects.ToList();
-        var res0 = _sigma.Where(candidate => effectList.All(e => e.Evaluate(candidate))).ToList();
-        var newSets = res0.ToDictionary(s => s, s => NewSet(state, s, releasedFluents));
+        var releaseSet = releasedFluents.ToHashSet(StringComparer.OrdinalIgnoreCase);
+
+        // Res0 contains only legal candidate states that satisfy every active effect.
+        // This is the important guard for rules like: action causes q if p.
+        // If p holds before the action, every returned successor must satisfy q.
+        var res0 = _sigma
+            .Where(candidate => effectList.All(effect => effect.Evaluate(candidate)))
+            .Distinct()
+            .ToList();
+
+        if (res0.Count == 0) return Array.Empty<State>();
+
+        var newSets = res0.ToDictionary(candidate => candidate, candidate => NewSet(state, candidate, releaseSet));
 
         var minimal = new List<State>();
         foreach (var candidate in res0)
         {
             var candidateSet = newSets[candidate];
             var dominated = res0.Any(other =>
-                !ReferenceEquals(other, candidate) &&
+                !other.Equals(candidate) &&
                 IsProperSubset(newSets[other], candidateSet));
             if (!dominated) minimal.Add(candidate);
         }

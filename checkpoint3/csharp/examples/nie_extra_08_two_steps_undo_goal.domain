@@ -1,0 +1,10 @@
+# name: NIE EXTRA 08 - Drugi krok cofa cel
+# description: Najpierw p staje się prawdziwe, potem zostaje wyczyszczone.
+# source: dodatkowy przykład testowy
+# expected: NIE
+
+fluents p
+actions makeP, clearP
+initially !p
+makeP causes p if true
+clearP causes !p if true

@@ -1,0 +1,10 @@
+# name: NIE EXTRA 07 - Częściowy start i blokada
+# description: Jeden stan początkowy ma loaded, więc load blokuje się.
+# source: dodatkowy przykład testowy
+# expected: NIE
+
+fluents loaded
+actions load
+initially true
+impossible load if loaded
+load causes loaded if !loaded
