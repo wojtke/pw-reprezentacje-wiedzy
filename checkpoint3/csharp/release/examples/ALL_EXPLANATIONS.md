@@ -4,13 +4,15 @@
 
 ## Cel przykładu
 
-Ten przykład pokazuje działanie reguły:
+Ten przykład pokazuje, jak nieokreślony fluent w stanie początkowym wpływa na kwerendę `possibly` przy semantyce ∀σ ∃ścieżka.
+
+Reguła:
 
 ```text
 action causes q if p
 ```
 
-Czyli akcja `action` powoduje `q`, ale tylko wtedy, gdy przed wykonaniem akcji prawdziwe jest `p`.
+Akcja `action` powoduje `q`, ale tylko wtedy, gdy przed wykonaniem akcji prawdziwe jest `p`.
 
 ## Domena
 
@@ -21,7 +23,7 @@ initially !q
 action causes q if p
 ```
 
-Mamy dwa fluenty: `p` i `q`. Warunek początkowy mówi tylko, że `q` jest fałszywe. Nie mówi nic o `p`, więc reasoner musi rozważyć oba przypadki:
+Warunek początkowy mówi tylko, że `q` jest fałszywe. Nie mówi nic o `p`, więc reasoner rozważa oba możliwe stany początkowe:
 
 ```text
 {¬p, ¬q}
@@ -34,17 +36,22 @@ Mamy dwa fluenty: `p` i `q`. Warunek początkowy mówi tylko, że `q` jest fałs
 possibly q after action
 ```
 
-Pytamy, czy istnieje jakakolwiek ścieżka wykonania, po której po akcji `action` fluent `q` będzie prawdziwy.
+W DS4 semantyka kwerendy `possibly φ after A` jest:
+„dla **każdego** stanu początkowego σ ∈ Σ₀ istnieje ścieżka, po której `φ` jest spełnione”.
+
+To znaczy: warunek musi dać się osiągnąć z dowolnego dopuszczalnego stanu startowego, niezależnie od nieokreśloności w stanie początkowym.
 
 ## Przebieg
 
-Dla stanu początkowego `{¬p, ¬q}` warunek `p` nie zachodzi. Akcja nie wymusza `q`, więc przez inercję zostaje:
+Gałąź pierwsza – stan początkowy `{¬p, ¬q}`. Warunek `p` nie zachodzi. Akcja nie wymusza `q`, więc przez inercję zostaje:
 
 ```text
 {¬p, ¬q} -> {¬p, ¬q}
 ```
 
-Dla stanu początkowego `{p, ¬q}` warunek `p` zachodzi. Akcja wymusza `q`, więc wynik to:
+W tej gałęzi nie istnieje żadna ścieżka prowadząca do stanu z `q`.
+
+Gałąź druga – stan początkowy `{p, ¬q}`. Warunek `p` zachodzi. Akcja wymusza `q`:
 
 ```text
 {p, ¬q} -> {p, q}
@@ -52,13 +59,21 @@ Dla stanu początkowego `{p, ¬q}` warunek `p` zachodzi. Akcja wymusza `q`, wię
 
 ## Odpowiedź
 
-Odpowiedź powinna być:
+Odpowiedź:
 
 ```text
-TAK
+NIE
 ```
 
-Istnieje ścieżka prowadząca do stanu z `q`, więc kwerenda `possibly q after action` jest prawdziwa.
+Choć w drugiej gałęzi `q` da się osiągnąć, w pierwszej gałęzi (`¬p`) żadna ścieżka nie prowadzi do `q`. Kwerenda `possibly` wymaga istnienia takiej ścieżki dla **każdego** stanu początkowego, więc cała kwerenda jest fałszywa.
+
+Aby otrzymać `TAK`, należałoby zawęzić stan początkowy, np.
+
+```text
+initially !q and p
+```
+
+– wtedy jedyny stan początkowy to `{p, ¬q}`, w którym akcja wymusza `q` i kwerenda jest spełniona.
 
 
 ---
