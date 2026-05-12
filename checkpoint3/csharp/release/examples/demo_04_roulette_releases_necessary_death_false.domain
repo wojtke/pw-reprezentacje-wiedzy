@@ -1,0 +1,10 @@
+# name: Demo 04 - releases, necessary smierc NIE
+# description: Przez niedeterminizm spin nie gwarantuje smierci po shoot.
+
+fluents loaded, alive
+actions spin, shoot, load
+initially alive
+spin releases loaded if true
+shoot causes !alive if loaded
+impossible load if loaded
+load causes loaded if !loaded
