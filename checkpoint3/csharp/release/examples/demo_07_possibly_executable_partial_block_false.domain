@@ -1,0 +1,5 @@
+# name: Demo 07 - possibly executable daje NIE, gdy jakis stan poczatkowy blokuje proces
+# description: a jest niewykonalne w galezi z p.
+initially true
+impossible a if p
+a causes done if true

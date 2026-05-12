@@ -1,7 +1,0 @@
-# name: Demo 01 - warunkowy efekt, possibly NIE
-# description: Akcja ustawia q tylko w stanach z p. Bez deklaracji p w stanie poczatkowym kwerenda possibly daje NIE (semantyka forall sigma exists sciezka).
-
-fluents p, q
-actions action
-initially !q
-action causes q if p

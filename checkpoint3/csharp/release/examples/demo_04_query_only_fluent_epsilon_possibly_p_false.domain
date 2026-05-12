@@ -1,0 +1,3 @@
+# name: Demo 04 - fluent tylko z kwerendy, possibly p after epsilon daje NIE
+# description: p pojawia sie tylko w kwerendzie, ale jest dodawane do zbioru fluentow.
+initially true

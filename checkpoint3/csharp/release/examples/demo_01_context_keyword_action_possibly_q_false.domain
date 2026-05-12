@@ -1,0 +1,4 @@
+# name: Demo 01 - action jako nazwa akcji, possibly q daje NIE
+# description: Brak deklaracji fluents/actions. Parser ma wywnioskowac p, q oraz akcje action z kontekstu.
+initially !q
+action causes q if p

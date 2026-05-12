@@ -1,0 +1,5 @@
+# name: Demo 10 - mieszanka deklaracji jawnych i symboli z kontekstu
+# description: p jest zadeklarowane, ale r i setR sa wywnioskowane z reguly i kwerendy.
+fluents p
+initially p
+setR causes r if p

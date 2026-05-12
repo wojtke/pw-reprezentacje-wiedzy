@@ -1,0 +1,4 @@
+# name: Demo 02 - action jako nazwa akcji, possibly q daje TAK przy initially p
+# description: Brak deklaracji fluents/actions, ale stan poczatkowy doprecyzowuje p.
+initially p and !q
+action causes q if p

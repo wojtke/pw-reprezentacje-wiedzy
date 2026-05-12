@@ -1,49 +1,42 @@
-# DS4 - przykłady demonstracyjne z wyjaśnieniami
+# Przykłady demo po poprawce semantyki possibly
 
-Ten folder zawiera małe przykłady do pokazania działania reasonera DS4.
+Ten folder zawiera przykłady `.domain`, `.query`, `.expected` oraz `.explanation.md`.
 
-Każdy przykład składa się z czterech plików:
-
-```text
-nazwa.domain
-nazwa.query
-nazwa.expected
-nazwa.explanation.md
-```
-
-Znaczenie plików:
+Najważniejsza poprawka:
 
 ```text
-.domain          - opis dziedziny
-.query           - kwerenda do sprawdzenia
-.expected        - oczekiwany wynik, true albo false
-.explanation.md  - dokładne wytłumaczenie przykładu
+possibly goal after process
 ```
 
-## Kolejność polecana do prezentacji
+jest interpretowane jako:
 
-1. `demo_01_conditional_cause_possibly_q` - prosty efekt warunkowy i `possibly`.
-2. `demo_02_conditional_cause_necessary_q_false` - ta sama domena, ale `necessary` daje NIE.
-3. `demo_03_roulette_releases_possibly_death` - niedeterminizm przez `releases`.
-4. `demo_04_roulette_releases_necessary_death_false` - dlaczego przy niedeterminizmie `necessary` może być fałszywe.
-5. `demo_05_impossible_load_executable_false` - akcja niewykonalna przez `impossible`.
-6. `demo_06_conflict_possibly_p` - akcja złożona, konflikt i `possibly`.
-7. `demo_07_conflict_necessary_p_false` - akcja złożona, konflikt i `necessary`.
-8. `demo_08_switches_always_noninertial_alarm` - `always`, `noninertial` i konsekwencje stanu.
+```text
+dla każdego stanu początkowego istnieje pełna ścieżka wykonania procesu, która kończy się stanem spełniającym goal
+```
 
-## Krótkie wyjaśnienie całego mechanizmu
+Analogicznie:
 
-Program działa tak:
+```text
+possibly executable after process
+```
 
-1. Czyta domenę, czyli fluenty, akcje i reguły.
-2. Generuje legalne stany świata.
-3. Generuje stany początkowe zgodne z `initially`.
-4. Dla każdej akcji liczy możliwe stany następne.
-5. Przy akcjach złożonych wykrywa konflikty i rozważa maksymalne bezkonfliktowe dekompozycje.
-6. Dla procesu buduje drzewo możliwych wykonań.
-7. Kwerenda `possibly` sprawdza, czy istnieje dobra ścieżka.
-8. Kwerenda `necessary` sprawdza, czy wszystkie ścieżki spełniają warunek.
+znaczy:
 
-## Najkrótsza gadka do prowadzącej
+```text
+z każdego stanu początkowego istnieje co najmniej jedna pełna ścieżka wykonania procesu
+```
 
-Reasoner operuje na stanach logicznych. Fluent to zmienna prawda/fałsz, a stan to pełne przypisanie wartości wszystkim fluentom. Domena opisuje, jakie akcje są możliwe i jakie mają efekty. Program rozwija wszystkie możliwe ścieżki wykonania procesu i na końcu sprawdza kwerendę. `Possibly` oznacza, że wystarczy jedna ścieżka spełniająca warunek. `Necessary` oznacza, że warunek musi zachodzić na każdej możliwej ścieżce.
+To nie jest już błędne, globalne `istnieje jeden stan początkowy i jedna dobra ścieżka`.
+
+Lista przykładów:
+
+- `demo_01_context_keyword_action_possibly_q_false` - NIE - Demo 01 - action jako nazwa akcji, possibly q daje NIE
+- `demo_02_context_keyword_action_possibly_q_true_when_p_initial` - TAK - Demo 02 - action jako nazwa akcji, possibly q daje TAK przy initially p
+- `demo_03_possibly_all_initial_states_set_q_true` - TAK - Demo 03 - possibly true, bo akcja ustawia q z każdego stanu początkowego
+- `demo_04_query_only_fluent_epsilon_possibly_p_false` - NIE - Demo 04 - fluent tylko z kwerendy, possibly p after epsilon daje NIE
+- `demo_05_query_only_fluent_epsilon_possibly_p_true_with_initially_p` - TAK - Demo 05 - possibly p after epsilon daje TAK, gdy initially p
+- `demo_06_action_inferred_from_query_noop_true` - TAK - Demo 06 - akcja z kwerendy bez reguł jest no-op
+- `demo_07_possibly_executable_partial_block_false` - NIE - Demo 07 - possibly executable daje NIE, gdy jakiś stan początkowy blokuje proces
+- `demo_08_possibly_release_true_from_every_initial_state` - TAK - Demo 08 - releases daje possibly TAK z każdego stanu początkowego
+- `demo_09_keyword_like_fluent_action_name_true` - TAK - Demo 09 - fluent jako nazwa akcji
+- `demo_10_explicit_and_inferred_symbols_mix_true` - TAK - Demo 10 - mieszanka deklaracji jawnych i symboli z kontekstu

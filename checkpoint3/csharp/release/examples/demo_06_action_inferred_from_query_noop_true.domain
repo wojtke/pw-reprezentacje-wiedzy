@@ -1,0 +1,3 @@
+# name: Demo 06 - akcja z kwerendy bez regul jest no-op
+# description: do_nothing nie jest zadeklarowana w domenie, ale wystepuje w procesie kwerendy.
+initially p
