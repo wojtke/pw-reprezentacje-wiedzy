@@ -26,6 +26,26 @@ public sealed class Domain
     {
         foreach (var atom in formula.Atoms()) AddFluent(atom);
     }
+
+    private readonly Lazy<List<CompositeAction>> _compositeActions;
+    public List<CompositeAction> CompositeActions
+    {
+        get => _compositeActions.Value;
+    } 
+
+    public Domain()
+    {
+        _compositeActions = new(() => {
+            var actions = Actions.ToList();
+            return Enumerable
+                .Range(1, 1 << actions.Count())
+                .Select(index => new CompositeAction(
+                    actions
+                        .Where((v, i) => (index & (1 << i)) != 0)
+                        .ToArray()
+                )).ToList();
+            });
+    }
 }
 
 public sealed record CauseRule(string Action, IFormula Effect, IFormula Condition);

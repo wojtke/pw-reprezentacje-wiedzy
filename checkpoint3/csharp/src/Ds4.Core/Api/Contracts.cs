@@ -1,3 +1,5 @@
+using Ds4.Core.Semantics;
+
 namespace Ds4.Core.Api;
 
 public sealed class SolveResult
@@ -10,6 +12,14 @@ public sealed class SolveResult
     public int Sigma0Count { get; init; }
     public string Trace { get; init; } = "";
 }
+
+public sealed class BuildModelResult
+{
+    public bool Ok { get; init; }
+    public string? Error { get; init; }
+    public TransitionModel? Model { get; init; }
+}
+
 
 public sealed class ValidationResult
 {

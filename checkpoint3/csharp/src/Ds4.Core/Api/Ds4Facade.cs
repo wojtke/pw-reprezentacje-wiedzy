@@ -40,6 +40,23 @@ public static class Ds4Facade
         }
     }
 
+    public static BuildModelResult BuildModel(string domainText, string queryText)
+    {
+        try
+        {
+            var domain = DomainParser.Parse(domainText);
+            var query = QueryParser.Parse(PrepareQueryText(queryText));
+            RegisterQuerySymbols(domain, query);
+            var model = ModelBuilder.Build(domain);
+
+            return new BuildModelResult { Ok = true, Model = model };
+        }
+        catch (Exception ex) when (ex is ParseException or ArgumentException or InvalidOperationException)
+        {
+            return new BuildModelResult { Ok = false, Error = ex.Message };
+        }
+    }
+
     public static ValidationResult ValidateDomain(string domainText)
     {
         try
