@@ -80,13 +80,16 @@ public sealed class ParserTests
     [Fact]
     public void DomainParser_Allows_Action_Literally_Named_Action()
     {
+        // Test sprawdza, ze slowo "action" parsuje sie jako nazwa akcji.
+        // Pod semantyka possibly = (dla kazdego sigma0 istnieje sciezka) galaz {¬p, ¬q}
+        // nie produkuje q, wiec result.Answer == false, ale trace nadal pokazuje galaz {p, q}.
         var result = TestData.Solve("""
             initially !q
             action causes q if p
             """, "possibly q after action");
 
         Assert.True(result.Ok, result.Error);
-        Assert.True(result.Answer);
+        Assert.False(result.Answer);
         Assert.Contains("[1] action -> {p, q}", result.Trace);
     }
 

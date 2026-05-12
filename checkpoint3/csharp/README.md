@@ -14,8 +14,8 @@ Aplikacja demonstracyjna do projektu z Reprezentacji Wiedzy: procesy działań z
 
 Folder `examples` zawiera 42 przypadki:
 
-- 24 przypadki z odpowiedzią TAK,
-- 18 przypadków z odpowiedzią NIE.
+- 23 przypadki z odpowiedzią TAK,
+- 19 przypadków z odpowiedzią NIE.
 
 Przykłady z prefiksem `tex` zostały przepisane z pliku `checkpoint2_v1.tex`. Przykłady z prefiksem `extra` są dodatkowymi przypadkami testowymi.
 
