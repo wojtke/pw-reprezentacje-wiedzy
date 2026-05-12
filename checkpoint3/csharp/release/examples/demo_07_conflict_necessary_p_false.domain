@@ -1,0 +1,8 @@
+# name: Demo 07 - akcja zlozona, konflikt, necessary NIE
+# description: Konflikt daje alternatywne dekompozycje, wiec p nie jest gwarantowane.
+
+fluents p
+actions make_p, make_not_p
+initially !p
+make_p causes p if true
+make_not_p causes !p if true

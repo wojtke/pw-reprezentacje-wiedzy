@@ -1,0 +1,7 @@
+# name: Demo 01 - warunkowy efekt, possibly TAK
+# description: Akcja ustawia q tylko w tych stanach, w ktorych p jest prawdziwe.
+
+fluents p, q
+actions action
+initially !q
+action causes q if p

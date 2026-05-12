@@ -1,0 +1,8 @@
+# name: Demo 06 - akcja zlozona, konflikt, possibly TAK
+# description: Dwie akcje w kroku zlozonym chca ustawic przeciwne wartosci p.
+
+fluents p
+actions make_p, make_not_p
+initially !p
+make_p causes p if true
+make_not_p causes !p if true
