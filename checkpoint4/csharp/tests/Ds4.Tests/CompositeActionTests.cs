@@ -114,7 +114,7 @@ public sealed class CompositeActionTests
 
         Assert.Single(decompositions);
         Assert.Single(decompositions.Single());
-        Assert.True(string.Equals("make_p", decompositions.Single().Single(), StringComparison.OrdinalIgnoreCase));
+        Assert.Equal("make_p", decompositions.Single().Single(), StringComparer.OrdinalIgnoreCase);
     }
 
     [Fact]

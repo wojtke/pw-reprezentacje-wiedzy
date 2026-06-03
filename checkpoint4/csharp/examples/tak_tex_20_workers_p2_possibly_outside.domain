@@ -1,5 +1,5 @@
 # name: TAK TEX 20 - Robotnicy P2 possibly outside
-# description: W P2 istnieje gałąź kończąca się outside.
+# description: W P2 po otwarciu drzwi i wspólnym podniesieniu stołu można wynieść stół na zewnątrz.
 # source: checkpoint2_v1.tex, sekcja Dwóch robotników P2
 # expected: TAK
 
