@@ -1,0 +1,9 @@
+# name: TAK EXTRA 02 - Możliwy efekt releases
+# description: Po toss fluent p może stać się prawdziwy.
+# source: dodatkowy przykład testowy
+# expected: TAK
+
+fluents p
+actions toss
+initially not p
+toss releases p if true

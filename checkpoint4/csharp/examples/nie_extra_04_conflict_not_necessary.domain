@@ -1,0 +1,10 @@
+# name: NIE EXTRA 04 - Konflikt nie daje konieczności
+# description: Jedna dekompozycja utrzymuje not p.
+# source: dodatkowy przykład testowy
+# expected: NIE
+
+fluents p
+actions makeP, clearP
+initially not p
+makeP causes p if true
+clearP causes not p if true

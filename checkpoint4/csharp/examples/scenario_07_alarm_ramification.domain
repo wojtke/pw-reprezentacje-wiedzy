@@ -1,0 +1,8 @@
+# name: Czujnik dymu - ramifikacja alarmu
+# description: Ograniczenie always wymusza alarm po pojawieniu się dymu.
+fluents smoke, alarm
+actions start_smoke, clear_smoke
+initially not smoke and not alarm
+always smoke implies alarm
+start_smoke causes smoke if true
+clear_smoke causes not smoke if true

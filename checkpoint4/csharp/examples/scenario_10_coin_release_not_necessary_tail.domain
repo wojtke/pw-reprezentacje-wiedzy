@@ -1,0 +1,7 @@
+# name: Rzut monetą - reszka nie jest konieczna
+# description: Po toss możliwe są oba wyniki, więc not heads nie jest konieczne.
+
+fluents heads
+actions toss
+initially heads
+toss releases heads if true

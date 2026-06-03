@@ -1,0 +1,8 @@
+# name: Efekt alternatywny wsparty akcją deterministyczną
+# description: Jedna akcja daje efekt f or g, druga wymusza f, więc razem prowadzą koniecznie do f.
+
+fluents f, g
+actions choose, force_f
+initially not f and not g
+choose causes f or g if true
+force_f causes f if true

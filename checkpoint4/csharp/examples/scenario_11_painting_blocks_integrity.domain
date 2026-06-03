@@ -1,0 +1,8 @@
+# name: Dwa klocki - ograniczenie cesarza
+# description: Ograniczenie always nie pozwala, aby oba klocki były żółte jednocześnie.
+
+fluents yellowA, yellowB
+actions paintB
+initially yellowA and not yellowB
+always not (yellowA and yellowB)
+paintB causes yellowB if true

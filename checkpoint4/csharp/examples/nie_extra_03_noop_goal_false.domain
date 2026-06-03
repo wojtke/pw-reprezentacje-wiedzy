@@ -1,0 +1,8 @@
+# name: NIE EXTRA 03 - Brak efektu celu
+# description: wait nic nie zmienia, więc p pozostaje fałszywe.
+# source: dodatkowy przykład testowy
+# expected: NIE
+
+fluents p
+actions wait
+initially not p

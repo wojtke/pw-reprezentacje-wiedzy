@@ -1,0 +1,10 @@
+# name: TAK EXTRA 10 - Proces dwuetapowy
+# description: Najpierw zdobywamy klucz, potem otwieramy drzwi.
+# source: dodatkowy przykład testowy
+# expected: TAK
+
+fluents key, opened
+actions getKey, open
+initially not key and not opened
+getKey causes key if true
+open causes opened if key

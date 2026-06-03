@@ -1,0 +1,9 @@
+# name: NIE EXTRA 10 - Częściowy start i necessary
+# description: Jeśli r jest prawdziwe, akcja nie wymusza p.
+# source: dodatkowy przykład testowy
+# expected: NIE
+
+fluents p, r
+actions setP
+initially true
+setP causes p if not r

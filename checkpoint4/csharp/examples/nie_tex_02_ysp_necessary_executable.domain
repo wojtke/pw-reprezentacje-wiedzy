@@ -1,0 +1,14 @@
+# name: NIE TEX 02 - YSP necessary executable
+# description: Proces z ruletki blokuje się dla początkowo naładowanej broni.
+# source: checkpoint2_v1.tex, sekcja YSP z rosyjską ruletką
+# expected: NIE
+
+fluents loaded, alive
+actions load, shoot, spin
+initially alive
+load causes loaded if true
+impossible load if loaded
+shoot causes not loaded if true
+shoot causes not alive if loaded
+spin releases loaded if true
+not loaded after shoot

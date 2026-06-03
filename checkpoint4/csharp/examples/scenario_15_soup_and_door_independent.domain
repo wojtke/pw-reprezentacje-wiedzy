@@ -1,0 +1,8 @@
+# name: Miska i drzwi - akcje niezależne
+# description: Podniesienie miski i otwarcie drzwi mogą zostać wykonane współbieżnie.
+
+fluents bowl_lifted, door_open
+actions lift_bowl, open_door
+initially not bowl_lifted and not door_open
+lift_bowl causes bowl_lifted if true
+open_door causes door_open if true

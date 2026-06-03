@@ -1,0 +1,17 @@
+# name: TAK TEX 10 - Przełączniki possibly executable
+# description: Skoro proces jest koniecznie wykonalny, to jest też możliwie wykonalny.
+# source: checkpoint2_v1.tex, sekcja Dwa przełączniki
+# expected: TAK
+
+fluents sw1, sw2, light, alarm
+actions toggle1, toggle2, on, flicker
+always light iff (sw1 or sw2)
+always light implies alarm
+noninertial alarm
+toggle1 causes sw1 if not sw1
+toggle1 causes not sw1 if sw1
+toggle2 causes sw2 if not sw2
+toggle2 causes not sw2 if sw2
+on causes light if true
+flicker releases light if true
+initially not sw1 and not sw2

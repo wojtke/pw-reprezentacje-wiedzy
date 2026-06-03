@@ -1,0 +1,7 @@
+# name: NIE regression 01 conditional cause partial initial
+# description: Regression case: conditional effect works on the p branch, but not every initial state can reach q.
+
+fluents p, q
+actions action
+initially not q
+action causes q if p

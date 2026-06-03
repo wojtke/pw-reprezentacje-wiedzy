@@ -1,0 +1,7 @@
+# name: Rzut monetą - możliwa reszka
+# description: Akcja toss zwalnia fluent heads spod inercji, więc możliwy jest wynik not heads.
+
+fluents heads
+actions toss
+initially heads
+toss releases heads if true
