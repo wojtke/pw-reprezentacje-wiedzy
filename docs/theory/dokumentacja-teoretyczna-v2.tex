@@ -266,7 +266,7 @@ Relację spełnialności formuły $\alpha$ w stanie $\sigma$, oznaczaną jako $\
 
 Projektowany język akcji służy do opisu dziedzin należących do klasy $\mathbb{DS4}$ systemów dynamicznych. Zgodnie z treścią zadania, w opisach dziedzin występują wyłącznie akcje proste, tj.\ elementy ustalonego zbioru akcji $\mathcal{A}$. Akcje złożone, rozumiane jako zbiory akcji prostych wykonywanych współbieżnie, nie należą zatem do składni języka opisu dziedziny, lecz pojawiają się dopiero na poziomie języka kwerend, w którym budowane są procesy. Oznacza to, że na poziomie opisu dziedziny zachowujemy rdzeń języka AR, natomiast mechanizmy związane ze współbieżnością są wprowadzane dopiero przy interpretacji procesów i odpowiadających im zapytań.
 
-Niech $\Upsilon=(\mathcal{F},\mathcal{A})$ będzie sygnaturą, gdzie $\mathcal{F}$ jest skończonym, niepustym zbiorem fluentów, natomiast $\mathcal{A}$ jest skończonym zbiorem akcji prostych. Formuły języka budowane są nad fluentami ze zbioru $\mathcal{F}$ przy użyciu spójników klasycznego rachunku zdań. W szczególności przez $\alpha$, $\beta$ oraz $\pi$ będziemy oznaczać dowolne formuły zdaniowe nad $\mathcal{F}$, zaś przez $f$ --- dowolny fluent należący do $\mathcal{F}$.
+Przypomnijmy oznaczenia z~\S\ref{sec:jezyk-akcji}: $\alpha,\beta,\pi$ oznaczają dowolne formuły zdaniowe nad~$\mathcal{F}$, $f$ --- fluent, a~$A$ --- akcję prostą ze~zbioru~$\mathcal{A}$.
 
 \subsubsection{Zdania dziedziny --- tabela zbiorcza}
 
@@ -401,19 +401,7 @@ Przez dziedzinę działania będziemy rozumieć skończony zbiór zdań języka 
 \subsection{Semantyka akcji prostych}
 \label{sec:sem-proste}
 
-W tej sekcji definiujemy semantykę języka akcji na poziomie akcji prostych. Niech
-\[
-\Upsilon = (\mathcal{F},\mathcal{A})
-\]
-będzie ustaloną sygnaturą, gdzie $\mathcal{F}$ jest skończonym zbiorem fluentów, a $\mathcal{A}$ skończonym zbiorem akcji prostych. Niech ponadto $D$ będzie dziedziną działania nad sygnaturą $\Upsilon$. Przez stan będziemy rozumieć wartościowanie
-\[
-\sigma : \mathcal{F} \to \{0,1\},
-\]
-czyli przypisanie każdemu fluentowi wartości logicznej. Dla dowolnej formuły zdaniowej $\alpha$ zapis
-\[
-\sigma \models \alpha
-\]
-oznacza, że formuła $\alpha$ jest prawdziwa w stanie $\sigma$.
+W~tej sekcji definiujemy semantykę języka akcji na~poziomie akcji prostych, względem ustalonej dziedziny~$D$ nad sygnaturą~$\Upsilon=(\mathcal{F},\mathcal{A})$. Korzystamy z~oznaczeń wprowadzonych w~\S\ref{sec:jezyk-akcji}: stan to wartościowanie $\sigma:\mathcal{F}\to\{0,1\}$, a~zapis $\sigma\models\alpha$ oznacza prawdziwość formuły~$\alpha$ w~stanie~$\sigma$.
 
 \subsubsection{Stany dopuszczalne \texorpdfstring{$\Sigma$}{Sigma}}
 \label{sec:stany-dopuszczalne}
@@ -682,10 +670,10 @@ Z~symetrii definicji wynika, że relacja konfliktu w~stanie~$\sigma$
 jest symetryczna. Możemy zatem zakodować ją jako nieskierowany graf
 konfliktu
 \[
-  G_\sigma(\mathbb{A}) = (V, E),
+  G_\sigma(\mathbb{A}) = (V, K),
   \qquad V = \mathbb{A},
   \quad
-  E = \{\{A_i, A_j\} : A_i, A_j \in \mathbb{A},\ A_i \neq A_j,
+  K = \{\{A_i, A_j\} : A_i, A_j \in \mathbb{A},\ A_i \neq A_j,
         \ A_i \text{ i } A_j \text{ kolidują w~} \sigma\}.
 \]
 Graf ten wykorzystamy w~\S\ref{sec:dekompozycje} do~charakteryzacji
@@ -945,10 +933,11 @@ fluentach, która mimo to pozostaje bezkonfliktowa.
 \subsection{Proces \texorpdfstring{$\mathbb{P}$}{P}}
 \label{sec:proces}
 
-Proces $\mathbb{P} = (\mathbb{A}_1, \ldots, \mathbb{A}_n), n > 0$ to ciąg akcji złożonych
-wykonywanych jedna po drugiej. Proces modeluje uporządkowany zbiór akcji następujących po sobie. Każda z nich może być akcją złożoną, która z kolei przedstawia zdarzenia równoległe.
-
-Przez $\mathcal{P} = \mathcal{A}_z^*$ oznaczamy zbiór wszystkich procesów.
+Proces $\mathbb{P} = (\mathbb{A}_1, \ldots, \mathbb{A}_n)$ to ciąg akcji złożonych
+wykonywanych jedna po~drugiej; każdy krok~$\mathbb{A}_i$ reprezentuje zdarzenia równoległe.
+Zbiór wszystkich procesów oznaczamy przez $\mathcal{P} = \mathcal{A}_z^*$. Kwerendy dotyczą
+procesów niepustych ($n>0$); pusty ciąg~$\varepsilon$ wykorzystujemy jedynie jako bazę
+rekurencji funkcji~$\Psi$ (poniżej) oraz w~rozwinięciu skrótu \initially{}.
 
 \subsection{Funkcja \texorpdfstring{$\Psi$}{Psi}}
 
@@ -1022,7 +1011,7 @@ Każdy taki ślad $\Psi$ odpowiada jednej ścieżce w~drzewie wykonań procesu, 
 
 \subsection{Zdania języka kwerend}
 
-Język kwerend zawiera cztery możliwe zapytania. Dwie pierwsze dotyczą osiągania stanu po wykonaniu procesu. Dwie następne odpowiadają na pytanie, czy proces jest wykonalny. W obu przypadkach kwerendy występują w wersjach \textit{necessary} i \textit{possibly}: wersja \textit{necessary} wymaga, by warunek zachodził dla \emph{każdego} stanu początkowego $\sigma_0 \in \Sigma_0$ oraz \emph{każdego} śladu wykonania~$\Psi$, natomiast wersja \textit{possibly} wymaga, by dla \emph{każdego} stanu początkowego $\sigma_0 \in \Sigma_0$ istniał \emph{pewien} ślad wykonania, na~którym warunek zachodzi. W~obu wersjach kwantyfikator po~stanach początkowych jest uniwersalny: przy opisie częściowym (Z7) faktyczny stan początkowy jest nieznany, więc poprawna odpowiedź musi uwzględniać każdy stan z~$\Sigma_0$. Wersje \textit{necessary} i~\textit{possibly} różnią się zatem wyłącznie kwantyfikatorem po~gałęziach niedeterminizmu (każdy ślad wobec pewnego śladu). Zestawienie wszystkich dopuszczalnych konstrukcji przedstawia tabela~\ref{tab:ds4-query-language}.
+Język kwerend zawiera cztery zapytania (tabela~\ref{tab:ds4-query-language}): dwa o~osiągnięcie stanu po~wykonaniu procesu (odpowiadają pytaniu~Q2 z~treści zadania --- czy proces prowadzi do~celu) i~dwa o~wykonalność procesu (pytanie~Q1), każde w~wersji \textit{necessary} albo \textit{possibly}. Semantykę obu wersji --- w~szczególności rolę wielu stanów początkowych --- precyzujemy w~\S\ref{sec:sem-kwerend}.
 
 \begin{table}[ht]
 \centering
