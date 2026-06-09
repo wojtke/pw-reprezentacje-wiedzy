@@ -1,0 +1,76 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[polish]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{amsmath,amssymb}
+\usepackage{booktabs}
+\usepackage{array}
+\usepackage{xcolor}
+\setlength{\parindent}{0pt}
+
+\newcommand{\todo}{\textcolor{red}{\textbf{[DO UZUPEŁNIENIA]}}}
+
+\begin{document}
+\sloppy
+
+\begin{center}
+  {\Large Reprezentacja Wiedzy --- Projekt nr~4: Procesy działań złożonych\par}
+  \vspace{0.4em}
+  {\huge \bfseries Wkład osobowy\par}
+  \vspace{0.4em}
+  {\large Zespół projektowy nr~4 \quad $\cdot$ \quad Warszawa, 11 czerwca 2026\par}
+\end{center}
+
+\vspace{1em}
+
+\textcolor{red}{\textbf{Uwaga: dokument roboczy --- przed oddaniem należy
+uzupełnić wszystkie pola oznaczone [DO UZUPEŁNIENIA].}}
+
+\section*{Podział prac}
+
+\begin{center}
+\renewcommand{\arraystretch}{1.6}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{5.6cm}>{\raggedright\arraybackslash}p{9.4cm}@{}}
+\toprule
+\textbf{Członek zespołu} & \textbf{Zakres prac} \\
+\midrule
+Wojciech Jasiński (koordynator) & \todo \\
+Krzysztof Gryboś                & \todo \\
+Jarosław Bieniek                & \todo \\
+Filip Filipkowski               & \todo \\
+Sebastian Rydz                  & \todo \\
+Jakub Pietrzak                  & \todo \\
+Sandra Adamiec                  & \todo \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\section*{Autorstwo testów}
+
+Zestaw testów projektu (xUnit, projekt \texttt{Ds4.Tests}) dzieli się na
+grupy wymienione niżej. Każdemu członkowi zespołu należy przypisać
+co~najmniej 4--5 testów.
+
+\begin{center}
+\renewcommand{\arraystretch}{1.5}
+\small
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{5.6cm}>{\raggedright\arraybackslash}p{4.8cm}>{\raggedright\arraybackslash}p{4.2cm}@{}}
+\toprule
+\textbf{Grupa testów} & \textbf{Zakres} & \textbf{Autor / autorzy} \\
+\midrule
+testy formuł i~parserów               & parser formuł, dziedzin i~kwerend           & \todo \\
+testy generacji modelu                & stany, $\Sigma$, $\Sigma_0$                 & \todo \\
+testy akcji prostych                  & $\mathrm{Res}$, minimalizacja, \textbf{releases}, \textbf{impossible} & \todo \\
+testy akcji złożonych                 & konflikty, dekompozycje                     & \todo \\
+testy procesów i~kwerend              & drzewo wykonań, warianty Q1/Q2              & \todo \\
+testy integracyjne --- przykłady TAK  & 24 przykłady \texttt{tak\_*}                & \todo \\
+testy integracyjne --- przykłady NIE  & 18 przykładów \texttt{nie\_*}               & \todo \\
+testy regresyjne                      & poprawki błędów (m.in. warunkowe \textbf{causes}) & \todo \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\end{document}
