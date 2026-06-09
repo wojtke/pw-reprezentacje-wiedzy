@@ -1,0 +1,430 @@
+\documentclass[11pt,a4paper]{article}
+
+\usepackage[utf8]{inputenc}
+\usepackage[T1]{fontenc}
+\usepackage{lmodern}
+\usepackage[polish]{babel}
+\usepackage[a4paper,margin=2.5cm]{geometry}
+\usepackage{graphicx}
+\usepackage[hypertexnames=false]{hyperref}
+\usepackage{amsmath,amssymb}
+\usepackage{enumitem}
+\usepackage{booktabs}
+\usepackage{tikz}
+\usetikzlibrary{positioning,fit,arrows.meta}
+\setlength{\parindent}{0pt}
+
+\newcommand{\coursename}{Reprezentacja Wiedzy}
+\newcommand{\projecttitle}{Procesy działań złożonych\\[0.3em]
+  \Large Dokumentacja techniczna}
+\newcommand{\projectdate}{Warszawa, 11 czerwca 2026}
+
+\newcommand{\Res}{\mathrm{Res}}
+\newcommand{\New}{\mathrm{New}}
+
+\begin{document}
+\sloppy
+
+\begin{titlepage}
+    \centering
+
+    \includegraphics[width=0.8\textwidth]{politechnika.png}\par
+    \vspace{2.5cm}
+
+    {\Large \coursename\par}
+    \vspace{1.2cm}
+
+    {\Huge \bfseries \projecttitle \par}
+    \vspace{2cm}
+
+    {\Large Zespół projektowy nr~4:\par}
+    \vspace{0.5cm}
+    {\large
+        Wojciech Jasiński (koordynator)\\[0.2em]
+        Krzysztof Gryboś\\[0.2em]
+        Jarosław Bieniek\\[0.2em]
+        Filip Filipkowski\\[0.2em]
+        Sebastian Rydz\\[0.2em]
+        Jakub Pietrzak\\[0.2em]
+        Sandra Adamiec\par
+    }
+
+    \vfill
+
+    {\large \projectdate\par}
+\end{titlepage}
+
+\tableofcontents
+\newpage
+
+% ══════════════════════════════════════════════════════════════════
+\section{Wprowadzenie}
+
+Aplikacja jest solwerem dla klasy $\mathit{DS4}$ systemów dynamicznych.
+Na wejściu przyjmuje tekstowy opis dziedziny (w~języku akcji) oraz jedną
+kwerendę (w~języku kwerend), buduje w~pamięci model dziedziny i~odpowiada
+\textbf{TAK} lub \textbf{NIE} na pytania Q1 (wykonywalność procesu) i~Q2
+(osiągnięcie celu), w~wariantach \emph{zawsze} i~\emph{kiedykolwiek}.
+Oprócz odpowiedzi program pokazuje krótkie uzasadnienie oraz pełne drzewo
+wykonań procesu (trace).
+
+Definicje obu języków oraz ich semantyka znajdują się w~\emph{dokumentacji
+teoretycznej}; niniejszy dokument ich nie powtarza --- opisuje wyłącznie
+budowę programu, przyjmowaną składnię plikową, przebieg obliczeń i~testy.
+Tam, gdzie mowa o~pojęciach formalnych ($\Sigma$, $\Sigma_0$, $\Res$,
+$\New$, konflikty, dekompozycje), podajemy odsyłacze do odpowiednich
+sekcji dokumentacji teoretycznej (numeracja według jej wersji~2).
+
+Implementacja: C\#~12 / .NET~8. Silnik nie korzysta z~żadnych bibliotek
+zewnętrznych; interfejsy graficzne używają WinForms (Windows) i~Avalonii
+(wieloplatformowo). Testy --- xUnit.
+
+% ══════════════════════════════════════════════════════════════════
+\section{Architektura}
+
+System składa się z~jednego silnika (\texttt{Ds4.Core}) i~trzech wymiennych
+interfejsów. Całość spina jedna fasada.
+
+\begin{center}
+\begin{tikzpicture}[
+  box/.style={draw, rounded corners, align=center, minimum height=2.2em,
+              inner sep=5pt, font=\small},
+  store/.style={draw, dashed, align=center, font=\small, inner sep=5pt},
+  arr/.style={-{Stealth}, thick},
+  node distance=0.5cm and 0.7cm
+]
+\node[box] (gui) {\texttt{Ds4.Gui}\\WinForms};
+\node[box, right=of gui] (cgui) {\texttt{Ds4.CrossGui}\\Avalonia};
+\node[box, right=of cgui] (cli) {\texttt{Ds4.Cli}\\konsola};
+\node[draw, dashed, inner sep=8pt, fit=(gui)(cgui)(cli),
+      label={[font=\small]above:interfejsy użytkownika}] (ui) {};
+
+\node[box, below=1.2cm of cgui]
+  (facade) {\texttt{Ds4Facade.Solve(dziedzina, kwerenda)}};
+
+\node[box, below=1.4cm of facade, xshift=-2.2cm] (parser) {Parser};
+\node[box, right=1.4cm of parser] (sem) {Semantyka\\(model, $\Res$, proces, kwerenda)};
+\node[draw, dashed, inner sep=8pt, fit=(parser)(sem),
+      label={[font=\small]below:\texttt{Ds4.Core} --- silnik bez zależności od UI}] (core) {};
+
+\node[store, left=1.1cm of facade] (ex) {\texttt{examples/}\\42 przykłady};
+\node[store, right=1.1cm of facade] (tests) {testy xUnit};
+
+\draw[arr] (gui) -- (facade);
+\draw[arr] (cgui) -- (facade);
+\draw[arr] (cli) -- (facade);
+\draw[arr] (facade) -- (parser);
+\draw[arr] (parser) -- (sem);
+\draw[arr, dotted] (ex) -- (facade);
+\draw[arr, dotted] (tests) -- (facade);
+\end{tikzpicture}
+\end{center}
+
+\begin{itemize}
+  \item \textbf{Interfejsy} (WinForms / Avalonia / CLI) --- tylko pola tekstowe,
+        lista wbudowanych przykładów i~przycisk ,,Oblicz''. Trzy frontendy
+        korzystają z~tej samej logiki.
+  \item \texttt{\textbf{Ds4Facade}} --- jedyne API używane przez interfejsy.
+        Przyjmuje dwa napisy (dziedzina, kwerenda), zwraca odpowiedź TAK/NIE,
+        uzasadnienie, rozmiary $|\Sigma|$ i~$|\Sigma_0|$ oraz trace.
+  \item \texttt{\textbf{Ds4.Core}} --- czysty silnik: parser zamienia tekst na
+        struktury danych, moduł semantyki buduje model i~ewaluuje kwerendę.
+        Wymiana frontendu nie zmienia ani jednej linii silnika.
+  \item \texttt{\textbf{examples/}} --- 42 pary plików
+        \texttt{.domain}~+~\texttt{.query}, ładowane do listy w~GUI i~CLI.
+  \item \textbf{Testy} --- xUnit; testują fasadę i~moduły semantyki, w~tym
+        wszystkie przykłady względem plików \texttt{.expected}.
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Języki wejściowe --- składnia plikowa}
+
+Parser przyjmuje zapis ASCII konstrukcji zdefiniowanych w~dokumentacji
+teoretycznej (sekcje 2.4 i~3.11). Poniższa tabela zestawia notację
+teoretyczną z~zapisem plikowym.
+
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Konstrukcja} & \textbf{Notacja teoretyczna} & \textbf{Zapis w~pliku} \\
+\midrule
+efekt akcji        & $A$ \textbf{causes} $\alpha$ \textbf{if} $\pi$ & \texttt{shoot causes !alive if loaded} \\
+zwolnienie inercji & $A$ \textbf{releases} $f$ \textbf{if} $\pi$    & \texttt{spin releases loaded if true} \\
+niewykonalność     & \textbf{impossible} $A$ \textbf{if} $\pi$      & \texttt{impossible load if loaded} \\
+ograniczenie       & \textbf{always} $\alpha$                       & \texttt{always p -> q} \\
+stan początkowy    & \textbf{initially} $\alpha$                    & \texttt{initially !p and !q} \\
+fluent nieinercyjny& \textbf{noninertial} $f$                       & \texttt{noninertial f} \\
+zdanie wartościujące & $\alpha$ \textbf{after} $\mathbb{A}_1;\dots;\mathbb{A}_n$ & \texttt{p after a; \{b,c\}} \\
+wariant obserwowalny & \textbf{observable} $\alpha$ \textbf{after} \dots & \texttt{observable p after a} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+\textbf{Formuły} zapisuje się operatorami \texttt{!}~($\lnot$),
+\texttt{\&} lub \texttt{and}~($\land$), \texttt{|} lub \texttt{or}~($\lor$),
+\texttt{->}~($\rightarrow$), \texttt{<->}~($\leftrightarrow$) oraz stałymi
+\texttt{true}/\texttt{false}. Komentarze zaczynają się od~\texttt{\#}.
+Deklaracje \texttt{fluents \dots} i~\texttt{actions \dots} są opcjonalne ---
+parser sam zbiera symbole występujące w~zdaniach.
+
+Zgodnie z~dokumentacją teoretyczną \textbf{impossible} i~\textbf{initially}
+są skrótami (odpowiednio: $A$ \textbf{causes} $\bot$ \textbf{if} $\pi$ oraz
+$\alpha$ \textbf{after} $\varepsilon$) --- parser rozpoznaje je jako osobne
+słowa kluczowe, ale semantycznie traktuje tak samo jak rozwinięcia.
+
+\textbf{Kwerendy.} Plik kwerendy zawiera jedno zdanie. Akcję złożoną zapisuje
+się w~nawiasach klamrowych (\texttt{\{a,b\}}; nawiasy można pominąć dla akcji
+jednoelementowej), proces --- jako ciąg akcji złożonych rozdzielonych
+średnikami. Cztery warianty pytań:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lll@{}}
+\toprule
+\textbf{Pytanie} & \textbf{Wariant} & \textbf{Zapis w~pliku} \\
+\midrule
+Q1: wykonywalność & zawsze       & \texttt{necessary executable after a; \{b,c\}} \\
+                  & kiedykolwiek & \texttt{possibly executable after a; \{b,c\}} \\
+Q2: cel $\gamma$  & zawsze       & \texttt{necessary !alive after spin; shoot} \\
+                  & kiedykolwiek & \texttt{possibly !alive after spin; shoot} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Przebieg rozwiązywania}
+
+Obliczenie przebiega w~pięciu krokach. Program realizuje wprost definicje
+z~dokumentacji teoretycznej --- dla małych dziedzin (kilka--kilkanaście
+fluentów) pełne przeszukanie $2^{|\mathcal{F}|}$ stanów jest szybkie,
+a~wierność definicjom była ważniejsza niż optymalizacje.
+
+\begin{center}
+\begin{tikzpicture}[
+  blok/.style={draw, rounded corners, align=center, minimum height=2.2em,
+               inner sep=6pt, font=\small, text width=8.6cm},
+  io/.style={draw, align=center, font=\small\itshape, inner sep=5pt},
+  arr/.style={-{Stealth}, thick},
+  lab/.style={font=\scriptsize, right, align=left},
+  node distance=0.55cm
+]
+\node[io] (in) {wejście: tekst dziedziny i~tekst kwerendy};
+\node[blok, below=of in] (s1)
+  {\textbf{1. Parsowanie} --- tekst $\to$ struktury dziedziny i~kwerendy};
+\node[blok, below=of s1] (s2)
+  {\textbf{2. Przestrzeń stanów} --- $2^{|\mathcal{F}|}$ wartościowań,\\
+   filtr \textbf{always} $\to \Sigma$, filtr \textbf{initially} i~zdań
+   \textbf{after} $\to \Sigma_0$};
+\node[blok, below=of s2] (s3)
+  {\textbf{3. Krok procesu} --- $\Res(\mathbb{A},\sigma)$:\\
+   konflikty $\to$ maksymalne bezkonfliktowe podzbiory $\to$\\
+   następniki w~$\Sigma$ z~minimalizacją zmian};
+\node[blok, below=of s3] (s4)
+  {\textbf{4. Drzewo wykonań} --- z~każdego $\sigma \in \Sigma_0$ kolejne
+   poziomy $\Res(\mathbb{A}_i,\cdot)$; gałąź z~$\Res=\emptyset$ ma status
+   \emph{BLOCKED}};
+\node[blok, below=of s4] (s5)
+  {\textbf{5. Decyzja} --- warunki na liściach drzewa zależnie od wariantu
+   kwerendy};
+\node[io, below=of s5] (out) {wynik: TAK/NIE + uzasadnienie + $|\Sigma|$, $|\Sigma_0|$ + trace};
+
+\draw[arr] (in) -- (s1);
+\draw[arr] (s1) -- (s2);
+\draw[arr] (s2) -- (s3);
+\draw[arr] (s3) -- (s4);
+\draw[arr] (s4) -- (s5);
+\draw[arr] (s5) -- (out);
+\end{tikzpicture}
+\end{center}
+
+Krótko o~każdym kroku (w~nawiasach sekcje dokumentacji teoretycznej
+z~definicjami):
+
+\begin{enumerate}
+  \item \textbf{Parsowanie.} Z~tekstu powstaje lista fluentów, akcji, reguł
+        \textbf{causes} / \textbf{releases} / \textbf{impossible}, ograniczeń
+        \textbf{always} / \textbf{initially} oraz proces i~cel kwerendy.
+  \item \textbf{Przestrzeń stanów.} Generujemy wszystkie wartościowania
+        fluentów i~odsiewamy niezgodne z~\textbf{always} --- zostaje $\Sigma$
+        (sekcja~2.5.1). Z~$\Sigma$ wybieramy stany zgodne z~\textbf{initially}
+        i~ze zdaniami \textbf{after} --- zostaje $\Sigma_0$ (sekcja~2.5.2),
+        czyli zbiór możliwych stanów początkowych przy opisie częściowym.
+  \item \textbf{Krok procesu.} Dla akcji prostej: jeśli aktywna jest reguła
+        \textbf{impossible}, następników brak; w~przeciwnym razie następnikami
+        są stany z~$\Sigma$ spełniające aktywne efekty i~minimalizujące zbiór
+        zmian $\New$ (sekcje 2.5.3--2.5.6) --- tak realizujemy inercję (Z1)
+        i~skutki uboczne ograniczeń (Z6). Fluent zwolniony regułą
+        \textbf{releases} zawsze wnosi swój literał do~$\New$, dzięki czemu oba
+        jego wartościowania są nieporównywalne i~oba przeżywają minimalizację
+        (niedeterminizm, Z3). Dla akcji złożonej: wykrywamy konflikty par akcji
+        w~stanie $\sigma$ (sekcja~3.3), wyznaczamy maksymalne bezkonfliktowe
+        podzbiory --- dekompozycje (sekcja~3.4) --- i~jako
+        $\Res(\mathbb{A},\sigma)$ bierzemy sumę wyników po dekompozycjach
+        (sekcja~3.5).
+  \item \textbf{Drzewo wykonań.} Z~każdego stanu początkowego rozwijamy
+        drzewo: dzieci korzenia to $\Res(\mathbb{A}_1,\sigma)$, wnuki ---
+        $\Res(\mathbb{A}_2,\cdot)$ itd. (sekcja~3.8--3.9). Gałąź ucięta przed
+        końcem procesu jest \emph{zablokowana}; gałąź pełnej długości kończy
+        się \emph{liściem końcowym}.
+  \item \textbf{Decyzja} (sekcja~3.12). Kwantyfikator po stanach początkowych
+        jest zawsze uniwersalny: przy opisie częściowym prawdziwy stan początkowy
+        nie jest znany, więc odpowiedź musi uwzględniać każdy stan zgodny
+        z~\textbf{initially}. Warunki (we wszystkich przypadkach wymagamy
+        $\Sigma_0 \neq \emptyset$):
+        \begin{itemize}
+          \item \texttt{possibly executable} --- z~\emph{każdego} stanu
+                początkowego istnieje liść końcowy;
+          \item \texttt{possibly $\gamma$} --- z~\emph{każdego} stanu
+                początkowego istnieje liść końcowy spełniający $\gamma$;
+          \item \texttt{necessary executable} --- brak gałęzi zablokowanych
+                i~istnieją liście końcowe;
+          \item \texttt{necessary $\gamma$} --- jak wyżej oraz \emph{wszystkie}
+                liście końcowe spełniają $\gamma$.
+        \end{itemize}
+\end{enumerate}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Przykłady z~obliczeniami}
+
+Pięć przykładów z~wbudowanego zestawu; każdy pokazuje inny mechanizm.
+Zapisy dziedzin i~kwerend są dosłownie tym, co przyjmuje program.
+
+% ------------------------------------------------------------------
+\subsection{Prosty efekt --- inercja i~minimalizacja}
+
+\begin{verbatim}
+initially !p
+make causes p if true
+\end{verbatim}
+Kwerenda: \texttt{necessary p after make}
+
+\begin{itemize}
+  \item $\mathcal{F}=\{p\}$, brak \textbf{always}, więc
+        $\Sigma = \{\{p\},\{\lnot p\}\}$; \textbf{initially} \texttt{!p} daje
+        $\Sigma_0 = \{\{\lnot p\}\}$.
+  \item $\Res(\mathit{make}, \lnot p)$: aktywny efekt $p$; kandydaci spełniający
+        $p$: tylko $\{p\}$, $\New = \{p\}$ --- wynik $\{\{p\}\}$.
+  \item Jedyny liść końcowy spełnia $p$, gałęzi zablokowanych brak.
+        \textbf{Odpowiedź: TAK.}
+\end{itemize}
+
+% ------------------------------------------------------------------
+\subsection{Rosyjska ruletka --- niedeterminizm przez \textbf{releases}}
+
+\begin{verbatim}
+fluents loaded, alive
+actions spin, shoot, load
+initially alive
+spin releases loaded if true
+shoot causes !alive if loaded
+impossible load if loaded
+load causes loaded if !loaded
+\end{verbatim}
+Kwerendy: \texttt{possibly !alive after spin; shoot} \quad oraz \quad
+\texttt{necessary !alive after spin; shoot}
+
+\begin{itemize}
+  \item $|\Sigma| = 4$; \textbf{initially} \texttt{alive} ogranicza tylko
+        $\mathit{alive}$, więc $\Sigma_0$ ma dwa stany:
+        $\{l, a\}$ i~$\{\lnot l, a\}$ (opis częściowy).
+  \item $\Res(\mathit{spin},\sigma)$: brak efektów \textbf{causes}, zwolniony
+        $\mathit{loaded}$ --- oba wartościowania $\mathit{loaded}$ przeżywają
+        minimalizację, więc z~każdego stanu początkowego dostajemy
+        $\{l,a\}$ i~$\{\lnot l,a\}$.
+  \item $\Res(\mathit{shoot},\cdot)$: z~$\{l,a\}$ aktywny efekt
+        $\lnot\mathit{alive}$ daje $\{l,\lnot a\}$; z~$\{\lnot l,a\}$ żadna
+        reguła nie jest aktywna --- inercja zostawia $\{\lnot l,a\}$.
+  \item Z~każdego z~dwóch stanów początkowych istnieje więc ścieżka kończąca
+        się $\{l,\lnot a\} \models \lnot\mathit{alive}$ --- ale wśród liści jest
+        też $\{\lnot l, a\}$, więc nie wszystkie ścieżki kończą się celem.
+        \textbf{Odpowiedzi: possibly --- TAK, necessary --- NIE.}
+\end{itemize}
+
+% ------------------------------------------------------------------
+\subsection{Konflikt w~akcji złożonej --- dekompozycje}
+
+\begin{verbatim}
+initially !p
+makeP causes p if true
+clearP causes !p if true
+\end{verbatim}
+Kwerenda: \texttt{necessary p after \{makeP,clearP\}}
+
+\begin{itemize}
+  \item $\Sigma = \{\{p\},\{\lnot p\}\}$, $\Sigma_0 = \{\{\lnot p\}\}$.
+  \item W~stanie $\lnot p$ akcje $\mathit{makeP}$ i~$\mathit{clearP}$ wymuszają
+        literały przeciwne ($p$ i~$\lnot p$) --- konflikt. Maksymalne
+        bezkonfliktowe podzbiory: $\{\mathit{makeP}\}$ i~$\{\mathit{clearP}\}$.
+  \item $\Res(\{\mathit{makeP},\mathit{clearP}\}, \lnot p)
+        = \Res(\mathit{makeP},\lnot p) \cup \Res(\mathit{clearP},\lnot p)
+        = \{\{p\},\{\lnot p\}\}$.
+  \item Liść $\{\lnot p\}$ nie spełnia $p$. \textbf{Odpowiedź: NIE.}
+\end{itemize}
+
+% ------------------------------------------------------------------
+\subsection{Ramifikacja --- skutek uboczny przez \textbf{always}}
+
+\begin{verbatim}
+always p -> q
+initially !p and !q
+makeP causes p if true
+\end{verbatim}
+Kwerenda: \texttt{necessary q after makeP}
+
+\begin{itemize}
+  \item Z~czterech wartościowań ograniczenie \texttt{always p -> q} odrzuca
+        $\{p,\lnot q\}$, więc $|\Sigma| = 3$;
+        $\Sigma_0 = \{\{\lnot p,\lnot q\}\}$.
+  \item $\Res(\mathit{makeP}, \{\lnot p,\lnot q\})$: aktywny efekt $p$; jedynym
+        stanem w~$\Sigma$ spełniającym $p$ jest $\{p,q\}$ --- fluent $q$
+        zmienia się jako skutek uboczny, bo stan $\{p,\lnot q\}$ nie należy
+        do~$\Sigma$.
+  \item Jedyny liść spełnia $q$. \textbf{Odpowiedź: TAK.}
+\end{itemize}
+
+% ------------------------------------------------------------------
+\subsection{Niewykonalność --- \textbf{impossible} i~kwerenda \textbf{executable}}
+
+\begin{verbatim}
+fluents loaded
+actions load
+initially loaded
+impossible load if loaded
+load causes loaded if !loaded
+\end{verbatim}
+Kwerenda: \texttt{possibly executable after load}
+
+\begin{itemize}
+  \item $\Sigma = \{\{l\},\{\lnot l\}\}$, $\Sigma_0 = \{\{l\}\}$.
+  \item $\Res(\mathit{load}, \{l\})$: aktywna jest reguła
+        \textbf{impossible}, więc następników brak --- jedyna gałąź drzewa
+        jest zablokowana już na pierwszym kroku.
+  \item Ze~stanu początkowego nie istnieje żadna pełna ścieżka.
+        \textbf{Odpowiedź: NIE.}
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Testy}
+
+Zestaw testów (xUnit, projekt \texttt{Ds4.Tests}) obejmuje:
+
+\begin{itemize}
+  \item \textbf{testy jednostkowe} --- parser formuł i~obu języków, generacja
+        $\Sigma$ i~$\Sigma_0$, $\Res$ dla akcji prostych (efekty, zwolnienia,
+        niewykonalność, minimalizacja), wykrywanie konfliktów i~dekompozycje,
+        budowa drzewa wykonań i~ewaluacja kwerend;
+  \item \textbf{testy integracyjne} --- każdy z~42 wbudowanych przykładów
+        (24~z~odpowiedzią TAK, 18~z~NIE) jest rozwiązywany przez fasadę,
+        a~wynik porównywany z~plikiem \texttt{.expected};
+  \item \textbf{testy regresyjne} --- przypadki błędów znalezionych w~trakcie
+        rozwoju (m.in. warunkowe \textbf{causes}).
+\end{itemize}
+
+Uruchomienie: \texttt{dotnet test} w~katalogu \texttt{app/}
+(na Windows także skrypt \texttt{RUN\_TESTS.bat}).
+
+Przypisanie testów do członków zespołu znajduje się w~osobnym dokumencie
+,,Wkład osobowy''.
+
+\end{document}
