@@ -520,6 +520,14 @@ Zbiór $\mathrm{Res}(A,\sigma)$ zawiera dokładnie te stany, które spełniają 
 
 Jeżeli kilka stanów osiąga ten sam stopień minimalności, wszystkie pozostają dopuszczalnymi wynikami wykonania akcji. Niedeterminizm może więc wynikać zarówno z obecności reguł \textbf{releases}, jak i z wielości różnych minimalnych stanów zgodnych z ograniczeniami dziedziny.
 
+\smallskip\noindent\emph{Przykład.}
+Niech $\mathcal{F}=\{p,q\}$ i~niech dziedzina zawiera tylko regułę $A\ \causes\ p$
+(brak zdań \always{}). W~stanie $\sigma=\{\neg p,\neg q\}$ kandydatami z~$\mathrm{Res}_0(A,\sigma)$
+są oba stany spełniające~$p$: $\{p,\neg q\}$ oraz $\{p,q\}$. Pierwszy zmienia jedynie~$p$
+($\mathrm{New}=\{p\}$), drugi zmienia dodatkowo~$q$ ($\mathrm{New}=\{p,q\}$). Minimalny
+względem inkluzji jest pierwszy, więc $\mathrm{Res}(A,\sigma)=\{\{p,\neg q\}\}$ ---
+inercja zachowuje wartość~$q$.
+
 \subsubsection{Niewykonalność}
 
 Osobnego traktowania wymaga przypadek niewykonalności akcji. Jeżeli istnieje reguła
@@ -688,6 +696,12 @@ być dowolnie złożonymi formułami zdaniowymi, a~badanie zgodności literałó
 bezpośrednio w~postaci $\DNF$ pozwala jednolicie rozpatrywać wszystkie
 alternatywy sposobu realizacji danego efektu.
 
+\smallskip\noindent\emph{Przykład.}
+Jeżeli w~stanie~$\sigma$ aktywne są reguły $A\ \causes\ f$ oraz $B\ \causes\ \neg f$,
+to literały $f$ i~$\neg f$ są komplementarne i~akcje $A, B$ kolidują (Przypadek~1).
+Gdyby zamiast $B\ \causes\ \neg f$ aktywna była $B\ \releases\ f$, konflikt zachodziłby
+z~Przypadku~2 --- $A$ wymusza wartość fluentu, który $B$ jednocześnie zwalnia spod~inercji.
+
 Z~symetrii definicji wynika, że relacja konfliktu w~stanie~$\sigma$
 jest symetryczna. Możemy zatem zakodować ją jako nieskierowany graf
 konfliktu
@@ -745,6 +759,13 @@ podzbiorów~$\mathbb{A}$. Maksymalność rozumiana jest
 względem inkluzji, a~nie względem liczności, co oznacza, że zbiór
 $\Delta(\mathbb{A},\sigma)$ może zawierać dekompozycje o~różnej liczbie
 elementów.
+
+\smallskip\noindent\emph{Przykład.}
+Niech $\mathbb{A}=\{A,B,C\}$, przy czym wszystkie trzy są indywidualnie wykonalne
+w~$\sigma$, a~jedyną kolidującą parą jest $\{A,B\}$. Maksymalnymi zbiorami
+bezkonfliktowymi są wtedy $\{A,C\}$ oraz $\{B,C\}$, więc
+$\Delta(\mathbb{A},\sigma)=\{\{A,C\},\{B,C\}\}$ --- akcji $C$ nie~trzeba odrzucać,
+a~wybór między $A$ i~$B$ jest źródłem niedeterminizmu.
 
 \medskip
 \noindent \textbf{Lemat (istnienie dekompozycji).}
