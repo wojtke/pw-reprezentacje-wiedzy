@@ -207,7 +207,7 @@ Systemy klasy $\mathbb{DS4}$ są zdefiniowane przez siedem fundamentalnych zało
 
 \item \textbf{Z5. Niewykonalność akcji} --- model dopuszcza istnienie stanów, w których dana akcja jest całkowicie zablokowana i nie może zostać podjęta przez agenta.
 
-\item \textbf{Z6. Warunki integralności (Ramifikacje)} --- globalne więzy logiczne nakładane na stany wpływają na skutki uboczne akcji; zmiana jednego fluentu może wymusić zmianę innego, aby zachować spójność systemu.
+\item \textbf{Z6. Warunki integralności (ramifikacje)} --- globalne więzy logiczne nakładane na stany wpływają na skutki uboczne akcji; zmiana jednego fluentu może wymusić zmianę innego, aby zachować spójność systemu.
 
 \item \textbf{Z7. Opis częściowy} --- język pozwala na specyfikację stanów, w których wartości niektórych fluentów są nieznane, co dotyczy zarówno stanu początkowego, jak i stanów osiąganych po sekwencjach akcji.
 
@@ -224,7 +224,7 @@ Systemy klasy $\mathbb{DS4}$ są zdefiniowane przez siedem fundamentalnych zało
 \textbf{Mechanizm klasy $\mathbb{DS4}$} & \textbf{Źródłowy język} & \textbf{Wykład / Materiały} \\ \hline
 Inercja, ramifikacje, niedeterminizm & $AR$ & Wykład 2 \\ \hline
 Niewykonalność akcji & $AR$ & Wykład 2 \\ \hline
-Semantyka kwerend (Always/Ever) & $AR$ / $\mathcal{L}$ & Wykład 3 \\ \hline
+Semantyka kwerend (\textit{necessary}/\textit{possibly}) & $AR$ & Wykład 3 \\ \hline
 Konflikty i dekompozycja akcji złożonych & $AC$ & Wykład 5 \\ \hline
 Opisy częściowe i niepełna informacja & $AR$ & Wykład 2, 7 \\ \hline
 \end{tabular}
@@ -541,19 +541,19 @@ Posługujemy się tu pojęciem \emph{śladu wykonania}~$\Psi_S$ --- częściowej
 Struktura $S = (\Sigma, \Sigma_0, \mathrm{Res})$ jest modelem dziedziny $D$, jeśli:
 
 \begin{enumerate}[label=\textbf{(M\arabic*)}]
-    \item $\Sigma$ jest zbiorem wszystkich stanów w $D$, tj. zbiorem wszystkich stanów dopuszczalnych (patrz \ref{sec:stany-dopuszczalne})
+    \item $\Sigma$ jest zbiorem wszystkich stanów w $D$, tj.\ zbiorem wszystkich stanów dopuszczalnych (\S\ref{sec:stany-dopuszczalne}).
     \item Każde zdanie wartościowe $\alpha\ \textbf{after}\ A_1,\dots,A_n$ oraz obserwacyjne $\textbf{observable}\ \alpha\ \textbf{after}\ A_1,\dots,A_n$ z~$D$ jest prawdziwe w~$S$ (\S\ref{sec:prawdziwosc-zdan-wartosciowych}); zdania \textbf{initially} wyznaczają zbiór~$\Sigma_0$ (\S\ref{sec:stany-poczatkowe}).
     \item Dla każdej akcji prostej $A \in \mathcal{A}$ i~każdego stanu $\sigma \in \Sigma$ zbiór $\mathrm{Res}(A, \sigma) \subseteq \mathrm{Res}_0(A, \sigma)$ jest zbiorem tych stanów $\sigma' \in \mathrm{Res}_0(A, \sigma)$, dla~których $\mathrm{New}(A, \sigma, \sigma')$ jest minimalny względem zawierania (\S\ref{sec:minimalizacja}). Rozszerzenie funkcji wyniku na~akcje złożone podajemy w~\S\ref{sec:res-zlozone}.
 \end{enumerate}
 
-Warunek \textbf{M1} wymusza spełnienie zdań integralnościowych \textbf{always}, warunek \textbf{M2} --- zgodność ze~zdaniami wartościowymi i~obserwacyjnymi, a~warunek \textbf{M3} --- zasadę inercji (fluenty niewspomniane w~akcji zachowują swoją wartość).
+Warunek \textbf{M1} wymusza spełnienie ograniczeń integralności \textbf{always}, warunek \textbf{M2} --- zgodność ze~zdaniami wartościowymi i~obserwacyjnymi, a~warunek \textbf{M3} --- zasadę inercji (fluenty niewspomniane w~akcji zachowują swoją wartość).
 
 Definicja modelu odpowiada językowi AC\bibonly{~\cite{rw05}}.
 
 \subsubsection{Jednoznaczność modelu}
 \label{sec:jednoznacznosc-modelu}
 
-Model $S$ spełniający powyższe warunki jest jedyny dla dziedziny $D$. Wynika to z faktu, że wszystkie trzy elementy modelu są wyznaczane w sposób jednoznaczny.
+Jeżeli dziedzina $D$ jest niesprzeczna, to spełniający powyższe warunki model~$S$ jest jedyny. Wynika to z~faktu, że wszystkie trzy elementy modelu są wyznaczane jednoznacznie. Dziedzina sprzeczna (np.\ gdy zdania \textbf{after}/\textbf{observable} przeczą funkcji~$\mathrm{Res}$) nie ma żadnego modelu; relacja $D \mid\!\approx Q$ jest wtedy spełniona pusto dla~każdej kwerendy.
 
 Każda składowa modelu jest wyznaczona jednoznacznie przez swój typ zdań: $\Sigma$ przez zdania \textbf{always}, $\Sigma_0$ przez \textbf{initially} (z~przycięciem zdaniami \textbf{after}/\textbf{observable}), a~$\mathrm{Res}$ przez \textbf{causes}, \textbf{releases} i~\textbf{impossible}. Niedeterminizm nie narusza jednoznaczności: $\mathrm{Res}(A,\sigma)$ to zawsze \emph{cały} zbiór możliwych stanów docelowych.
 
@@ -593,7 +593,7 @@ Dla wygody notacyjnej przyjmujemy konwencję, zgodnie z~którą pojedyncza
 akcja prosta $A \in \mathcal{A}$ występująca w~procesie jest skrótem
 oznaczającym singleton $\{A\} \in \mathcal{A}_z$. Dzięki temu semantyka
 akcji złożonych, wprowadzona poniżej, obejmuje jako przypadek szczególny
-semantykę akcji prostej z~rozdziału~\ref{sec:minimalizacja}: dla
+semantykę akcji prostej z~\S\ref{sec:minimalizacja}: dla
 $\mathbb{A} = \{A\}$ konstrukcje z~niniejszej sekcji redukują się do~tych
 z~\S\ref{sec:sem-proste}.
 
@@ -805,7 +805,7 @@ dekompozycji:
 \[
   \mathrm{Res}_0(\delta,\sigma)
     \;=\; \{\sigma' \in \Sigma :
-      \forall \alpha \in E(\delta,\sigma),\ \sigma' \models \alpha\}.
+      \text{dla każdego } \alpha \in E(\delta,\sigma),\ \sigma' \models \alpha\}.
 \]
 Dla każdego kandydata $\sigma' \in \mathrm{Res}_0(\delta,\sigma)$
 wyznaczamy zbiór literałów nowych, analogicznie jak w~\S\ref{sec:sem-proste}:
@@ -940,15 +940,17 @@ i~$B$ nie kolidują w~$\sigma$. \hfill$\square$
 Jeżeli składowe akcji złożonej~$\mathbb{A}$ operują na~parami rozłącznych zbiorach
 fluentów, to graf konfliktu nie ma krawędzi i~$\Delta(\mathbb{A},\sigma) =
 \{V_{\mathrm{exec}}(\mathbb{A},\sigma)\}$ --- mechanizm AC i~warunek rozłączności dają
-wtedy ten sam wynik. Implikacja odwrotna nie zachodzi: przykład producenta
-i~konsumentów (\S\ref{sec:ex-producent}) pokazuje parę akcji o~częściowo wspólnych
-fluentach, która mimo to pozostaje bezkonfliktowa.
+wtedy ten sam wynik. Implikacja odwrotna nie zachodzi: dwie akcje mogą operować na~wspólnym
+fluencie, a~mimo to pozostać bezkonfliktowe, o~ile nie prowadzą do~komplementarnych literałów
+(Przypadek~1) ani do~pary \causes{}/\releases{} na~tym fluencie (Przypadek~2). Mechanizm
+dekompozycji z~przykładu producenta i~konsumentów (\S\ref{sec:ex-producent}) ilustruje
+wynikającą stąd większą swobodę współbieżności niż w~oryginalnym~$AC$.
 
 \subsection{Proces \texorpdfstring{$\mathbb{P}$}{P}}
 \label{sec:proces}
 
 Proces $\mathbb{P} = (\mathbb{A}_1, \ldots, \mathbb{A}_n)$ to ciąg akcji złożonych
-wykonywanych jedna po~drugiej; każdy krok~$\mathbb{A}_i$ reprezentuje zdarzenia równoległe.
+wykonywanych jedna po~drugiej; każdy krok~$\mathbb{A}_i$ reprezentuje działania równoległe.
 Zbiór wszystkich procesów oznaczamy przez $\mathcal{P} = \mathcal{A}_z^*$. Kwerendy dotyczą
 procesów niepustych ($n>0$); pusty ciąg~$\varepsilon$ wykorzystujemy jedynie jako bazę
 rekurencji funkcji~$\Psi$ (poniżej) oraz w~rozwinięciu skrótu \initially{}.
@@ -1114,8 +1116,9 @@ Jeżeli z~pewnego $\sigma_0 \in \Sigma_0$ proces $\mathbb{P}$ nie jest wykonalny
 \subsection{YSP z~rosyjską ruletką}
 \label{sec:ex-ysp}
 
-\noindent Scenariusz oparty na rosyjskim indyku\bibonly{ (\cite{rw02})}, ilustrujący
-niedeterminizm (\releases{}), efekt pusty oraz rolę zdania \impossible{}.
+\noindent Scenariusz łączący Yale Shooting Problem (,,rosyjski indyk''\bibonly{,~\cite{rw02}})
+z~elementem rosyjskiej ruletki (akcja \textit{Spin}); ilustruje niedeterminizm (\releases{}),
+efekt pusty oraz rolę zdania \impossible{}.
 
 \medskip
 \noindent\textbf{Sygnatura:}
@@ -1159,7 +1162,7 @@ spełnione: $\mathrm{Res}(\mathit{Shoot}, \sigma_2) = \{\sigma_2\} \models \neg\
 (broń już rozładowana --- efekt pusty). Zatem $\Sigma_0 = \{\sigma_2\}$.
 
 \medskip
-\noindent\textbf{Proces $P = (\{\mathit{Load}\},\, \{\mathit{Spin}\},\, \{\mathit{Shoot}\})$.}
+\noindent\textbf{Proces $\mathbb{P} = (\{\mathit{Load}\},\, \{\mathit{Spin}\},\, \{\mathit{Shoot}\})$.}
 
 \smallskip\noindent
 Wykonanie z~$\sigma_2 \in \Sigma_0$:
@@ -1252,8 +1255,8 @@ produkt i~zużywają go.
 \end{align*}
 }
 
-Brak \always{} --- wszystkie $2^3 = 8$ stanów jest dopuszczalnych.
-Stan początkowy: $\Sigma_0 = \{\sigma\}$ gdzie
+Brak \always{} --- wszystkie $2^3 = 8$ stanów są dopuszczalne.
+Stan początkowy: $\Sigma_0 = \{\sigma\}$, gdzie
 $\sigma = \{\neg\mathit{empty},\, \mathit{hasA},\, \mathit{hasB}\}$
 (bufor pełny, obaj konsumenci mają produkt).
 
@@ -1321,7 +1324,7 @@ Oryginalne AC\bibonly{~\cite{rw05}} daje tylko $\{\sigma_1, \sigma_3, \sigma_4\}
 bo tam $\mathit{GetA}$ i~$\mathit{GetB}$ są razem niemożliwe.
 
 \medskip
-\noindent\textbf{Proces $P = (\mathbb{A},\; \{\mathit{ConsumeA}, \mathit{ConsumeB}\})$.}
+\noindent\textbf{Proces $\mathbb{P} = (\mathbb{A},\; \{\mathit{ConsumeA}, \mathit{ConsumeB}\})$.}
 
 Krok~2 --- $\{\mathit{ConsumeA}, \mathit{ConsumeB}\}$ w~każdym stanie
 wynikowym (brak konfliktu, bo $\neg\mathit{hasA}$ i~$\neg\mathit{hasB}$
@@ -1340,7 +1343,7 @@ dotyczą różnych fluentów):
 
 (Używamy skrótu $e = \mathit{empty}$, $A = \mathit{hasA}$, $B = \mathit{hasB}$.)
 
-Po procesie $P$: $\mathrm{Res} = \{\sigma_0, \sigma_1\}$.
+Po procesie $\mathbb{P}$: $\mathrm{Res} = \{\sigma_0, \sigma_1\}$.
 
 \medskip
 \noindent\textbf{Kwerendy:}
@@ -1428,7 +1431,7 @@ warunek ten spełniają zatem dwa: $\sigma_0$ oraz $\sigma_1$. Ostatecznie
 $\Sigma_0 = \{\sigma_0, \sigma_1\}$ --- jest to przypadek opisu częściowego (Z7).
 
 \medskip
-\noindent\textbf{Proces $P = (\{\mathit{Toggle_1}, \mathit{Toggle_2}\},\;
+\noindent\textbf{Proces $\mathbb{P} = (\{\mathit{Toggle_1}, \mathit{Toggle_2}\},\;
 \{\mathit{On}, \mathit{Flicker}\})$.}
 
 \medskip
@@ -1515,7 +1518,7 @@ dwa singletony: $\delta_1 = \{\mathit{On}\}$, $\delta_2 = \{\mathit{Flicker}\}$.
 \]
 
 \medskip
-\noindent\textbf{Stany osiągalne po procesie $P$:} $\{\sigma_0, \sigma_1, \sigma_4\}$.
+\noindent\textbf{Stany osiągalne po procesie $\mathbb{P}$:} $\{\sigma_0, \sigma_1, \sigma_4\}$.
 
 \medskip
 \noindent\textbf{Kwerendy:}
@@ -1553,7 +1556,7 @@ dziedziny $\mathbb{DS4}$: opis częściowy (Z7), ograniczenia integralności,
 fluenty nieinercyjne, ramifikacje, warunkowe \causes{} i~\releases{},
 \impossible{} aktywowaną dynamicznie, obie kategorie konfliktu akcji
 złożonej (Przypadek~1 i~Przypadek~2) oraz zdanie obserwacyjne przycinające
-zbiór $\Sigma_0$. Na jednej dziedzinie porównamy dwa procesy $P_1$~i~$P_2$,
+zbiór $\Sigma_0$. Na jednej dziedzinie porównamy dwa procesy $\mathbb{P}_1$~i~$\mathbb{P}_2$,
 tak by w~sumie trafić wszystkie interesujące ścieżki.
 
 Dwóch robotników, $A$~i~$B$, ma wynieść stół z~pokoju. Każdy może
@@ -1621,7 +1624,7 @@ i~zapisujemy stan jako szóstkę $(a,b,u,d,r,o)$.
   &\initially\ \neg a \land \neg b \land \neg o
     && \cmt{nie trzymają, stół w~środku; $d,r$ nieustalone} \\
   &\observable\ \neg r\ \aft\ \mathit{LiftA}, \mathit{LiftB}, \mathit{CarryOut}
-    && \cmt{obserwacja --- da się wynieść cało}
+    && \cmt{obserwacja --- da się wynieść w~całości}
 \end{align*}
 }
 
@@ -1673,7 +1676,7 @@ mechanizmy semantyki. Każdy z~nich używamy jako $\mathbb{P}$ w~osobnym
 komplecie kwerend.
 
 % ──────────────────────────────────────────────────────────────────
-\paragraph{Proces $P_1 = (\{\mathit{OpenA}\},\, \{\mathit{LiftA}, \mathit{DropA}\},\,
+\paragraph{Proces $\mathbb{P}_1 = (\{\mathit{OpenA}\},\, \{\mathit{LiftA}, \mathit{DropA}\},\,
 \{\mathit{LiftB}\},\, \{\mathit{CarryOut}\})$.}
 Cel: pokazać (i)~akcję singletonową z~warunkową \causes{},
 (ii)~konflikt Przypadek~1 w~kroku~2,
@@ -1738,7 +1741,7 @@ blokuje akcję w~stanach z~$u = \text{F}$:
 \end{itemize}
 
 \medskip
-\noindent\textbf{Drzewo śladów $P_1$:}
+\noindent\textbf{Drzewo śladów $\mathbb{P}_1$:}
 \begin{center}
 \begin{tabular}{@{}l@{\ }c@{\ }l@{}}
 $\sigma_0 \to \sigma_2 \to$ & $\sigma_2 \to \sigma_6 \to$ & \textbf{niewykonalne} \\
@@ -1751,26 +1754,26 @@ $\sigma_2 \to \sigma_2 \to$ & $\sigma_2 \to \sigma_6 \to$ & \textbf{niewykonalne
 \end{center}
 
 \medskip
-\noindent\textbf{Kwerendy dla $P_1$:}
+\noindent\textbf{Kwerendy dla $\mathbb{P}_1$:}
 \begin{itemize}
-  \item $\necessary\ \executable\ P_1$~---
+  \item $\necessary\ \executable\ \mathbb{P}_1$~---
     z~każdego $\sigma \in \Sigma_0$ istnieje ślad kończący się ,,niewykonalne''
     (gałąź przez $\delta_2 = \{\mathit{DropA}\}$). \textbf{NIE}.
 
-  \item $\possibly\ \executable\ P_1$~---
+  \item $\possibly\ \executable\ \mathbb{P}_1$~---
     z~każdego $\sigma \in \Sigma_0$ istnieje ślad pełny
     (gałąź przez $\delta_1 = \{\mathit{LiftA}\}$). \textbf{TAK}.
 
-  \item $\necessary\ o\ \aft\ P_1$~---
+  \item $\necessary\ o\ \aft\ \mathbb{P}_1$~---
     na~gałęziach niewykonalnych $\Psi$ jest niezdefiniowane, więc kwerenda
     konieczności nie jest spełniona. \textbf{NIE}.
 
-  \item $\possibly\ o\ \aft\ P_1$~---
+  \item $\possibly\ o\ \aft\ \mathbb{P}_1$~---
     z~każdego stanu początkowego gałąź sukcesu kończy się w~$\sigma_{10}$ lub~$\sigma_{11}$, spełniających~$o$. \textbf{TAK}.
 \end{itemize}
 
 % ──────────────────────────────────────────────────────────────────
-\paragraph{Proces $P_2 = (\{\mathit{LiftA}, \mathit{LiftB}\},\,
+\paragraph{Proces $\mathbb{P}_2 = (\{\mathit{LiftA}, \mathit{LiftB}\},\,
 \{\mathit{LiftA}, \mathit{CarryOut}\})$.}
 Cel: pokazać (i)~akcję złożoną bez~konfliktu w~kroku~1,
 (ii)~konflikt Przypadek~2 (\causes{} vs.~aktywne \releases{}) w~kroku~2,
@@ -1789,7 +1792,7 @@ Z~każdego stanu $\sigma \in \Sigma_0$ otrzymujemy jeden stan wynikowy
 \begin{itemize}[topsep=2pt]
   \item $\sigma_0 \to \sigma_{12} := (\text{T},\text{T},\text{T},\,\text{F},\text{F},\,\text{F})$.
   \item $\sigma_1 \to \sigma_{13} := (\text{T},\text{T},\text{T},\,\text{F},\text{T},\,\text{F})$.
-  \item $\sigma_2 \to \sigma_{8}$ (ten sam $\sigma_8$ co~w~$P_1$).
+  \item $\sigma_2 \to \sigma_{8}$ (ten sam $\sigma_8$ co~w~$\mathbb{P}_1$).
 \end{itemize}
 
 \medskip
@@ -1814,7 +1817,7 @@ Dekompozycje: $\delta_1 = \{\mathit{LiftA}\}$, $\delta_2 = \{\mathit{CarryOut}\}
         $\mathrm{Res}(\delta_1, \sigma_{12}) = \{\sigma_{12}\}$; analogicznie
         $\mathrm{Res}(\delta_1, \sigma_{13}) = \{\sigma_{13}\}$.
   \item $\delta_2$ w~$\sigma_{12}$: $E = \varnothing$, $R = \{a, b, r\}$.
-        Fluenty nie\-zwolnione ($d, o$) muszą pozostać, czyli $d = o = \text{F}$;
+        Fluenty niezwolnione ($d, o$) muszą pozostać, czyli $d = o = \text{F}$;
         fluenty zwolnione ($a, b, r$) mogą się zmieniać swobodnie; $u$~wyliczane
         przez ramifikację. Dla każdej z~$2^3 = 8$ kombinacji $(a, b, r)$
         mamy $\mathrm{New} = \varnothing$ (żaden z~fluentów inercyjnych
@@ -1847,11 +1850,11 @@ $R(\mathit{CarryOut}) = \varnothing$. Z~$\mathit{LiftA}$ brak wspólnych litera�
 komplementarnych ani zwolnionych fluentów z~DNF --- \textbf{brak konfliktu}.
 Jedna dekompozycja $\delta = \{\mathit{LiftA}, \mathit{CarryOut}\}$,
 $E(\delta) = \{a, o\}$. Stan $\sigma_8$ już spełnia $a$; jedyny minimalny stan
-wynikowy to $\sigma_{10}$ (z~$P_1$). Zatem
+wynikowy to $\sigma_{10}$ (z~$\mathbb{P}_1$). Zatem
 $\mathrm{Res}(\{\mathit{LiftA}, \mathit{CarryOut}\}, \sigma_8) = \{\sigma_{10}\}$.
 
 \medskip
-\noindent\textbf{Drzewo śladów $P_2$:}
+\noindent\textbf{Drzewo śladów $\mathbb{P}_2$:}
 \begin{center}
 \begin{tabular}{@{}l@{\ }l@{}}
 $\sigma_0 \to \sigma_{12} \to$ & $\{\tau_1, \tau_2, \tau_3, \tau_4, \tau_5, \tau_6, \tau_7, \tau_8\}$
@@ -1861,42 +1864,42 @@ $\sigma_2 \to \sigma_{8} \to$  & $\{\sigma_{10}\}$
     \ (ma $o = \text{T}$) \\
 \end{tabular}
 \end{center}
-Każdy ślad $\Psi$ jest zdefiniowany --- proces $P_2$ jest wszędzie wykonalny.
+Każdy ślad $\Psi$ jest zdefiniowany --- proces $\mathbb{P}_2$ jest wykonalny w~każdym przypadku.
 
 \medskip
-\noindent\textbf{Kwerendy dla $P_2$:}
+\noindent\textbf{Kwerendy dla $\mathbb{P}_2$:}
 \begin{itemize}
-  \item $\necessary\ \executable\ P_2$~---
+  \item $\necessary\ \executable\ \mathbb{P}_2$~---
     w~żadnym węźle drzewa wykonania nie~zachodzi blokada. \textbf{TAK}.
 
-  \item $\possibly\ \executable\ P_2$~---
+  \item $\possibly\ \executable\ \mathbb{P}_2$~---
     natychmiast z~powyższego. \textbf{TAK}.
 
-  \item $\necessary\ o\ \aft\ P_2$~---
+  \item $\necessary\ o\ \aft\ \mathbb{P}_2$~---
     gałąź startująca z~$\sigma_0$ kończy się w~zbiorze $\{\tau_1, \ldots, \tau_8\}$,
     w~którym wszędzie $o = \text{F}$. Decyduje o~tym wybór dekompozycji
     $\delta_2 = \{\mathit{CarryOut}\}$ w~kroku~2 --- bo~$d = \text{F}$,
     \causes{} dla $o$ nie~odpala, a~\releases{} nie wymusza $o$. \textbf{NIE}.
 
-  \item $\possibly\ o\ \aft\ P_2$~---
+  \item $\possibly\ o\ \aft\ \mathbb{P}_2$~---
     semantyka \possibly{} wymaga, by z~\emph{każdego} stanu początkowego istniała
     ścieżka kończąca się w~stanie spełniającym~$o$. Ze~stanu $\sigma_2$ (drzwi otwarte)
     rzeczywiście $\sigma_2 \to \sigma_8 \to \sigma_{10} \models o$, jednak ze~stanów
-    $\sigma_0, \sigma_1$ (drzwi zamknięte) proces $P_2$ nigdy nie~otwiera drzwi:
+    $\sigma_0, \sigma_1$ (drzwi zamknięte) proces $\mathbb{P}_2$ nigdy nie~otwiera drzwi:
     $\causes\ o\ \iff\ d$ pozostaje nieaktywne, a~wszystkie stany wynikowe
     $\tau_1,\ldots,\tau_8$ mają $o = \text{F}$. Skoro dla~$\sigma_0, \sigma_1$ nie~istnieje
     ścieżka osiągająca~$o$, kwerenda jest fałszywa. \textbf{NIE}.
 \end{itemize}
 
 \medskip
-\noindent Komplementarność procesów: $P_1$ prowadzi przez konflikt Przypadek~1
+\noindent Komplementarność procesów: $\mathbb{P}_1$ prowadzi przez konflikt Przypadek~1
 i~aktywuje dynamiczną niewykonalność \textit{CarryOut}, co~daje negatywną
-odpowiedź na~\necessary{} \executable{}; $P_2$ ujawnia konflikt Przypadek~2
+odpowiedź na~\necessary{} \executable{}; $\mathbb{P}_2$ ujawnia konflikt Przypadek~2
 z~niedeterministyczną \releases{}, która przy~$d = \text{F}$ rozbija świat
 na~osiem stanów wynikowych i~blokuje pozytywną odpowiedź na~\necessary{} $o$
-\aft{} $P_2$. Co~więcej, $P_2$ ilustruje uniwersalny kwantyfikator po~$\Sigma_0$
+\aft{} $\mathbb{P}_2$. Co~więcej, $\mathbb{P}_2$ ilustruje uniwersalny kwantyfikator po~$\Sigma_0$
 w~semantyce \possibly{}: choć ze~stanu $\sigma_2$ (drzwi otwarte) cel~$o$ jest
-osiągalny, kwerenda \possibly{} $o$ \aft{} $P_2$ jest fałszywa, ponieważ ze~stanów
+osiągalny, kwerenda \possibly{} $o$ \aft{} $\mathbb{P}_2$ jest fałszywa, ponieważ ze~stanów
 początkowych z~zamkniętymi drzwiami proces nie~osiąga~$o$. Zdanie \observable{}
 przycinające $\Sigma_0$ demonstruje się już na~poziomie dziedziny, wspólnie dla~obu procesów.
 
