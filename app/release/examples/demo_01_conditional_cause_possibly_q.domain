@@ -1,7 +1,9 @@
 # name: Demo 01 - warunkowy efekt, possibly TAK
 # description: Akcja ustawia q tylko w tych stanach, w ktorych p jest prawdziwe.
+# note: stan poczatkowy doprecyzowany (p and !q), zeby kwerenda possibly miala sens
+# przy semantyce "dla kazdego stanu poczatkowego istnieje sciezka".
 
 fluents p, q
 actions action
-initially !q
+initially p and !q
 action causes q if p

@@ -15,14 +15,13 @@ Czyli akcja `action` powoduje `q`, ale tylko wtedy, gdy przed wykonaniem akcji p
 ```text
 fluents p, q
 actions action
-initially !q
+initially p and !q
 action causes q if p
 ```
 
-Mamy dwa fluenty: `p` i `q`. Warunek początkowy mówi tylko, że `q` jest fałszywe. Nie mówi nic o `p`, więc reasoner musi rozważyć oba przypadki:
+Mamy dwa fluenty: `p` i `q`. Warunek początkowy mówi, że `p` jest prawdziwe, a `q` fałszywe, więc jest dokładnie jeden stan początkowy:
 
 ```text
-{¬p, ¬q}
 {p, ¬q}
 ```
 
@@ -32,17 +31,11 @@ Mamy dwa fluenty: `p` i `q`. Warunek początkowy mówi tylko, że `q` jest fałs
 possibly q after action
 ```
 
-Pytamy, czy istnieje jakakolwiek ścieżka wykonania, po której po akcji `action` fluent `q` będzie prawdziwy.
+Kwerenda `possibly` jest prawdziwa, gdy z każdego stanu początkowego istnieje przynajmniej jedna pełna ścieżka kończąca się stanem spełniającym cel.
 
 ## Przebieg
 
-Dla stanu początkowego `{¬p, ¬q}` warunek `p` nie zachodzi. Akcja nie wymusza `q`, więc przez inercję zostaje:
-
-```text
-{¬p, ¬q} -> {¬p, ¬q}
-```
-
-Dla stanu początkowego `{p, ¬q}` warunek `p` zachodzi. Akcja wymusza `q`, więc wynik to:
+W jedynym stanie początkowym `{p, ¬q}` warunek `p` zachodzi. Akcja wymusza `q`, więc wynik to:
 
 ```text
 {p, ¬q} -> {p, q}
@@ -56,4 +49,8 @@ Odpowiedź powinna być:
 TAK
 ```
 
-Istnieje ścieżka prowadząca do stanu z `q`, więc kwerenda `possibly q after action` jest prawdziwa.
+Z jedynego stanu początkowego istnieje ścieżka prowadząca do stanu z `q`.
+
+## Uwaga o opisie częściowym
+
+Gdyby warunek początkowy mówił tylko `initially !q` (nic o `p`), stanami początkowymi byłyby `{p, ¬q}` i `{¬p, ¬q}`. Ze stanu `{¬p, ¬q}` żadna ścieżka nie prowadzi do `q`, więc przy semantyce "dla każdego stanu początkowego istnieje ścieżka" odpowiedź brzmiałaby NIE.

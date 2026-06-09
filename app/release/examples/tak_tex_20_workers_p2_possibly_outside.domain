@@ -2,6 +2,9 @@
 # description: W P2 istnieje gałąź kończąca się outside.
 # source: checkpoint2_v1.tex, sekcja Dwóch robotników P2
 # expected: TAK
+# note: stan początkowy doprecyzowany (and doorOpen) względem checkpoint2_v1.tex,
+# żeby kwerenda possibly miała sens przy semantyce "dla każdego stanu początkowego
+# istnieje ścieżka".
 
 always tableUp <-> (holdA and holdB)
 noninertial tableUp
@@ -22,5 +25,5 @@ impossible carryOut if !tableUp
 carryOut releases holdA if !doorOpen
 carryOut releases holdB if !doorOpen
 carryOut releases broken if !doorOpen
-initially !holdA and !holdB and !outside
+initially !holdA and !holdB and !outside and doorOpen
 observable !broken after liftA; liftB; carryOut

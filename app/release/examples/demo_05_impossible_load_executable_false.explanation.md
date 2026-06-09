@@ -34,7 +34,7 @@ mówi, że akcji `load` nie można wykonać, jeśli `loaded` jest już prawdziwe
 possibly executable after load
 ```
 
-Pytamy, czy istnieje jakakolwiek ścieżka, na której proces składający się z akcji `load` jest wykonywalny.
+Pytamy, czy z każdego stanu początkowego istnieje pełna ścieżka, na której proces składający się z akcji `load` jest wykonywalny.
 
 ## Przebieg
 

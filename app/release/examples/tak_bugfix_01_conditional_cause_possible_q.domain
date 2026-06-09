@@ -1,5 +1,7 @@
 # name: TAK bugfix 01 conditional cause possible q
-# description: Regression case. If p is initially possible, action must produce q on the p branch.
+# description: Regression case. Conditional cause must fire on the p branch.
+# note: stan początkowy doprecyzowany (p and !q), żeby kwerenda possibly miała sens
+# przy semantyce "dla każdego stanu początkowego istnieje ścieżka".
 
-initially !q
+initially p and !q
 action causes q if p

@@ -40,7 +40,7 @@ mówi, że strzał zabija tylko wtedy, gdy broń jest załadowana.
 possibly !alive after spin; shoot
 ```
 
-Pytamy, czy istnieje ścieżka, w której po wykonaniu `spin`, a potem `shoot`, postać nie żyje.
+Pytamy, czy z każdego stanu początkowego istnieje ścieżka, w której po wykonaniu `spin`, a potem `shoot`, postać nie żyje.
 
 ## Przebieg
 
@@ -74,4 +74,4 @@ Odpowiedź powinna być:
 TAK
 ```
 
-Istnieje przynajmniej jedna ścieżka, na której broń jest załadowana po `spin`, a potem `shoot` powoduje `!alive`.
+Z każdego stanu początkowego istnieje ścieżka, na której broń jest załadowana po `spin`, a potem `shoot` powoduje `!alive`.
