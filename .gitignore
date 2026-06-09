@@ -37,7 +37,7 @@ dist/
 *.test
 *.out
 coverage.*
-checkpoint3/go/ds4
-checkpoint3/go/ds4-web
-checkpoint3/go/dist/
-checkpoint3/go/bin/
+other/go/ds4
+other/go/ds4-web
+other/go/dist/
+other/go/bin/

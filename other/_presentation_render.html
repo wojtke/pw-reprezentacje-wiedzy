@@ -1,0 +1,54 @@
+<!doctype html>
+<html lang="pl">
+<head>
+<meta charset="utf-8">
+<title>RENDERING</title>
+<script src="https://cdn.jsdelivr.net/npm/marked/marked.min.js"></script>
+<style>
+  body { font-family: -apple-system, system-ui, "Helvetica Neue", Arial, sans-serif;
+         max-width: 900px; margin: 24px auto; padding: 0 24px; color: #222; line-height: 1.5; }
+  h1, h2, h3 { color: #111; }
+  h1 { font-size: 26px; }
+  h2 { font-size: 20px; border-bottom: 1px solid #eee; padding-bottom: 4px; margin-top: 32px; }
+  h3 { font-size: 16px; }
+  p, li { font-size: 13px; }
+  code { background: #f4f4f4; padding: 1px 4px; border-radius: 3px; font-size: 12px; }
+  pre { background: #f7f7f7; padding: 10px; border-radius: 6px; overflow-x: auto; font-size: 12px; }
+  pre code { background: transparent; padding: 0; }
+  .mermaid { background: #fff; padding: 8px; text-align: center; }
+  .mermaid svg { max-width: 100%; height: auto; }
+  img { max-width: 100%; }
+  blockquote { border-left: 4px solid #ddd; margin: 0; padding: 4px 12px; color: #555; }
+  hr { border: 0; border-top: 1px solid #ddd; margin: 24px 0; }
+  @page { size: A4; margin: 14mm 14mm; }
+  /* avoid breaking mermaid figures across pages */
+  .mermaid, pre, img { page-break-inside: avoid; break-inside: avoid; }
+  h1, h2, h3 { page-break-after: avoid; break-after: avoid; }
+</style>
+</head>
+<body>
+<div id="content"></div>
+<script type="module">
+  import mermaid from 'https://cdn.jsdelivr.net/npm/mermaid@10/dist/mermaid.esm.min.mjs';
+  mermaid.initialize({ startOnLoad: false, theme: 'default', securityLevel: 'loose', flowchart: { htmlLabels: true } });
+
+  const md = "# Projekt 4 \u2014 Procesy dzia\u0142a\u0144 z\u0142o\u017conych\n\nMa\u0142y reasoner dla klasy system\u00f3w dynamicznych **DS4**. Czyta opis dziedziny i kwerend\u0119,\nbuduje model w pami\u0119ci, odpowiada **TAK / NIE** + trace.\n\nImplementacja: `checkpoint3/csharp` (C# / .NET 8). Frontendy: WinForms, Avalonia, CLI.\n\n---\n\n## Interfejs\n\n\n\nOkno ma cztery elementy:\n\n- **Lista przyk\u0142ad\u00f3w + \u201eWczytaj przyk\u0142ad\"** \u2014 42 wbudowane przypadki z folderu `examples/` (TAK / NIE \u00d7 `tex` / `extra` / `bugfix`).\n- **Dziedzina** (lewy panel) \u2014 edytowalny tekst dziedziny w j\u0119zyku akcji: `causes`, `releases`, `impossible`, `always`, `initially`, `after`. Komentarze `# \u2026`.\n- **Kwerenda** (prawy g\u00f3rny panel) \u2014 jedno zdanie `possibly | necessary` \u00d7 `executable | \u03b3 after P`.\n- **Wynik** (prawy dolny panel) \u2014 `ODPOWIED\u0179: TAK / NIE`, rozmiary `|\u03a3|` i `|\u03a3\u2080|`, kr\u00f3tkie uzasadnienie i pe\u0142ny **trace** drzewa wykona\u0144 (ka\u017cdy w\u0119ze\u0142: krok procesu \u2192 stan ko\u0144cowy).\n\n---\n\n## Architektura\n\n```mermaid\nflowchart TB\n    subgraph UI[\"UI\"]\n        GUI[\"Ds4.Gui (WinForms)\"]\n        CGUI[\"Ds4.CrossGui (Avalonia)\"]\n        CLI[\"Ds4.Cli\"]\n    end\n\n    FACADE[\"Ds4Facade.Solve(domain, query)\"]\n\n    subgraph CORE[\"Ds4.Core\"]\n        PARSER[\"Parser\"]\n        SEMS[\"Semantics<br/>(Model, Res, Process, Query)\"]\n    end\n\n    EXAMPLES[(\"examples/<br/>42 przypadk\u00f3w\")]\n    TESTS[(\"xUnit tests\")]\n\n    GUI --> FACADE\n    CGUI --> FACADE\n    CLI --> FACADE\n    FACADE --> PARSER --> SEMS\n    EXAMPLES -. wczytywane .-> FACADE\n    TESTS -. testuje .-> FACADE\n```\n\n\n\n- **UI** (WinForms / Avalonia / CLI) \u2014 tylko pola tekstowe, lista przyk\u0142ad\u00f3w, przycisk \u201eOblicz\". Trzy frontendy, ta sama logika.\n- `**Ds4Facade`** \u2014 jedyne API, kt\u00f3rego u\u017cywa UI. Bierze dwa stringi (dziedzina, kwerenda), zwraca `SolveResult { Answer, Explanation, |\u03a3|, |\u03a3\u2080|, Trace }`.\n- `**Ds4.Core`** \u2014 czysty silnik bez zale\u017cno\u015bci od UI: `Parser` zamienia tekst na AST, `Semantics` buduje model i odpowiada na kwerend\u0119.\n- `**examples/**` \u2014 42 pary `.domain` + `.query` \u0142adowane przez fasad\u0119 do listy w GUI/CLI.\n- `**tests/**` \u2014 xUnit; testuj\u0105 fasad\u0119 i modu\u0142y semantyki bezpo\u015brednio, w tym wszystkie 42 przyk\u0142ady przeciw plikom `.expected`.\n\nCore nie wie nic o UI \u2014 wymiana frontendu nie zmienia ani jednej linii w silniku.\n\n---\n\n## Przep\u0142yw podczas rozwi\u0105zywania\n\n```mermaid\nflowchart TD\n    IN[/\"<b>Wej\u015bcie</b><br/>domainText, queryText (string)\"/]\n\n    S1[\"<b>1 \u00b7 DomainParser + QueryParser</b><br/>tekst \u2192 AST dziedziny i kwerendy\"]\n\n    S2[\"<b>2 \u00b7 ModelBuilder</b><br/>liczy \u03a3 (always) i \u03a3\u2080 (initially + after)\"]\n\n    subgraph RES[\"<b>3 \u00b7 CompositeActionEngine \u2014 Res(A, \u03c3)</b>\"]\n        direction LR\n        R1[\"<b>ConflictDetector</b><br/>konflikty mi\u0119dzy akcjami w \u03c3\"]\n        R2[\"<b>DecompositionGenerator</b><br/>bezkonfliktowe podzbiory A\"]\n        R3[\"<b>SimpleActionEngine</b><br/>nast\u0119pniki w \u03a3 dla ka\u017cdej dekompozycji\"]\n    end\n\n    S4[\"<b>4 \u00b7 ProcessEvaluator</b><br/>rozwija drzewo Res(A\u1d62, \u00b7) z ka\u017cdego \u03c3 \u2208 \u03a3\u2080\"]\n\n    S5[\"<b>5 \u00b7 QueryEvaluator</b><br/>(possibly / necessary) \u00d7 (executable / \u03b3 after P)\"]\n\n    OUT[/\"<b>Wynik</b><br/>TAK / NIE + uzasadnienie<br/>rozmiary \u03a3, \u03a3\u2080<br/>trace drzewa wykona\u0144\"/]\n\n    IN  -- \"dwa stringi\" --> S1\n    S1  -- \"Domain (AST), Ds4Query (AST)\" --> S2\n    S2  -- \"\u03a3, \u03a3\u2080 \u2286 2^F (zbiory stan\u00f3w)\" --> RES\n    RES -- \"Res : (A, \u03c3) \u21a6 podzbi\u00f3r \u03a3\" --> S4\n    S4  -- \"ExecutionTree (korzenie, li\u015bcie ko\u0144cowe, BLOCKED)\" --> S5\n    S5  -- \"bool + tekst uzasadnienia\" --> OUT\n```\n\n\n\nCo dzieje si\u0119 na ka\u017cdym kroku:\n\n1. **Parsowanie.** Tekst dziedziny i kwerendy zamieniamy na struktur\u0119: lista fluent\u00f3w, akcji, regu\u0142 `causes` / `releases` / `impossible`, ogranicze\u0144 `always` / `initially` oraz definicja procesu i celu. *(`DomainParser`, `QueryParser`)*\n2. **Przestrze\u0144 stan\u00f3w.** Generujemy wszystkie `2^|F|` warto\u015bciowania fluent\u00f3w, odsiewamy te niezgodne z `always` \u2192 zostaje `\u03a3`. Z `\u03a3` wybieramy stany zgodne z `initially` i z asercjami `after` \u2192 zostaje `\u03a3\u2080` (zbi\u00f3r mo\u017cliwych stan\u00f3w pocz\u0105tkowych przy cz\u0119\u015bciowym opisie). *(`StateGenerator`, `ModelBuilder`)*\n3. **Operacja `Res` \u2014 jeden krok procesu.** Definicja w dw\u00f3ch poziomach; krok z\u0142o\u017cony korzysta z prostego:\n  - **Akcja prosta `a` w stanie `\u03c3`.** Je\u015bli `impossible a` jest aktywne \u2192 brak nast\u0119pnik\u00f3w. W przeciwnym razie bierzemy aktywne efekty `causes` / `releases` i jako nast\u0119pniki wybieramy te stany z `\u03a3`, kt\u00f3re te efekty spe\u0142niaj\u0105 **i** najmniej zmieniaj\u0105 fluenty inercyjne. Tak realizujemy inercj\u0119 (Z1) i ramification (Z6). *(`SimpleActionEngine`)*\n  - **Akcja z\u0142o\u017cona `A = {a\u2081,\u2026,a\u2096}` w `\u03c3`.** Dwie akcje s\u0105 w konflikcie, je\u015bli w `\u03c3` wp\u0142ywaj\u0105 na te same fluenty. Budujemy graf konfliktu, wyci\u0105gamy **maksymalne bezkonfliktowe podzbiory** `A`, dla ka\u017cdego liczymy jego wsp\u00f3lny `Res` (przez krok prosty) i bierzemy sum\u0119. *(`ConflictDetector`, `DecompositionGenerator`, `CompositeActionEngine`)*\n4. **Wykonanie procesu.** Z ka\u017cdego `\u03c3 \u2208 \u03a3\u2080` rozwijamy drzewo: korze\u0144 \u2192 dzieci = `Res(A\u2081, \u03c3)` \u2192 wnuki = `Res(A\u2082, \u00b7)` itd. Ga\u0142\u0105\u017a, na kt\u00f3rej gdzie\u015b `Res = \u2205`, dostaje status **BLOCKED**; ga\u0142\u0105\u017a d\u0142ugo\u015bci `n` ko\u0144czy si\u0119 **li\u015bciem ko\u0144cowym**. *(`ProcessEvaluator`)*\n5. **Decyzja kwerendy.** Patrzymy na drzewo:\n  - `possibly executable` \u2014 istnieje li\u015b\u0107 ko\u0144cowy,\n  - `possibly \u03b3` \u2014 istnieje li\u015b\u0107 ko\u0144cowy spe\u0142niaj\u0105cy `\u03b3`,\n  - `necessary executable` \u2014 `\u03a3\u2080 \u2260 \u2205`, brak blokad i s\u0105 li\u015bcie ko\u0144cowe,\n  - `necessary \u03b3` \u2014 jak wy\u017cej **i** wszystkie li\u015bcie ko\u0144cowe spe\u0142niaj\u0105 `\u03b3`. *(`QueryEvaluator`)*\n\n---\n\n## Kwestie do ogarni\u0119cia\n\n- **Syntax sugar.** Doprecyzowa\u0107 zbi\u00f3r skr\u00f3t\u00f3w sk\u0142adniowych, kt\u00f3rych parser ma oficjalnie wspiera\u0107: `impossible A` jako skr\u00f3t `A causes \u22a5 if \u2026`, `initially \u03b1` jako skr\u00f3t `\u03b1 after \u03b5`, opcjonalne deklaracje `fluents` / `actions`, \u015bredniki ko\u0144cz\u0105ce zdania, komentarze `#` / `//`. Spisa\u0107 to jednolicie w gramatyce i w dokumentacji u\u017cytkownika.\n- **Kwerendy `possibly`.** Domkn\u0105\u0107 semantyk\u0119 `possibly executable` i `possibly \u03b3 after P` w stylu zgodnym z [SUM\u20114]: \u201eistnieje model, stan pocz\u0105tkowy z `\u03a3\u2080` i pe\u0142na \u015bcie\u017cka\". Sprawdzi\u0107, czy nasza implementacja zachowuje si\u0119 dok\u0142adnie tak, gdy `\u03a3\u2080 = \u2205` i gdy proces jest pusty (`P = \u03b5`); dorzuci\u0107 brakuj\u0105ce przyk\u0142ady `possibly` do folderu `examples/`.\n\n";
+  const renderer = new marked.Renderer();
+  const escape = s => s.replace(/[&<>]/g, c => ({'&':'&amp;','<':'&lt;','>':'&gt;'}[c]));
+  renderer.code = (code, lang) => {
+    if (lang === 'mermaid') return '<pre class="mermaid">' + code + '</pre>';
+    return '<pre><code class="language-' + (lang || '') + '">' + escape(code) + '</code></pre>';
+  };
+  marked.setOptions({ renderer, gfm: true, breaks: false });
+  document.getElementById('content').innerHTML = marked.parse(md);
+
+  try {
+    await mermaid.run({ querySelector: '.mermaid' });
+  } catch (e) {
+    document.body.insertAdjacentHTML('afterbegin', '<pre style="color:red">mermaid error: ' + e.message + '</pre>');
+  }
+  // Signal to headless Chrome that we are done.
+  document.title = 'READY';
+</script>
+</body>
+</html>

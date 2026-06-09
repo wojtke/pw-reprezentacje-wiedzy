@@ -1,0 +1,23 @@
+flowchart TB
+    subgraph UI["UI"]
+        GUI["Ds4.Gui (WinForms)"]
+        CGUI["Ds4.CrossGui (Avalonia)"]
+        CLI["Ds4.Cli"]
+    end
+
+    FACADE["Ds4Facade.Solve(domain, query)"]
+
+    subgraph CORE["Ds4.Core"]
+        PARSER["Parser"]
+        SEMS["Semantics<br/>(Model, Res, Process, Query)"]
+    end
+
+    EXAMPLES[("examples/<br/>42 przypadków")]
+    TESTS[("xUnit tests")]
+
+    GUI --> FACADE
+    CGUI --> FACADE
+    CLI --> FACADE
+    FACADE --> PARSER --> SEMS
+    EXAMPLES -. wczytywane .-> FACADE
+    TESTS -. testuje .-> FACADE
