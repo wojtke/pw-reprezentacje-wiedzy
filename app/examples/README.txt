@@ -7,9 +7,9 @@ Każdy przykład składa się z trzech plików:
 
 GUI ładuje pary .domain i .query z tego folderu. Pliki .expected są używane przez testy C# w xUnit.
 
-Liczba przykładów: 40
-TAK: 23
-NIE: 17
+Liczba przykładów: 42
+TAK: 24
+NIE: 18
 
 Przykłady z prefiksem tex pochodzą z checkpoint2_v1.tex. Przykłady z prefiksem extra są dodatkowymi przypadkami testowymi.
 

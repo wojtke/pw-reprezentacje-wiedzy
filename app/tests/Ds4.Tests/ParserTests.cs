@@ -81,7 +81,7 @@ public sealed class ParserTests
     public void DomainParser_Allows_Action_Literally_Named_Action()
     {
         var result = TestData.Solve("""
-            initially !q
+            initially p and !q
             action causes q if p
             """, "possibly q after action");
 
