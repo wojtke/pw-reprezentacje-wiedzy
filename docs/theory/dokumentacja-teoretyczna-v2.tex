@@ -188,7 +188,7 @@ systemów dynamicznych:
 Klasa $\mathbb{DS4}$ łączy cechy kilku języków akcji znanych z~wykładów.
 Mechanizmy inercji, niedeterminizmu, ramifikacji i~niewykonalności
 pochodzą z~języka~$AR$ (wykład~2). Obsługę akcji złożonych projektujemy
-w~oparciu o~język~$AC$ (wykład~5) --- adaptujemy mechanizm detekcji
+na~podstawie języka~$AC$ (wykład~5) --- adaptujemy mechanizm detekcji
 konfliktów i~dekompozycji do~warunków~$\mathbb{DS4}$,
 w~których opisy dziedzin zawierają wyłącznie akcje proste.
 
@@ -203,7 +203,7 @@ Systemy klasy $\mathbb{DS4}$ są zdefiniowane przez siedem fundamentalnych zało
 
 \item \textbf{Z3. Niedeterminizm działań} --- wykonanie pojedynczej akcji w konkretnym stanie może prowadzić do wielu alternatywnych stanów wynikowych (np. rzut monetą skutkuje orłem lub reszką).
 
-\item \textbf{Z4. Warunki wstępne i wynikowe} --- każda akcja posiada zdefiniowaną formułę logiczną, która musi być spełniona przed jej wykonaniem; w przypadku niespełnienia warunku wstępnego, akcja nie wywołuje żadnych zmian (efekt pusty).
+\item \textbf{Z4. Warunki wstępne i wynikowe} --- każda akcja posiada zdefiniowaną formułę logiczną, która musi być spełniona przed jej wykonaniem; w przypadku niespełnienia warunku wstępnego akcja nie wywołuje żadnych zmian (efekt pusty).
 
 \item \textbf{Z5. Niewykonalność akcji} --- model dopuszcza istnienie stanów, w których dana akcja jest całkowicie zablokowana i nie może zostać podjęta przez agenta.
 
@@ -787,7 +787,9 @@ dekompozycjach.
 
 \paragraph{Efekty i~zwolnienia dekompozycji.}
 Dla dekompozycji $\delta \in \Delta(\mathbb{A},\sigma)$ definiujemy
-zbiorcze zestawy aktywnych efektów oraz aktywnych zwolnień:
+zbiorcze zestawy aktywnych efektów oraz aktywnych zwolnień; tym samym przenosimy
+oznaczenia $E$, $R$ (a~dalej także $\mathrm{New}$ i~$\mathrm{Res}_0$) z~pojedynczych
+akcji na~dekompozycje i~akcje złożone:
 \[
   E(\delta,\sigma) \;=\; \bigcup_{A \in \delta} E(A,\sigma),
   \qquad
@@ -853,6 +855,8 @@ minimalność zmiany rozstrzygana jest \emph{lokalnie}, w~obrębie każdej dekom
 (\S\ref{sec:minimalizacja}). Odpowiada to analogowi warunku~(M3) z~\S\ref{sec:model-dziedziny}:
 stany wynikowe akcji złożonej to dokładnie te stany dopuszczalne, które spełniają
 łączne efekty pewnej dekompozycji i~wprowadzają najmniejszą konieczną zmianę.
+Jest to świadoma decyzja projektowa: minimalizujemy zmianę per-dekompozycja, a~nie
+globalnie po~wszystkich dekompozycjach, jak w~oryginalnym warunku~(M3) języka~$AC$.
 
 \paragraph{Niedeterminizm.}
 Istnienie wielu dekompozycji w~tym samym stanie stanowi nowe, niezależne
@@ -1101,7 +1105,7 @@ Z założeń problemu model może mieć wiele różnych stanów początkowych $\
 
 \medskip
 \noindent\textbf{Niewykonalność a kwerendy wartościowe.}
-Jeżeli z~pewnego $\sigma_0 \in \Sigma_0$ proces $\mathbb{P}$ nie jest wykonalny --- tzn.\ $\Psi_S(\mathbb{P},\sigma_0)$ jest nieokreślone dla~każdego śladu --- to z~powyższych definicji \necessary{} $\alpha$ \aft{} $\mathbb{P}$ jest \emph{fałszywa}: nie można twierdzić, że $\alpha$ zachodzi po~wykonaniu procesu, który się nie kończy. W~szczególności \necessary{} $\alpha$ \aft{} $\mathbb{P}$ pociąga \necessary{} \executable{} $\mathbb{P}$.
+Jeżeli z~pewnego $\sigma_0 \in \Sigma_0$ proces $\mathbb{P}$ nie jest wykonalny --- tzn.\ $\Psi_S(\mathbb{P},\sigma_0)$ jest nieokreślone dla~każdego śladu --- to z~powyższych definicji \necessary{} $\alpha$ \aft{} $\mathbb{P}$ jest \emph{fałszywa}: nie można twierdzić, że $\alpha$ zachodzi po~wykonaniu procesu, który się nie kończy. W~szczególności \necessary{} $\alpha$ \aft{} $\mathbb{P}$ pociąga \necessary{} \executable{} $\mathbb{P}$. Jest to świadomy wybór mocniejszy od~klasycznej formy implikacyjnej z~języka~$AR$ (gdzie na~ścieżkach nieokreślonych zdanie jest spełnione pusto).
 % ══════════════════════════════════════════════════════════════════
 \section{Przykłady}
 
@@ -1190,19 +1194,19 @@ zdanie \initially{} $\neg\mathit{loaded}$ gwarantuje, że proces ma start.
 \noindent\textbf{Kwerendy} (przypomnijmy: $\Sigma_0 = \{\sigma_2\}$, więc
 kwantyfikator po~stanach początkowych dotyczy jednego stanu):
 \begin{itemize}
-  \item $\necessary\ \executable\ P$~---
+  \item $\necessary\ \executable\ \mathbb{P}$~---
     z~$\sigma_2$ każdy ślad domyka wszystkie trzy kroki.
     \textbf{TAK}.
 
-  \item $\possibly\ \executable\ P$~---
+  \item $\possibly\ \executable\ \mathbb{P}$~---
     natychmiast z~powyższego. \textbf{TAK}.
 
-  \item $\necessary\ \neg\mathit{alive}\ \aft\ P$~---
+  \item $\necessary\ \neg\mathit{alive}\ \aft\ \mathbb{P}$~---
     gałąź, w~której $\mathit{Spin}$ pozostawia broń rozładowaną, kończy się
     w~$\sigma_2$ z~$\mathit{alive}$.
     \textbf{NIE}.
 
-  \item $\possibly\ \neg\mathit{alive}\ \aft\ P$~---
+  \item $\possibly\ \neg\mathit{alive}\ \aft\ \mathbb{P}$~---
     gałąź, w~której $\mathit{Spin}$ pozostawia broń naładowaną, kończy się
     w~$\sigma_3$.
     \textbf{TAK}.
@@ -1341,16 +1345,16 @@ Po procesie $\mathbb{P}$: $\mathrm{Res} = \{\sigma_0, \sigma_1\}$.
 \medskip
 \noindent\textbf{Kwerendy:}
 \begin{itemize}
-  \item $\necessary\ \executable\ P$~---
+  \item $\necessary\ \executable\ \mathbb{P}$~---
     oba kroki mają $\mathrm{Res} \neq \varnothing$. \textbf{TAK}.
 
-  \item $\possibly\ \mathit{empty}\ \aft\ P$~---
+  \item $\possibly\ \mathit{empty}\ \aft\ \mathbb{P}$~---
     $\sigma_0$ spełnia $\mathit{empty}$. \textbf{TAK}.
 
-  \item $\necessary\ \mathit{empty}\ \aft\ P$~---
+  \item $\necessary\ \mathit{empty}\ \aft\ \mathbb{P}$~---
     $\sigma_1$ spełnia $\neg\mathit{empty}$. \textbf{NIE}.
 
-  \item $\necessary\ \neg\mathit{hasA} \land \neg\mathit{hasB}\ \aft\ P$~---
+  \item $\necessary\ \neg\mathit{hasA} \land \neg\mathit{hasB}\ \aft\ \mathbb{P}$~---
     zarówno $\sigma_0$, jak i~$\sigma_1$ spełniają $\neg\mathit{hasA} \land \neg\mathit{hasB}$.
     \textbf{TAK} --- niezależnie od~przebiegu, po procesie żaden konsument
     nie ma produktu.
@@ -1516,18 +1520,18 @@ dwa singletony: $\delta_1 = \{\mathit{On}\}$, $\delta_2 = \{\mathit{Flicker}\}$.
 \medskip
 \noindent\textbf{Kwerendy:}
 \begin{itemize}
-  \item $\necessary\ \executable\ P$~---
+  \item $\necessary\ \executable\ \mathbb{P}$~---
     Z~obu stanów początkowych $\sigma_0, \sigma_1$ krok~1 prowadzi do~$\sigma_4$,
     a~krok~2 ma w~$\sigma_4$ niepuste $\mathrm{Res}$,
     więc każda ścieżka dochodzi do poziomu~$2$. \textbf{TAK}.
 
-  \item $\possibly\ \executable\ P$~---
+  \item $\possibly\ \executable\ \mathbb{P}$~---
     wynika z~\necessary{} \executable{}: z~każdego stanu początkowego istnieje (wręcz każdy) ślad domykający proces. \textbf{TAK}.
 
-  \item $\necessary\ \mathit{alarm}\ \aft\ P$~---
+  \item $\necessary\ \mathit{alarm}\ \aft\ \mathbb{P}$~---
     $\sigma_0$ spełnia $\neg\mathit{alarm}$, więc istnieje ścieżka kończąca się bez alarmu. \textbf{NIE}.
 
-  \item $\possibly\ \mathit{alarm}\ \aft\ P$~---
+  \item $\possibly\ \mathit{alarm}\ \aft\ \mathbb{P}$~---
     z~każdego stanu początkowego ($\sigma_0, \sigma_1$) istnieje ślad kończący się w~$\sigma_4 \models \mathit{alarm}$. \textbf{TAK}.
 \end{itemize}
 
@@ -1541,7 +1545,7 @@ a~w~parze z~\textit{On} tworzy konflikt Przypadku~2 rozbijający akcję złożon
 \subsection{Dwóch robotników wynoszących stół}
 \label{sec:ex-table}
 
-\noindent Autorski scenariusz integrujący, obejmujący wszystkie mechanizmy
+\noindent Autorski scenariusz integrujący wszystkie mechanizmy
 dziedziny $\mathbb{DS4}$: opis częściowy (Z7), ograniczenia integralności,
 fluenty nieinercyjne, ramifikacje, warunkowe \causes{} i~\releases{},
 \impossible{} aktywowaną dynamicznie, obie kategorie konfliktu akcji
