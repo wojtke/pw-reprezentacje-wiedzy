@@ -232,7 +232,7 @@ Opisy częściowe i niepełna informacja & $AR$ & Wykład 2, 7 \\ \hline
 
 \subsection{Ograniczenia \texorpdfstring{$\mathbb{DS4}$}{DS4}}
 
-Klasa $\mathbb{DS4}$ wprowadza trzy świadome uproszczenia względem pełnego języka~$AC$: (i)~opis dziedziny dopuszcza wyłącznie akcje proste, a~akcje złożone pojawiają się dopiero w~języku kwerend; (ii)~nie ma jawnej klauzuli \impossible{} dla zbiorów akcji --- o~wykonalności zbioru rozstrzyga mechanizm konfliktów i~dekompozycji (\S\ref{sec:konflikty}); (iii)~nie stosujemy dziedziczenia restrykcyjnego (\textit{restricted inheritance}) --- każda akcja złożona jest dekomponowana do akcji prostych. Uproszczenia te nie ograniczają mocy modelowania w~zakresie założeń Z1--Z7: każdą niedozwoloną kombinację akcji można wyrazić przez warunki integralności (Z6) lub warunki wstępne (Z4), które w~razie konfliktu czynią proces niewykonalnym (Z5).
+Klasa $\mathbb{DS4}$ wprowadza trzy świadome uproszczenia względem pełnego języka~$AC$: (i)~opis dziedziny dopuszcza wyłącznie akcje proste, a~akcje złożone pojawiają się dopiero w~języku kwerend; (ii)~nie ma jawnej klauzuli \impossible{} dla zbiorów akcji --- o~wykonalności zbioru rozstrzyga mechanizm konfliktów i~dekompozycji (\S\ref{sec:konflikty}); (iii)~nie stosujemy dziedziczenia restrykcyjnego (\textit{restricted inheritance}) --- każda akcja złożona jest dekomponowana do akcji prostych. Uproszczenia te nie zmniejszają siły modelowania: każdą niedozwoloną kombinację akcji można wyrazić przez ograniczenia integralności (Z6) lub warunki wstępne (Z4).
 
 % ══════════════════════════════════════════════════════════════════
 \section{Język akcji}
@@ -271,7 +271,7 @@ Relację spełnialności formuły $\alpha$ w stanie $\sigma$, oznaczaną jako $\
 \subsection{Składnia}
 \label{sec:skladnia-akcji}
 
-Projektowany język akcji służy do opisu dziedzin należących do klasy $\mathbb{DS4}$ systemów dynamicznych. Zgodnie z treścią zadania, w opisach dziedzin występują wyłącznie akcje proste, tj.\ elementy ustalonego zbioru akcji $\mathcal{A}$. Akcje złożone, rozumiane jako zbiory akcji prostych wykonywanych współbieżnie, nie należą zatem do składni języka opisu dziedziny, lecz pojawiają się dopiero na poziomie języka kwerend, w którym budowane są procesy. Oznacza to, że na poziomie opisu dziedziny zachowujemy rdzeń języka AR, natomiast mechanizmy związane ze współbieżnością są wprowadzane dopiero przy interpretacji procesów i odpowiadających im zapytań.
+Projektowany język akcji służy do opisu dziedzin należących do klasy $\mathbb{DS4}$ systemów dynamicznych. Zgodnie z treścią zadania, w opisach dziedzin występują wyłącznie akcje proste, tj.\ elementy ustalonego zbioru akcji $\mathcal{A}$. Akcje złożone, rozumiane jako zbiory akcji prostych wykonywanych współbieżnie, nie należą zatem do składni języka opisu dziedziny, lecz pojawiają się dopiero na poziomie języka kwerend.
 
 Przypomnijmy oznaczenia z~\S\ref{sec:jezyk-akcji}: $\alpha,\beta,\pi$ oznaczają dowolne formuły zdaniowe nad~$\mathcal{F}$, $f$ --- fluent, a~$A$ --- akcję prostą ze~zbioru~$\mathcal{A}$.
 
@@ -372,7 +372,7 @@ A \;\textbf{releases}\; f \;\textbf{if}\; \pi \\[4pt]
 \textbf{observable}\; \alpha \;\textbf{after}\; A_1,\dots,A_n
 \end{align*}
 
-Powyższa gramatyka obejmuje wszystkie typy zdań dopuszczalnych w języku akcji dla klasy $\mathbb{DS4}$; produkcje $\langle \textit{niewykonalnosc} \rangle$ oraz $\langle \textit{poczatkowe} \rangle$ to omówione wyżej skróty \impossible{} i~\initially{} (tabela~\ref{tab:ds4-action-abbrev}). Warto zauważyć, że składnia nie zawiera żadnych reguł odnoszących się bezpośrednio do akcji złożonych. Ograniczenie to ma charakter zamierzony i wynika z założeń zadania: opis dziedziny dotyczy wyłącznie działań elementarnych, natomiast współbieżność pojawia się dopiero na poziomie procesów i kwerend.
+Powyższa gramatyka obejmuje wszystkie typy zdań dopuszczalnych w języku akcji dla klasy $\mathbb{DS4}$; produkcje $\langle \textit{niewykonalnosc} \rangle$ oraz $\langle \textit{poczatkowe} \rangle$ to omówione wyżej skróty \impossible{} i~\initially{} (tabela~\ref{tab:ds4-action-abbrev}). Składnia nie zawiera reguł dla akcji złożonych.
 
 \subsubsection{Opis poszczególnych zdań}
 
@@ -403,7 +403,7 @@ $\initially\; \alpha$ to $\alpha \;\aft\; \varepsilon$ (pusty ciąg akcji): opis
 
 \subsubsection{Dziedzina \texorpdfstring{$D$}{D}}
 
-Przez dziedzinę działania będziemy rozumieć skończony zbiór zdań języka akcji nad ustaloną sygnaturą $\Upsilon=(\mathcal{F},\mathcal{A})$. Dziedzinę taką oznaczamy przez $D$. Zbiór $D$ stanowi pełną formalną specyfikację systemu na poziomie akcji prostych: określa dostępne działania elementarne, ich skutki, warunki niewykonalności, ograniczenia integralności oraz wiedzę o stanie początkowym. W dalszej części opracowania to właśnie względem tak określonej dziedziny zostanie zdefiniowana semantyka akcji prostych.
+Przez dziedzinę działania rozumiemy skończony zbiór zdań języka akcji nad ustaloną sygnaturą $\Upsilon=(\mathcal{F},\mathcal{A})$; oznaczamy ją przez~$D$. Zbiór~$D$ jest pełną specyfikacją systemu na~poziomie akcji prostych --- względem niego definiujemy dalej semantykę.
 
 \subsection{Semantyka akcji prostych}
 \label{sec:sem-proste}
@@ -514,9 +514,7 @@ to przyjmujemy
 \mathrm{Res}(A,\sigma)=\varnothing.
 \]
 
-Oznacza to, że akcja $A$ nie ma w stanie $\sigma$ żadnego dopuszczalnego wyniku, ponieważ nie może zostać wykonana. Warunek niewykonalności ma zatem charakter priorytetowy: jeśli akcja jest zabroniona, nie analizuje się jej efektów, lecz od razu uznaje się, że zbiór wyników jest pusty. Ujęcie to odpowiada interpretacji reguły \textbf{impossible} jako szczególnego przypadku reguły efektowej prowadzącej do sprzeczności, a zarazem zapewnia przejrzystość dalszych definicji dotyczących wykonalności procesów.
-
-Podsumowując, semantyka akcji prostych opiera się na następującym schemacie: najpierw wyznaczany jest zbiór stanów dopuszczalnych $\Sigma$, następnie zbiór stanów początkowych $\Sigma_0$, dalej dla każdej akcji prostej i każdego stanu dopuszczalnego budowany jest zbiór kandydatów $\mathrm{Res}_0(A,\sigma)$, a ostatecznie spośród tych kandydatów wybierane są stany minimalne względem funkcji $\mathrm{New}$. Tak zdefiniowana semantyka łączy bezpośrednie efekty działań, ograniczenia integralności, zasadę inercji, niedeterminizm oraz niewykonalność w jednolity model przejść dla akcji prostych.
+Oznacza to, że akcja~$A$ nie ma w~stanie~$\sigma$ żadnego dopuszczalnego wyniku. Reguła \textbf{impossible} ma więc charakter priorytetowy --- jest to szczególny przypadek reguły efektowej prowadzącej do~sprzeczności ($A\ \causes\ \bot$).
 
 \subsection{Model dziedziny}
 \label{sec:model-jezyk-akcji}
@@ -955,26 +953,21 @@ Zbiór wszystkich procesów oznaczamy przez $\mathcal{P} = \mathcal{A}_z^*$. Kwe
 procesów niepustych ($n>0$); pusty ciąg~$\varepsilon$ wykorzystujemy jedynie jako bazę
 rekurencji funkcji~$\Psi$ (poniżej) oraz w~rozwinięciu skrótu \initially{}.
 
-\subsection{Funkcja \texorpdfstring{$\Psi$}{Psi}}
+\subsection{Ślad wykonania \texorpdfstring{$\Psi_S$}{Psi\_S}}
 
-Pojedyncze wykonanie procesu jest niedeterministyczne: na~każdym kroku akcja złożona może prowadzić do~wielu stanów wynikowych. Ustalony wybór jednego następnika na~każdym kroku nazywamy \emph{śladem} wykonania i~reprezentujemy jako funkcję częściową
+Pojedyncze wykonanie procesu jest niedeterministyczne: na~każdym kroku akcja złożona może prowadzić do~wielu stanów wynikowych. \emph{Śladem} wykonania nazywamy ustalony wybór jednego następnika na~każdym kroku; ślad reprezentujemy jako funkcję częściową
 \[
-  \Psi : \mathcal{P} \times \Sigma \rightharpoonup \Sigma,
+  \Psi_S : \mathcal{P} \times \Sigma \rightharpoonup \Sigma,
 \]
-która procesowi $\mathbb{P}$ oraz stanowi startowemu $\sigma$ przypisuje stan osiągnięty po~wykonaniu $\mathbb{P}$ wzdłuż tego śladu. Definiujemy ją rekurencyjnie po~długości procesu.
-
-Dla pustego procesu kładziemy
+indeksowaną wyborem~$S$, która procesowi~$\mathbb{P}$ i~stanowi startowemu~$\sigma$ przypisuje stan osiągnięty po~wykonaniu~$\mathbb{P}$ wzdłuż tego śladu. Ślad jest \emph{dopuszczalny}, jeżeli spełnia warunki rekurencyjne po~długości procesu:
 \[
-  \Psi(\varepsilon,\,\sigma) = \sigma .
+  \Psi_S(\varepsilon,\,\sigma) = \sigma,
 \]
-
-Dla procesu niepustego $\mathbb{P} = (\mathbb{A}_1,\ldots,\mathbb{A}_k)$: jeżeli stan pośredni $\sigma' = \Psi((\mathbb{A}_1,\ldots,\mathbb{A}_{k-1}),\,\sigma)$ jest określony, to
+a~dla procesu niepustego $\mathbb{P} = (\mathbb{A}_1,\ldots,\mathbb{A}_k)$ --- o~ile stan pośredni $\sigma' = \Psi_S((\mathbb{A}_1,\ldots,\mathbb{A}_{k-1}),\,\sigma)$ jest określony ---
 \[
-  \Psi((\mathbb{A}_1,\ldots,\mathbb{A}_k),\,\sigma) \in \mathrm{Res}(\mathbb{A}_k,\,\sigma') .
+  \Psi_S((\mathbb{A}_1,\ldots,\mathbb{A}_k),\,\sigma) \in \mathrm{Res}(\mathbb{A}_k,\,\sigma') .
 \]
-Jeżeli natomiast stan pośredni $\sigma'$ jest nieokreślony albo $\mathrm{Res}(\mathbb{A}_k,\sigma') = \varnothing$ (krok niewykonalny), to wartość $\Psi(\mathbb{P},\sigma)$ pozostaje nieokreślona.
-
-Każdy taki ślad $\Psi$ odpowiada jednej ścieżce w~drzewie wykonań procesu, wraz ze~stanami pośrednimi; różne rozstrzygnięcia niedeterminizmu dają różne ślady, które oznaczamy~$\Psi_S$. Obrazuje to rysunek~\ref{fig:psi}.
+Jeżeli $\sigma'$ jest nieokreślony albo $\mathrm{Res}(\mathbb{A}_k,\sigma') = \varnothing$ (krok niewykonalny), to $\Psi_S(\mathbb{P},\sigma)$ pozostaje nieokreślone. Każdy dopuszczalny ślad odpowiada jednej ścieżce w~drzewie wykonań procesu, wraz ze~stanami pośrednimi; różne rozstrzygnięcia niedeterminizmu dają różne ślady~$\Psi_S$, po~których kwantyfikujemy w~semantyce kwerend (\S\ref{sec:sem-kwerend}). Obrazuje to rysunek~\ref{fig:psi}.
 
 \begin{figure}[h!]
 \centering
@@ -1539,14 +1532,11 @@ dwa singletony: $\delta_1 = \{\mathit{On}\}$, $\delta_2 = \{\mathit{Flicker}\}$.
 \end{itemize}
 
 \medskip
-\noindent\textbf{Komentarz do~ramifikacji i~nieinercji.}
-W~kroku~1 jedyna zmiana wymuszona bezpośrednio przez \causes{} to $\mathit{sw_1}, \mathit{sw_2}$;
-zmiana $\mathit{light}$ wynika z~\always{} i~zostaje wliczona do~$\mathrm{New}$,
-natomiast $\mathit{alarm}$ także się zmienia ,,w~tle'', ale dzięki \noninertial{}
-nie obciąża zbioru $\mathrm{New}$. W~kroku~2 \textit{Flicker} pokazuje, że \releases{}
-może dawać więcej niż jeden minimalny stan wynikowy nawet pojedynczo, a~w~połączeniu
-z~\textit{On} generuje konflikt Przypadek~2, co rozbija akcję złożoną na~dwie
-singletonowe dekompozycje.
+\noindent\textbf{Komentarz.}
+W~kroku~1 \causes{} wymusza jedynie $\mathit{sw_1},\mathit{sw_2}$; zmiana $\mathit{light}$ wynika
+z~\always{} (ramifikacja) i~wchodzi do~$\mathrm{New}$, a~$\mathit{alarm}$ zmienia się ,,za~darmo''
+dzięki \noninertial{}. W~kroku~2 \textit{Flicker} (\releases{}) daje kilka minimalnych stanów,
+a~w~parze z~\textit{On} tworzy konflikt Przypadku~2 rozbijający akcję złożoną na~dwie dekompozycje.
 
 \subsection{Dwóch robotników wynoszących stół}
 \label{sec:ex-table}
@@ -1892,16 +1882,12 @@ Każdy ślad $\Psi$ jest zdefiniowany --- proces $\mathbb{P}_2$ jest wykonalny w
 \end{itemize}
 
 \medskip
-\noindent Komplementarność procesów: $\mathbb{P}_1$ prowadzi przez konflikt Przypadek~1
-i~aktywuje dynamiczną niewykonalność \textit{CarryOut}, co~daje negatywną
-odpowiedź na~\necessary{} \executable{}; $\mathbb{P}_2$ ujawnia konflikt Przypadek~2
-z~niedeterministyczną \releases{}, która przy~$d = \text{F}$ rozbija świat
-na~osiem stanów wynikowych i~blokuje pozytywną odpowiedź na~\necessary{} $o$
-\aft{} $\mathbb{P}_2$. Co~więcej, $\mathbb{P}_2$ ilustruje uniwersalny kwantyfikator po~$\Sigma_0$
-w~semantyce \possibly{}: choć ze~stanu $\sigma_2$ (drzwi otwarte) cel~$o$ jest
-osiągalny, kwerenda \possibly{} $o$ \aft{} $\mathbb{P}_2$ jest fałszywa, ponieważ ze~stanów
-początkowych z~zamkniętymi drzwiami proces nie~osiąga~$o$. Zdanie \observable{}
-przycinające $\Sigma_0$ demonstruje się już na~poziomie dziedziny, wspólnie dla~obu procesów.
+\noindent \textbf{Komplementarność procesów.} $\mathbb{P}_1$ pokazuje konflikt Przypadku~1
+i~dynamiczną niewykonalność \textit{CarryOut} (stąd \necessary{} \executable{} fałszywe),
+a~$\mathbb{P}_2$ --- konflikt Przypadku~2 z~niedeterministyczną \releases{}. $\mathbb{P}_2$
+ilustruje też uniwersalny kwantyfikator po~$\Sigma_0$: \possibly{} $o$ \aft{} $\mathbb{P}_2$
+jest fałszywa, bo~ze~stanów początkowych z~zamkniętymi drzwiami cel~$o$ jest nieosiągalny,
+mimo że ze~stanu~$\sigma_2$ --- osiągalny.
 
 % ══════════════════════════════════════════════════════════════════
 \section{Podsumowanie}
@@ -1909,21 +1895,13 @@ przycinające $\Sigma_0$ demonstruje się już na~poziomie dziedziny, wspólnie 
 W niniejszym opracowaniu zaprojektowano kompletny formalny aparat do opisu oraz analizy systemów dynamicznych klasy $\mathbb{DS4}$. W szczególności zdefiniowano:
 
 \begin{itemize}
-    \item \textbf{język akcji}, umożliwiający formalny opis dziedziny w oparciu o akcje proste, ich efekty, warunki wykonalności oraz ograniczenia integralności,
+    \item \textbf{język akcji}, umożliwiający formalny opis dziedziny w~oparciu o~akcje proste, ich efekty, warunki wykonalności oraz ograniczenia integralności,
     \item \textbf{semantykę operacyjną}, obejmującą zarówno pojedyncze akcje, jak i akcje złożone, wraz z mechanizmem konfliktów, dekompozycji oraz minimalizacji zmian,
     \item \textbf{model dziedziny}, który jednoznacznie określa zbiór stanów dopuszczalnych, stanów początkowych oraz funkcję przejścia,
     \item \textbf{język kwerend}, pozwalający formułować pytania dotyczące wykonalności procesów oraz osiągalności określonych stanów końcowych.
 \end{itemize}
 
-Kluczowym elementem projektu jest integracja mechanizmów znanych z języków $AR$ oraz $AC$ w ramach jednej spójnej semantyki. W szczególności wykorzystano:
-prawo inercji i ramifikacje do modelowania zmian stanu,
-niedeterminizm wynikający z konstrukcji \textbf{releases},
-oraz mechanizm dekompozycji akcji złożonych do obsługi współbieżności.
-Zaproponowane podejście uogólnia prosty model rozłączności zmiennych, umożliwiając bardziej elastyczne i realistyczne modelowanie konfliktów między akcjami.
-
-Istotnym rozszerzeniem względem klasycznego modelu $AR$ jest dopuszczenie wielu stanów początkowych ($\Sigma_0$), co wynika bezpośrednio z założenia częściowej informacji (Z7). Wprowadza to dodatkowy poziom niedeterminizmu, który musi być uwzględniany przy interpretacji kwerend.
-
-Podsumowując, zaproponowany model stanowi solidną podstawę zarówno do implementacji, jak i dalszych badań nad reprezentacją wiedzy w dynamicznych systemach współbieżnych.
+Kluczowe było scalenie mechanizmów języka~$AR$ (inercja, ramifikacje, niedeterminizm) oraz~$AC$ (konflikty i~dekompozycje akcji złożonych) w~jednej semantyce, wraz z~uogólnieniem warunku rozłączności zmiennych z~treści zadania. Istotnym rozszerzeniem względem klasycznego~$AR$ jest dopuszczenie wielu stanów początkowych ($\Sigma_0$, założenie~Z7), uwzględniane przy interpretacji kwerend \textit{necessary}/\textit{possibly}.
 
 % ══════════════════════════════════════════════════════════════════
 \ifshowbib
