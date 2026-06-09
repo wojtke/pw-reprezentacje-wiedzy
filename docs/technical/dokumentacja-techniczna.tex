@@ -250,6 +250,10 @@ z~definicjami):
         (sekcja~2.5.1). Z~$\Sigma$ wybieramy stany zgodne z~\textbf{initially}
         i~ze zdaniami \textbf{after} --- zostaje $\Sigma_0$ (sekcja~2.5.2),
         czyli zbiór możliwych stanów początkowych przy opisie częściowym.
+        Zdanie $\alpha$ \textbf{after} $P$ zostawia te stany, z~których
+        \emph{każda} pełna ścieżka procesu $P$ kończy się stanem spełniającym
+        $\alpha$; wariant \textbf{observable} --- te, z~których kończy się tak
+        \emph{przynajmniej jedna}.
   \item \textbf{Krok procesu.} Dla akcji prostej: jeśli aktywna jest reguła
         \textbf{impossible}, następników brak; w~przeciwnym razie następnikami
         są stany z~$\Sigma$ spełniające aktywne efekty i~minimalizujące zbiór
@@ -283,6 +287,44 @@ z~definicjami):
                 liście końcowe spełniają $\gamma$.
         \end{itemize}
 \end{enumerate}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Realizacja warunków Z1--Z7}
+
+Treść projektu definiuje klasę $\mathit{DS4}$ siedmioma warunkami.
+Poniższa tabela wskazuje, który mechanizm programu realizuje każdy z~nich.
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{4.6cm}p{9.8cm}@{}}
+\toprule
+\textbf{Warunek} & \textbf{Realizacja w~programie} \\
+\midrule
+Z1. Prawo inercji &
+  minimalizacja zbioru zmian $\New$ w~$\Res$: fluent nieobjęty efektem
+  zachowuje wartość \\
+Z2. Pełna informacja &
+  jawna enumeracja wszystkich stanów ($2^{|\mathcal{F}|}$) i~wszystkich
+  reguł dziedziny --- nic nie jest domyślane \\
+Z3. Niedeterminizm działań &
+  \textbf{releases} (oba wartościowania zwolnionego fluentu przeżywają
+  minimalizację) oraz suma wyników po dekompozycjach akcji złożonej \\
+Z4. Warunek wstępny i~wynikowy &
+  reguły $A$ \textbf{causes} $\alpha$ \textbf{if} $\pi$; gdy $\pi$ nie
+  zachodzi, reguła jest nieaktywna (efekt pusty) \\
+Z5. Niewykonalność &
+  \textbf{impossible} $A$ \textbf{if} $\pi$ --- $\Res = \emptyset$,
+  gałąź drzewa dostaje status BLOCKED \\
+Z6. Warunki integralności &
+  filtr \textbf{always} na~$\Sigma$; następniki wybierane wyłącznie
+  z~$\Sigma$, więc ograniczenia wymuszają skutki uboczne (ramifikacja) \\
+Z7. Opis częściowy &
+  $\Sigma_0$ jako zbiór \emph{wszystkich} stanów zgodnych
+  z~\textbf{initially} i~zdaniami \textbf{after}; uniwersalny kwantyfikator
+  po~$\Sigma_0$ w~obu rodzajach kwerend \\
+\bottomrule
+\end{tabular}
+\end{center}
 
 % ══════════════════════════════════════════════════════════════════
 \section{Przykłady z~obliczeniami}
@@ -402,6 +444,26 @@ Kwerenda: \texttt{possibly executable after load}
         jest zablokowana już na pierwszym kroku.
   \item Ze~stanu początkowego nie istnieje żadna pełna ścieżka.
         \textbf{Odpowiedź: NIE.}
+\end{itemize}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Obsługa błędnego wejścia}
+
+Fasada nie rzuca wyjątków do interfejsu --- każdy problem z~wejściem kończy
+się czytelnym komunikatem zamiast odpowiedzi:
+
+\begin{itemize}
+  \item \textbf{błąd składni} w~dziedzinie lub kwerendzie --- zwracany jest
+        komunikat parsera wskazujący niepoprawne zdanie;
+  \item \textbf{sprzeczne ograniczenia \textbf{always}} --- żaden stan ich nie
+        spełnia ($\Sigma = \emptyset$); program zgłasza: ,,Model jest pusty:
+        ograniczenia always są sprzeczne'';
+  \item \textbf{sprzeczny opis początkowy} --- $\Sigma_0 = \emptyset$;
+        wszystkie kwerendy mają wtedy odpowiedź NIE, a~w~wyniku widać
+        $|\Sigma_0| = 0$, co wskazuje przyczynę;
+  \item \textbf{bardzo duże drzewo wykonań} --- trace jest ucinany po około
+        60~tys. znaków z~jawną adnotacją, żeby nie blokować GUI; odpowiedź
+        i~uzasadnienie są liczone zawsze na pełnym drzewie.
 \end{itemize}
 
 % ══════════════════════════════════════════════════════════════════
