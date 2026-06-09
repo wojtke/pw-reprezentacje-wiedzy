@@ -1946,7 +1946,7 @@ początkowych z~zamkniętymi drzwiami proces nie~osiąga~$o$. Zdanie \observable
 przycinające $\Sigma_0$ demonstruje się już na~poziomie dziedziny, wspólnie dla~obu procesów.
 
 % ══════════════════════════════════════════════════════════════════
-\section{Podsumowanie i kierunek dalszych prac}
+\section{Podsumowanie}
 
 W niniejszym opracowaniu zaprojektowano kompletny formalny aparat do opisu oraz analizy systemów dynamicznych klasy $\mathbb{DS4}$. W szczególności zdefiniowano:
 
@@ -1964,30 +1964,6 @@ oraz mechanizm dekompozycji akcji złożonych do obsługi współbieżności.
 Zaproponowane podejście uogólnia prosty model rozłączności zmiennych, umożliwiając bardziej elastyczne i realistyczne modelowanie konfliktów między akcjami.
 
 Istotnym rozszerzeniem względem klasycznego modelu $AR$ jest dopuszczenie wielu stanów początkowych ($\Sigma_0$), co wynika bezpośrednio z założenia częściowej informacji (Z7). Wprowadza to dodatkowy poziom niedeterminizmu, który musi być uwzględniany przy interpretacji kwerend.
-
-\medskip
-
-\textbf{Kierunki dalszych prac.}
-
-Kolejnym etapem projektu będzie implementacja zaproponowanego modelu oraz eksperymentalna weryfikacja jego działania. Planowane prace obejmują:
-
-\begin{itemize}
-    \item \textbf{implementację parsera języka dziedziny i kwerend} -- opracowanie prostego DSL umożliwiającego wprowadzanie specyfikacji w formie tekstowej,
-    \item \textbf{generację przestrzeni stanów} ($\Sigma$ oraz $\Sigma_0$) na podstawie ograniczeń i zdań początkowych,
-    \item \textbf{implementację funkcji $\mathrm{Res}$} dla akcji prostych i złożonych, w tym:
-    \begin{itemize}
-        \item obliczanie $\mathrm{Res}_0$,
-        \item wyznaczanie zbioru zmian $\mathrm{New}$,
-        \item minimalizację względem zasady inercji,
-        \item wykrywanie konfliktów i generację dekompozycji,
-    \end{itemize}
-    \item \textbf{implementację ewaluacji procesów} (funkcja $\Psi$) wraz z obsługą niedeterminizmu,
-    \item \textbf{obsługę kwerend} typu \textbf{necessary} oraz \textbf{possibly}, zarówno dla wykonalności, jak i osiągalności celów,
-    \item \textbf{opracowanie zestawu testów i przykładów}, pozwalających zweryfikować poprawność implementacji na scenariuszach omawianych w pracy,
-    \item opcjonalnie: \textbf{interfejs użytkownika} (np.\ prosty CLI lub wizualizacja drzewa stanów), ułatwiający analizę działania systemu.
-\end{itemize}
-
-Dalsze prace mogą również obejmować analizę złożoności obliczeniowej zaproponowanych algorytmów oraz ewentualne optymalizacje, w szczególności w zakresie generowania dekompozycji i eksploracji przestrzeni stanów. Interesującym kierunkiem rozszerzeń byłoby także dopuszczenie bardziej złożonych form akcji (np.\ hierarchicznych) lub integracja z istniejącymi systemami planowania.
 
 Podsumowując, zaproponowany model stanowi solidną podstawę zarówno do implementacji, jak i dalszych badań nad reprezentacją wiedzy w dynamicznych systemach współbieżnych.
 
