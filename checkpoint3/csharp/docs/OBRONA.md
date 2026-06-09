@@ -24,7 +24,7 @@ Dla akcji złożonej:
 3. liczymy wynik każdej dekompozycji,
 4. sumujemy wyniki.
 
-Dla procesu budujemy drzewo wykonań. Kwerendy `possibly` sprawdzają istnienie dobrej ścieżki, a `necessary` wymagają, żeby wszystkie ścieżki były dobre i żadna nie zablokowała się przed końcem procesu.
+Dla procesu budujemy drzewo wykonań, w którym każdy korzeń odpowiada jednemu stanowi z `Σ₀`. Kwerenda `possibly` jest prawdziwa, gdy **z każdego** stanu początkowego istnieje co najmniej jedna pełna dobra ścieżka. Kwerenda `necessary` wymaga, żeby **z każdego** stanu początkowego wszystkie ścieżki były dobre i żadna nie zablokowała się przed końcem procesu.
 
 Najważniejsze zdanie:
 

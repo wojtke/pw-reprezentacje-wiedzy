@@ -1,0 +1,4 @@
+# name: Demo 03 - possibly true, bo akcja ustawia q z kazdego stanu poczatkowego
+# description: Sigma0 ma warianty z q i bez q, ale setQ konczy z q w kazdym przypadku.
+initially true
+setQ causes q if true

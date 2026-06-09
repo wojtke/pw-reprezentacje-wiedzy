@@ -1,0 +1,5 @@
+# name: NIE bugfix 01 conditional cause possible q partial p
+# description: Sigma0 zawiera stan z p i bez p; akcja produkuje q tylko na galezi z p, wiec possibly q jest NIE w semantyce (dla kazdego sigma) (istnieje sciezka).
+
+initially !q
+action causes q if p
