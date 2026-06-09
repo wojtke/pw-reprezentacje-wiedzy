@@ -902,21 +902,13 @@ pojedynczego wyniku analogicznego do~akcji prostej.
 \subsection{Uwaga o ,,restricted inheritance''}
 \label{sec:restricted-inheritance}
 
-W~pełnym języku~$AC$\bibonly{~\cite{rw05}} dziedzina dopuszcza zdania
-dotyczące bezpośrednio akcji złożonych, na~przykład zdania typu
-$\mathbb{A}\ \causes\ \alpha\ \iff\ \pi$ dla $\mathbb{A}$ będącego
-zbiorem akcji. W~takim przypadku efekt ogłoszony dla~$\mathbb{A}$ nie
-musi być w~ogólności dziedziczony przez wszystkie jej podzbiory ---
-mechanizm ten nosi w~literaturze nazwę \emph{restricted inheritance}.
-
-W~klasie $\mathbb{DS4}$ opisy dziedziny zawierają wyłącznie zdania
-odnoszące się do~akcji prostych (patrz \S\ref{sec:skladnia-akcji}); żadne zdanie nie deklaruje
-efektu zbioru akcji. Z~tego powodu problem ograniczonego dziedziczenia
-nie występuje: efekty każdej akcji prostej $A_i$ są dziedziczone w~całości
-przez każdą dekompozycję zawierającą~$A_i$, a~łączny efekt dekompozycji
-powstaje jako suma zbiorów $E(A_i,\sigma)$ oraz $R(A_i,\sigma)$ zgodnie
-z~\S\ref{sec:res-zlozone}. Stanowi to świadome uproszczenie mechanizmu
-AC dopuszczalne w~zakresie zadania projektowego.
+W~pełnym języku~$AC$\bibonly{~\cite{rw05}} dziedzina może zawierać zdania
+o~akcjach złożonych (np.\ $\mathbb{A}\ \causes\ \alpha\ \iff\ \pi$); efekt ogłoszony
+dla~$\mathbb{A}$ nie musi być wtedy dziedziczony przez wszystkie jej podzbiory ---
+mechanizm znany jako \emph{restricted inheritance}. W~$\mathbb{DS4}$ zdania dotyczą
+wyłącznie akcji prostych (\S\ref{sec:skladnia-akcji}), więc problem ten nie występuje:
+efekty każdej składowej $A_i$ są w~całości dziedziczone przez każdą dekompozycję
+zawierającą~$A_i$ (\S\ref{sec:res-zlozone}). Jest to świadome uproszczenie mechanizmu~$AC$.
 
 \subsection{Porównanie z treścią projektu}
 \label{sec:porownanie-rozlacznosc}
@@ -979,16 +971,12 @@ i~$B$ nie kolidują w~$\sigma$. \hfill$\square$
 
 \medskip
 \noindent \textbf{Wniosek.}
-Jeżeli wszystkie pary składowych akcji złożonej~$\mathbb{A}$ operują
-na~parami rozłącznych zbiorach fluentów, to graf konfliktu
-$G_\sigma(\mathbb{A})$ nie zawiera żadnej krawędzi, a~zatem
-$\Delta(\mathbb{A},\sigma) = \{V_{\mathrm{exec}}(\mathbb{A},\sigma)\}$.
-W~tej sytuacji mechanizm AC i~warunek rozłączności z~treści zadania
-prowadzą do~identycznych wyników. Przykład~\S\ref{sec:ex-producent} (producent i~konsumenci)
-pokazuje natomiast, że odwrotna implikacja nie zachodzi: para akcji
-operująca na~częściowo wspólnym zbiorze fluentów może pozostać
-bezkonfliktowa, o~ile nie prowadzi do~komplementarnych literałów
-w~sensie Przypadku~1 ani do~sytuacji z~Przypadku~2.
+Jeżeli składowe akcji złożonej~$\mathbb{A}$ operują na~parami rozłącznych zbiorach
+fluentów, to graf konfliktu nie ma krawędzi i~$\Delta(\mathbb{A},\sigma) =
+\{V_{\mathrm{exec}}(\mathbb{A},\sigma)\}$ --- mechanizm AC i~warunek rozłączności dają
+wtedy ten sam wynik. Implikacja odwrotna nie zachodzi: przykład producenta
+i~konsumentów (\S\ref{sec:ex-producent}) pokazuje parę akcji o~częściowo wspólnych
+fluentach, która mimo to pozostaje bezkonfliktowa.
 
 \subsection{Proces \texorpdfstring{$\mathbb{P}$}{P}}
 \label{sec:proces}
