@@ -1,1 +1,0 @@
-# TODO O6: Producer and consumers (PK2 §10.2).

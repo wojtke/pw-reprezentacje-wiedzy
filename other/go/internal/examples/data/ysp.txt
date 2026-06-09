@@ -1,2 +1,0 @@
-# TODO O6: Yale Shooting Problem (russian roulette variant) from PK2 §10.1.
-# Concrete syntax pinned by O4.

@@ -35,9 +35,7 @@ dist/
 
 # Go
 *.test
-*.out
 coverage.*
-other/go/ds4
-other/go/ds4-web
-other/go/dist/
-other/go/bin/
+
+# Local-only scratch (kept on disk, not committed)
+other/
