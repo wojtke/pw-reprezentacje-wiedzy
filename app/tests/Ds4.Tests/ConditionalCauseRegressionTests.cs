@@ -41,12 +41,14 @@ public sealed class ConditionalCauseRegressionTests
     }
 
     [Fact]
-    public void Query_Possibly_Q_After_Action_Is_True_For_Regression_Domain()
+    public void Query_Possibly_Q_After_Action_Is_False_For_Regression_Domain()
     {
+        // possibly = z każdego stanu początkowego istnieje pełna ścieżka spełniająca cel;
+        // stan początkowy {¬p, ¬q} nie ma ścieżki do q, więc odpowiedź brzmi NIE.
         var result = TestData.Solve(DomainText, "possibly q after action");
 
         Assert.True(result.Ok, result.Error);
-        Assert.True(result.Answer);
+        Assert.False(result.Answer);
     }
 
     [Fact]

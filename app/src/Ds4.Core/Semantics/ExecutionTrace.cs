@@ -38,6 +38,7 @@ public sealed class ExecutionTree
     }
 
     public IEnumerable<ExecutionNode> FinalNodes() => AllNodes().Where(n => n.Depth == ProcessLength);
+    public IEnumerable<ExecutionNode> FinalNodesUnder(ExecutionNode root) => Traverse(root).Where(n => n.Depth == ProcessLength);
     public IEnumerable<ExecutionNode> BlockedNodes() => AllNodes().Where(n => n.Blocked && n.Depth < ProcessLength);
 
     private static IEnumerable<ExecutionNode> Traverse(ExecutionNode node)

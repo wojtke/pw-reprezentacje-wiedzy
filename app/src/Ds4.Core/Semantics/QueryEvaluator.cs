@@ -37,10 +37,10 @@ public sealed class QueryEvaluator
         {
             if (query.Quantifier == Quantifier.Possibly)
             {
-                answer = finals.Length > 0;
+                answer = _model.Sigma0.Count > 0 && tree.Roots.All(r => tree.FinalNodesUnder(r).Any());
                 explanation = answer
-                    ? "Istnieje co najmniej jedna pełna ścieżka wykonania procesu."
-                    : "Nie istnieje żadna pełna ścieżka wykonania procesu.";
+                    ? "Z każdego stanu początkowego istnieje pełna ścieżka wykonania procesu."
+                    : "Brak stanów początkowych albo istnieje stan początkowy bez pełnej ścieżki wykonania procesu.";
             }
             else
             {
@@ -55,10 +55,10 @@ public sealed class QueryEvaluator
             var goal = query.Goal ?? throw new InvalidOperationException("Goal query without goal formula.");
             if (query.Quantifier == Quantifier.Possibly)
             {
-                answer = finals.Any(n => goal.Evaluate(n.State));
+                answer = _model.Sigma0.Count > 0 && tree.Roots.All(r => tree.FinalNodesUnder(r).Any(n => goal.Evaluate(n.State)));
                 explanation = answer
-                    ? "Istnieje pełna ścieżka kończąca się stanem spełniającym cel."
-                    : "Żadna pełna ścieżka nie kończy się stanem spełniającym cel.";
+                    ? "Z każdego stanu początkowego istnieje pełna ścieżka kończąca się stanem spełniającym cel."
+                    : "Brak stanów początkowych albo istnieje stan początkowy, z którego żadna pełna ścieżka nie kończy się stanem spełniającym cel.";
             }
             else
             {
