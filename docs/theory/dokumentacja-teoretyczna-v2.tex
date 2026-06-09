@@ -370,53 +370,30 @@ Powyższa gramatyka obejmuje wszystkie typy zdań dopuszczalnych w języku akcji
 
 \subsubsection{Opis poszczególnych zdań}
 
-Zdanie
-\[
-A \;\textbf{causes}\; \alpha \;\textbf{if}\; \pi
-\]
-jest regułą efektową. Oznacza ono, że jeżeli akcja prosta $A$ zostaje wykonana w stanie spełniającym warunek $\pi$, to każdy dopuszczalny stan wynikowy powinien spełniać formułę $\alpha$. Reguła ta opisuje zatem bezpośredni, pewny skutek działania i stanowi podstawowy mechanizm reprezentacji zmian zachodzących pod wpływem akcji.
+Poniżej omawiamy zwięźle te zdania, których sens wykracza poza tabelę~\ref{tab:ds4-action-language}.
 
-Zdanie
-\[
-A \;\textbf{releases}\; f \;\textbf{if}\; \pi
-\]
-jest regułą zwolnienia spod działania inercji. Jego sens polega na tym, że wykonanie akcji $A$ w stanie spełniającym $\pi$ nie wymusza zachowania poprzedniej wartości fluentu $f$. Fluent ten może zatem po wykonaniu akcji zachować swoją wartość albo ją zmienić. Konstrukcja ta służy do reprezentowania niedeterminizmu lokalnego i pozwala modelować skutki działań, które nie są w pełni określone.
+\smallskip\noindent
+$A \;\causes\; \alpha \;\iff\; \pi$ --- reguła efektowa: jeśli $A$ jest wykonana w~stanie spełniającym~$\pi$, to każdy dopuszczalny stan wynikowy spełnia~$\alpha$. To podstawowy mechanizm reprezentacji pewnych skutków działań.
 
-Zdanie
-\[
-\textbf{impossible}\; A \;\textbf{if}\; \pi
-\]
-jest skrótem dla reguły efektowej \mbox{$A \;\causes\; \bot \;\iff\; \pi$}. W~stanie spełniającym $\pi$ żaden stan wynikowy nie może spełnić $\bot$, więc akcja $A$ nie ma w~takim stanie żadnego dopuszczalnego wyniku --- jest niewykonalna (semantyka w~\S\ref{sec:sem-proste}). Tak jak pozostałe zdania, dotyczy ono wyłącznie akcji prostych; dla akcji złożonych nie wprowadzamy analogicznej konstrukcji na~poziomie opisu dziedziny.
+\smallskip\noindent
+$A \;\releases\; f \;\iff\; \pi$ --- zwolnienie spod inercji: po wykonaniu $A$ w~stanie spełniającym~$\pi$ wartość fluentu~$f$ może, lecz nie~musi, zostać zachowana. Służy do~modelowania niedeterminizmu lokalnego.
 
-Zdanie
-\[
-\textbf{always}\; \alpha
-\]
-jest ograniczeniem integralności. Oznacza ono, że formuła $\alpha$ musi zachodzić w każdym dopuszczalnym stanie systemu. Reguły tego typu nie odnoszą się do pojedynczego działania, lecz do globalnej struktury dziedziny. To właśnie one umożliwiają modelowanie ramifikacji, ponieważ wymuszają spójność stanów wynikowych również w zakresie skutków ubocznych.
+\smallskip\noindent
+$\always\; \alpha$ --- ograniczenie integralności: $\alpha$ musi zachodzić w~każdym dopuszczalnym stanie. Ograniczenia te, wymuszając spójność stanów wynikowych, realizują mechanizm ramifikacji.
 
-Zdanie
-\[
-\textbf{noninertial}\; f
-\]
-deklaruje, że fluent $f$ nie podlega prawu inercji. Oznacza to, że jego wartość nie musi być zachowywana przy przejściu między stanami. Konstrukcja ta jest szczególnie użyteczna przy modelowaniu fluentów pochodnych lub zależnych od innych własności świata, których zmiana nie powinna być traktowana jako naruszenie zasady minimalnej zmiany.
+\smallskip\noindent
+$\noninertial\; f$ --- fluent $f$ nie podlega inercji, więc jego wartość nie~musi być zachowywana między stanami (przydatne dla fluentów pochodnych).
 
-Zdanie
-\[
-\textbf{initially}\; \alpha
-\]
-jest skrótem dla zdania wartościowego \mbox{$\alpha \;\aft\; \varepsilon$} (dla pustego ciągu akcji): opisuje wiedzę o~stanie początkowym i~operacyjnie wyznacza zbiór stanów początkowych $\Sigma_0$ (\S\ref{sec:sem-proste}). W~klasie $\mathbb{DS4}$ dopuszczalny jest opis częściowy --- zbiór zdań tego typu nie musi wyznaczać jednego, w~pełni określonego stanu, lecz może pozostawiać niektóre fluenty nieustalone.
+\smallskip\noindent
+$\alpha \;\aft\; A_1,\dots,A_n$ --- zdanie specyfikacyjne wyrażające własność \emph{konieczną}: po wykonaniu ciągu $A_1,\dots,A_n$ formuła~$\alpha$ zachodzi zawsze. Jest warunkiem na~model całej sekwencji, nie lokalną regułą przejścia.
 
-Zdanie
-\[
-\alpha \;\textbf{after}\; A_1,\dots,A_n
-\]
-ma charakter specyfikacyjny. Wyraża ono własność konieczną: po wykonaniu wskazanego ciągu akcji prostych $A_1,\dots,A_n$ formuła $\alpha$ powinna zachodzić zawsze. Zdanie to nie jest lokalną regułą przejścia dla pojedynczej akcji, lecz warunkiem odnoszącym się do zachowania modelu dla całej sekwencji działań.
+\smallskip\noindent
+$\observable\; \alpha \;\aft\; A_1,\dots,A_n$ --- jego specyfikacyjny odpowiednik dla własności \emph{możliwej}: istnieje co najmniej jeden przebieg ciągu $A_1,\dots,A_n$ kończący się w~stanie spełniającym~$\alpha$.
 
-Zdanie
-\[
-\textbf{observable}\; \alpha \;\textbf{after}\; A_1,\dots,A_n
-\]
-również ma charakter specyfikacyjny. Oznacza ono, że po wykonaniu ciągu akcji prostych $A_1,\dots,A_n$ istnieje co najmniej jeden dopuszczalny przebieg prowadzący do stanu spełniającego $\alpha$. Podobnie jak zdanie typu \textbf{after}, nie opisuje ono bezpośrednio lokalnej dynamiki pojedynczej akcji, lecz własność całego modelu.
+\smallskip\noindent
+\emph{Skróty.}
+$\impossible\; A \;\iff\; \pi$ to $A \;\causes\; \bot \;\iff\; \pi$: w~stanie spełniającym~$\pi$ żaden stan wynikowy nie spełnia~$\bot$, więc $A$ jest tam niewykonalna (\S\ref{sec:sem-proste}); dotyczy wyłącznie akcji prostych.
+$\initially\; \alpha$ to $\alpha \;\aft\; \varepsilon$ (pusty ciąg akcji): opisuje stan początkowy i~wyznacza zbiór~$\Sigma_0$. Dopuszczalny jest opis częściowy --- zbiór takich zdań może pozostawiać niektóre fluenty nieustalone.
 
 \subsubsection{Dziedzina \texorpdfstring{$D$}{D}}
 
