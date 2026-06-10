@@ -1546,8 +1546,8 @@ a~w~parze z~\textit{On} tworzy konflikt Przypadku~2 rozbijający akcję złożon
 dziedziny $\mathbb{DS4}$: opis częściowy (Z7), ograniczenia integralności,
 fluenty nieinercyjne, ramifikacje, warunkowe \causes{} i~\releases{},
 \impossible{} aktywowaną dynamicznie, obie kategorie konfliktu akcji
-złożonej (Przypadek~1 i~Przypadek~2) oraz zdanie obserwacyjne przycinające
-zbiór $\Sigma_0$. Na jednej dziedzinie porównamy dwa procesy $\mathbb{P}_1$~i~$\mathbb{P}_2$,
+złożonej (Przypadek~1 i~Przypadek~2) oraz zdanie obserwacyjne w~roli warunku
+poprawności modelu (M2). Na jednej dziedzinie porównamy dwa procesy $\mathbb{P}_1$~i~$\mathbb{P}_2$,
 tak by w~sumie trafić wszystkie interesujące ścieżki.
 
 Dwóch robotników, $A$~i~$B$, ma wynieść stół z~pokoju. Każdy może
@@ -1612,8 +1612,8 @@ i~zapisujemy stan jako szóstkę $(a,b,u,d,r,o)$.
   &\mathit{CarryOut}\ \releases\ r\ \iff\ \neg d
     && \cmt{uderzenie w~drzwi --- chaos} \\
   \shortintertext{\textit{Opis stanu początkowego i~obserwacje:}}
-  &\initially\ \neg a \land \neg b \land \neg o
-    && \cmt{nie trzymają, stół w~środku; $d,r$ nieustalone} \\
+  &\initially\ \neg a \land \neg b \land \neg o \land \neg(d \land r)
+    && \cmt{nie trzymają, stół w~środku; $d,r$ częściowo znane} \\
   &\observable\ \neg r\ \aft\ \mathit{LiftA}, \mathit{LiftB}, \mathit{CarryOut}
     && \cmt{obserwacja --- da się wynieść w~całości}
 \end{align*}
@@ -1626,40 +1626,31 @@ wyznacza $u$ na~podstawie $a, b$, co daje $|\Sigma| = 2^5 = 32$ stany
 (swobodne $a, b, d, r, o$).
 
 \medskip
-\noindent\textbf{Zbiór $\Sigma_0$ --- krok~1: zdanie \initially{}.}
-Warunek $\neg a \land \neg b \land \neg o$ ustala trzy fluenty;
-$u$~jest wyliczone ($u = \text{F}$ dla $a = b = \text{F}$).
-Swobodne pozostają $d, r$, co daje cztery kandydatury:
+\noindent\textbf{Zbiór $\Sigma_0$.}
+Zbiór stanów początkowych wyznaczają wyłącznie zdania \initially{}
+(\S\ref{sec:stany-poczatkowe}). Warunek $\neg a \land \neg b \land \neg o$
+ustala trzy fluenty, a~$u$ jest wyliczone ($u = \text{F}$ dla $a = b = \text{F}$);
+dodatkowy warunek $\neg(d \land r)$ wyklucza jedyną kombinację $d = r = \text{T}$.
+Spośród czterech wartościowań swobodnych fluentów $d, r$ pozostają zatem trzy:
 \begin{align*}
-  s_1 &= (\text{F},\text{F},\text{F},\,\text{F},\text{F},\,\text{F}), &
-  s_2 &= (\text{F},\text{F},\text{F},\,\text{F},\text{T},\,\text{F}), \\
-  s_3 &= (\text{F},\text{F},\text{F},\,\text{T},\text{F},\,\text{F}), &
-  s_4 &= (\text{F},\text{F},\text{F},\,\text{T},\text{T},\,\text{F}).
+  \sigma_0 &= (\text{F},\text{F},\text{F},\,\text{F},\text{F},\,\text{F}), &
+  \sigma_1 &= (\text{F},\text{F},\text{F},\,\text{F},\text{T},\,\text{F}), \\
+  \sigma_2 &= (\text{F},\text{F},\text{F},\,\text{T},\text{F},\,\text{F}).
 \end{align*}
+Jest to przypadek opisu częściowego (Z7): trzy stany początkowe różnią się
+wartością $d$ (drzwi) i~$r$ (stan stołu) poza zakresem pełnego ustalenia.
 
 \medskip
-\noindent\textbf{Zbiór $\Sigma_0$ --- krok~2: przycięcie zdaniem obserwacyjnym.}
+\noindent\textbf{Zdanie obserwacyjne jako warunek poprawności.}
 Zdanie $\observable\ \neg r\ \aft\ \mathit{LiftA}, \mathit{LiftB}, \mathit{CarryOut}$
-wymaga, by~\emph{istniała} ścieżka wykonania sekwencji w~której stan końcowy
-spełnia $\neg r$. W~każdym kandydacie $s_i$ po~\textit{LiftA}, \textit{LiftB}
-mamy $a = b = u = \text{T}$, wartości $d, r$ niezmienione. W~kroku \textit{CarryOut}:
-\begin{itemize}[topsep=2pt]
-  \item gdy $d = \text{F}$ (stany $s_1, s_2$): $\neg d$ aktywuje \releases{}
-        dla $a, b, r$, natomiast $\causes\ o\ \iff\ d$ jest nieaktywne.
-        Fluent $r$ jest zwolniony, więc istnieje stan wynikowy z~$r = \text{F}$
-        --- warunek obserwacyjny spełniony.
-  \item gdy $d = \text{T}$ (stany $s_3, s_4$): \releases{} nieaktywne,
-        $r$~pozostaje bez zmian przez inercję.
-        $s_3$ ma $r = \text{F}$ i~warunek spełnia; $s_4$ ma $r = \text{T}$,
-        a~jedyny stan wynikowy też ma~$r = \text{T}$ --- warunek zawodzi.
-\end{itemize}
-Odrzucamy więc wyłącznie $s_4$. Ostatecznie
-\[
-  \Sigma_0 = \{\sigma_0, \sigma_1, \sigma_2\}, \quad
-  \sigma_0 = s_1,\ \sigma_1 = s_2,\ \sigma_2 = s_3.
-\]
-Jest to przypadek opisu częściowego (Z7): trzy stany początkowe, różniące
-się wartością $d$ (drzwi) i~$r$ (stan stołu) poza zakresem \initially{}.
+\emph{nie} zawęża zbioru~$\Sigma_0$ --- jest warunkiem poprawności modelu
+(\S\ref{sec:model-dziedziny}, M2), który cała struktura albo spełnia, albo~nie.
+Wymaga ono, by~\emph{istniał} stan początkowy oraz ścieżka wykonania sekwencji
+kończąca się w~stanie spełniającym~$\neg r$. Warunek jest spełniony: ze~stanu
+$\sigma_0$ (gdzie $d = \text{F}$) po~\textit{LiftA}, \textit{LiftB} mamy
+$a = b = u = \text{T}$, a~w~kroku \textit{CarryOut} aktywuje się \releases{}
+dla~$r$ (bo~$\neg d$), więc istnieje stan wynikowy z~$r = \text{F}$. Zdanie
+obserwacyjne jest zatem prawdziwe w~modelu i~nie usuwa żadnego stanu z~$\Sigma_0$.
 
 \medskip
 \noindent Poniżej rozważymy dwa procesy, które razem pokazują wszystkie
