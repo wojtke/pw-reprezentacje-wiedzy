@@ -17,6 +17,9 @@
 # Full lecture PDFs (large, not tracked)
 docs/wyklady/pdf-full/
 
+# Working notes / feedback markdown in docs (not tracked)
+docs/**/*.md
+
 # Claude agent docs
 projekt4/_claude_docs/
 
