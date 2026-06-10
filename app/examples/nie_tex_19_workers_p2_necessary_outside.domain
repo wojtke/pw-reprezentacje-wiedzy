@@ -22,5 +22,5 @@ impossible carryOut if !tableUp
 carryOut releases holdA if !doorOpen
 carryOut releases holdB if !doorOpen
 carryOut releases broken if !doorOpen
-initially !holdA and !holdB and !outside
+initially !holdA and !holdB and !outside and !(doorOpen and broken)
 observable !broken after liftA; liftB; carryOut
