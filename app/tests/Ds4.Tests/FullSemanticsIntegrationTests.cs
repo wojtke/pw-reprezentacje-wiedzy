@@ -84,8 +84,14 @@ public sealed class FullSemanticsIntegrationTests
     }
 
     [Fact]
-    public void After_Assertion_Filters_Initial_States_As_Domain_Knowledge()
+    public void After_Assertion_Is_Validity_Condition_Not_A_Filter_On_Initial_States()
     {
+        // initially !q pozostawia dwa stany początkowe: {p,!q} oraz {!p,!q}.
+        // Z {!p,!q} akcja a (causes q if p) nie ustala q, więc "q after a" jest tam
+        // fałszywe. Σ₀ wyznaczają WYŁĄCZNIE zdania initially; zdanie after jest
+        // warunkiem poprawności modelu (M2), a nie filtrem na Σ₀. Naruszenie z
+        // któregokolwiek stanu początkowego czyni dziedzinę sprzeczną (brak modelu,
+        // puste Σ₀) — nie usuwa pojedynczego stanu, jak robiła to wcześniejsza wersja.
         var domain = """
             fluents p, q
             actions a
@@ -96,13 +102,16 @@ public sealed class FullSemanticsIntegrationTests
 
         var result = TestData.Solve(domain, "necessary p after epsilon");
 
-        Assert.True(result.Ok, result.Error);
-        Assert.True(result.Answer);
+        Assert.False(result.Ok); // sprzeczna dziedzina: zdanie after niespełnione z {!p,!q}
     }
 
     [Fact]
-    public void Observable_After_Assertion_Keeps_States_With_At_Least_One_Supporting_Path()
+    public void Observable_After_Is_Satisfied_When_Some_Initial_State_Supports_A_Path()
     {
+        // observable α after P jest warunkiem poprawności modelu (M2) o charakterze
+        // egzystencjalnym: wymaga, by ISTNIAŁ stan początkowy ze śladem kończącym się α.
+        // Nie zawęża Σ₀ — tutaj jest spełniony (ze stanu z loaded), więc model istnieje
+        // i kwerenda possibly !alive jest prawdziwa.
         var domain = """
             fluents loaded, alive
             actions spin, shoot

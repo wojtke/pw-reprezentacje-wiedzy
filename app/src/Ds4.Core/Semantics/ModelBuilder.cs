@@ -15,10 +15,12 @@ public static class ModelBuilder
             .Where(s => domain.InitiallyConstraints.All(c => c.Constraint.Evaluate(s)))
             .ToList();
 
-        // Specyfikacyjne zdania after/observable after traktujemy jako dodatkowe
-        // ograniczenia na możliwe stany początkowe. To jest praktyczna wersja
-        // zgodna z dokumentem: after = własność konieczna, observable = możliwa.
-        if (domain.AfterAssertions.Count > 0)
+        // Zbiór Σ₀ wyznaczają wyłącznie zdania initially. Zdania specyfikacyjne
+        // after/observable after są warunkami poprawności modelu (M2), a NIE
+        // filtrami na stany początkowe: sprawdzamy je globalnie nad całym Σ₀ i nie
+        // usuwamy z niego pojedynczych stanów. Jeżeli warunek jest niespełniony,
+        // dziedzina jest sprzeczna (brak modelu), co reprezentujemy pustym Σ₀.
+        if (domain.AfterAssertions.Count > 0 && initially.Count > 0)
         {
             var simple = new SimpleActionEngine(domain, sigma);
             var conflicts = new ConflictDetector(simple);
@@ -26,22 +28,24 @@ public static class ModelBuilder
             var composite = new CompositeActionEngine(simple, decompositions);
             var processEvaluator = new ProcessEvaluator(composite);
 
-            initially = initially.Where(s =>
+            foreach (var assertion in domain.AfterAssertions)
             {
-                foreach (var assertion in domain.AfterAssertions)
+                bool valid = assertion.Observable
+                    // observable α after P: istnieje stan początkowy i ślad kończący się α
+                    ? initially.Any(s => processEvaluator
+                        .FinalStates(new[] { s }, assertion.Process)
+                        .Any(f => assertion.Goal.Evaluate(f)))
+                    // α after P: z każdego stanu początkowego każdy zdefiniowany ślad kończy się α
+                    : initially.All(s => processEvaluator
+                        .FinalStates(new[] { s }, assertion.Process)
+                        .All(f => assertion.Goal.Evaluate(f)));
+
+                if (!valid)
                 {
-                    var finals = processEvaluator.FinalStates(new[] { s }, assertion.Process).ToArray();
-                    if (assertion.Observable)
-                    {
-                        if (!finals.Any(f => assertion.Goal.Evaluate(f))) return false;
-                    }
-                    else
-                    {
-                        if (finals.Length == 0 || finals.Any(f => !assertion.Goal.Evaluate(f))) return false;
-                    }
+                    initially = new List<State>();
+                    break;
                 }
-                return true;
-            }).ToList();
+            }
         }
 
         return new TransitionModel(domain, sigma, initially);
