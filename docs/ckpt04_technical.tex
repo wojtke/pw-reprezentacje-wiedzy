@@ -214,8 +214,8 @@ a~wierność definicjom była ważniejsza niż optymalizacje.
   {\textbf{1. Parsowanie} --- tekst $\to$ struktury dziedziny i~kwerendy};
 \node[blok, below=of s1] (s2)
   {\textbf{2. Przestrzeń stanów} --- $2^{|\mathcal{F}|}$ wartościowań,\\
-   filtr \textbf{always} $\to \Sigma$, filtr \textbf{initially} i~zdań
-   \textbf{after} $\to \Sigma_0$};
+   filtr \textbf{always} $\to \Sigma$, filtr \textbf{initially} $\to \Sigma_0$;\\
+   \textbf{after}/\textbf{observable} --- warunki poprawności (M2)};
 \node[blok, below=of s2] (s3)
   {\textbf{3. Krok procesu} --- $\Res(\mathbb{A},\sigma)$:\\
    konflikty $\to$ maksymalne bezkonfliktowe podzbiory $\to$\\
@@ -248,12 +248,17 @@ z~definicjami):
   \item \textbf{Przestrzeń stanów.} Generujemy wszystkie wartościowania
         fluentów i~odsiewamy niezgodne z~\textbf{always} --- zostaje $\Sigma$
         (sekcja~2.5.1). Z~$\Sigma$ wybieramy stany zgodne z~\textbf{initially}
-        i~ze zdaniami \textbf{after} --- zostaje $\Sigma_0$ (sekcja~2.5.2),
-        czyli zbiór możliwych stanów początkowych przy opisie częściowym.
-        Zdanie $\alpha$ \textbf{after} $P$ zostawia te stany, z~których
-        \emph{każda} pełna ścieżka procesu $P$ kończy się stanem spełniającym
-        $\alpha$; wariant \textbf{observable} --- te, z~których kończy się tak
-        \emph{przynajmniej jedna}.
+        --- zostaje $\Sigma_0$ (sekcja~2.5.2), czyli zbiór możliwych stanów
+        początkowych przy opisie częściowym. Zbiór ten wyznaczają
+        \emph{wyłącznie} zdania \textbf{initially}. Zdania \textbf{after} oraz
+        \textbf{observable after} to warunki poprawności modelu (M2): sprawdzamy
+        je globalnie nad całym $\Sigma_0$ i~\emph{nie} usuwamy z~niego
+        pojedynczych stanów. Zdanie $\alpha$ \textbf{after} $P$ wymaga, by
+        z~\emph{każdego} stanu początkowego \emph{każda} pełna ścieżka
+        procesu~$P$ kończyła się stanem spełniającym~$\alpha$; wariant
+        \textbf{observable} --- by tak kończyła się \emph{przynajmniej jedna}
+        ścieżka z~\emph{pewnego} stanu początkowego. Niespełnienie któregoś
+        z~warunków oznacza dziedzinę sprzeczną (brak modelu, $\Sigma_0 = \emptyset$).
   \item \textbf{Krok procesu.} Dla akcji prostej: jeśli aktywna jest reguła
         \textbf{impossible}, następników brak; w~przeciwnym razie następnikami
         są stany z~$\Sigma$ spełniające aktywne efekty i~minimalizujące zbiór
@@ -320,7 +325,8 @@ Z6. Warunki integralności &
   z~$\Sigma$, więc ograniczenia wymuszają skutki uboczne (ramifikacja) \\
 Z7. Opis częściowy &
   $\Sigma_0$ jako zbiór \emph{wszystkich} stanów zgodnych
-  z~\textbf{initially} i~zdaniami \textbf{after}; uniwersalny kwantyfikator
+  z~\textbf{initially}; \textbf{after}/\textbf{observable} to warunki
+  poprawności (M2), nie filtry na~$\Sigma_0$; uniwersalny kwantyfikator
   po~$\Sigma_0$ w~obu rodzajach kwerend \\
 \bottomrule
 \end{tabular}
