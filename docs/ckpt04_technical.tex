@@ -475,24 +475,146 @@ się czytelnym komunikatem zamiast odpowiedzi:
 % ══════════════════════════════════════════════════════════════════
 \section{Testy}
 
-Zestaw testów (xUnit, projekt \texttt{Ds4.Tests}) obejmuje:
+Poprawność silnika weryfikujemy zautomatyzowanym zestawem testów (framework
+xUnit, projekt \texttt{Ds4.Tests}). Zestaw liczy \textbf{82 metody testowe},
+które po rozwinięciu testów parametryzowanych (\texttt{[Theory]}) dają
+\textbf{137 przypadków testowych} --- wszystkie zielone, czas wykonania poniżej
+0{,}1~s. Testy działają w~trybie wsadowym (bez interfejsu graficznego) wprost
+na czystym silniku \texttt{Ds4.Core}, w~większości przez tę samą fasadę
+\texttt{Ds4Facade.Solve}, której używają wszystkie frontendy. Silnik nie ma
+zależności zewnętrznych ani żadnego źródła losowości, więc każdy przebieg jest
+w~pełni \emph{powtarzalny}.
+
+Przyjęliśmy trójwarstwową strategię testowania, od najdrobniejszych jednostek
+do całych scenariuszy:
 
 \begin{itemize}
-  \item \textbf{testy jednostkowe} --- parser formuł i~obu języków, generacja
-        $\Sigma$ i~$\Sigma_0$, $\Res$ dla akcji prostych (efekty, zwolnienia,
-        niewykonalność, minimalizacja), wykrywanie konfliktów i~dekompozycje,
-        budowa drzewa wykonań i~ewaluacja kwerend;
-  \item \textbf{testy integracyjne} --- każdy z~42 wbudowanych przykładów
-        (24~z~odpowiedzią TAK, 18~z~NIE) jest rozwiązywany przez fasadę,
-        a~wynik porównywany z~plikiem \texttt{.expected};
-  \item \textbf{testy regresyjne} --- przypadki błędów znalezionych w~trakcie
-        rozwoju (m.in. warunkowe \textbf{causes}).
+  \item \textbf{testy jednostkowe} --- sprawdzają pojedyncze moduły semantyki
+        w~izolacji (parser, formuły, model, $\Res$, dekompozycje, drzewo
+        wykonań);
+  \item \textbf{testy integracyjne} --- sprawdzają cały tor obliczeń
+        ,,od tekstu do TAK/NIE'' na zestawie wbudowanych przykładów;
+  \item \textbf{testy regresyjne} --- utrwalają poprawione interpretacje
+        semantyczne, aby raz naprawiony błąd nie wrócił.
 \end{itemize}
 
-Uruchomienie: \texttt{dotnet test} w~katalogu \texttt{app/}
-(na Windows także skrypt \texttt{RUN\_TESTS.bat}).
+% ──────────────────────────────────────────────────────────────────
+\subsection{Testy jednostkowe}
 
-Przypisanie testów do członków zespołu znajduje się w~osobnym dokumencie
-,,Wkład osobowy''.
+Każdy moduł silnika ma własny plik testowy. Testy budują minimalną dziedzinę
+z~napisu (pomocnik \texttt{TestData.BuildModel}/\texttt{Solve}) i~sprawdzają
+jeden aspekt zachowania, dzięki czemu ewentualna regresja od razu wskazuje
+winny moduł.
+
+\begin{center}
+\small
+\begin{tabular}{@{}p{4.4cm}p{8.4cm}c@{}}
+\toprule
+\textbf{Plik testowy} & \textbf{Co sprawdza} & \textbf{Testów} \\
+\midrule
+\texttt{ParserTests} &
+  składnia dziedziny, kwerendy, procesu i~formuł; odrzucanie błędnych
+  zdań & 12 \\
+\texttt{FormulaTests} &
+  wartościowanie formuł, priorytety operatorów, postać DNF, prawa
+  de~Morgana & 7 \\
+\texttt{ModelTests} &
+  równość stanów (niezależna od kolejności i~wielkości liter),
+  wnioskowanie fluentów i~akcji & 4 \\
+\texttt{StateAndModelBuilderTests} &
+  generacja $\Sigma$ ($2^{|\mathcal{F}|}$ wartościowań, filtr
+  \textbf{always}) i~$\Sigma_0$ (\textbf{initially}); wykrywanie
+  sprzecznych ograniczeń & 6 \\
+\texttt{SimpleActionEngineTests} &
+  $\Res$ akcji prostej: \textbf{causes}, \textbf{releases}
+  (niedeterminizm), \textbf{impossible}, inercja, ramifikacje, akcja
+  pusta & 8 \\
+\texttt{CompositeActionTests} &
+  wykrywanie konfliktów, generacja dekompozycji, wykonanie akcji
+  złożonej & 9 \\
+\texttt{ProcessAndQueryTests} &
+  ewaluacja procesu, drzewo wykonań, cztery warianty kwerend
+  (\emph{possibly}/\emph{necessary} $\times$ wykonalność/cel) & 9 \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+% ──────────────────────────────────────────────────────────────────
+\subsection{Testy integracyjne}
+
+Najszerszą warstwę stanowi \textbf{42~wbudowanych przykładów} w~katalogu
+\texttt{app/examples/}. Każdy przykład to trójka plików o~wspólnej nazwie:
+\texttt{\textit{id}.domain} (dziedzina), \texttt{\textit{id}.query}
+(kwerenda) oraz \texttt{\textit{id}.expected} (oczekiwana odpowiedź: pojedyncze
+słowo \texttt{TAK} albo \texttt{NIE}). Test parametryzowany
+(\texttt{[Theory]}~+~\texttt{[MemberData]}, źródło \texttt{TestData.ExampleFiles})
+ładuje każdą trójkę, rozwiązuje ją przez \texttt{Ds4Facade.Solve}
+i~porównuje wynik z~plikiem \texttt{.expected}. Te same przykłady zasilają
+listę w~GUI i~CLI, więc test pełni podwójną rolę: weryfikuje silnik
+\emph{oraz} gwarantuje, że każdy przykład pokazywany użytkownikowi daje
+deklarowaną odpowiedź.
+
+Zestaw przykładów dzieli się na \textbf{24 z~odpowiedzią TAK} i~\textbf{18 z~NIE},
+a~nazwa każdego koduje jego pochodzenie w~schemacie
+\texttt{\{tak$|$nie\}\_\{tex$|$extra$|$bugfix\}\_\textit{nn}\_\textit{opis}}:
+
+\begin{center}
+\small
+\begin{tabular}{@{}lp{8.2cm}cc@{}}
+\toprule
+\textbf{Rodzina} & \textbf{Pochodzenie} & \textbf{TAK} & \textbf{NIE} \\
+\midrule
+\texttt{tex} & scenariusze z~wykładu i~dokumentacji teoretycznej
+  (rosyjska ruletka, producent i~konsumenci, dwa przełączniki,
+  dwóch robotników) & 13 & 7 \\
+\texttt{extra} & przykłady uzupełniające pokrycie konstrukcji języka
+  & 10 & 10 \\
+\texttt{bugfix} & utrwalenie błędów wykrytych w~rozwoju
+  (np. warunkowe \textbf{causes}) & 1 & 1 \\
+\midrule
+\textbf{Razem} & & \textbf{24} & \textbf{18} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Spójności samego zestawu pilnują dodatkowe testy: każda dziedzina musi mieć
+parę \texttt{.query}~+~\texttt{.expected}, a~pliki \texttt{.expected} mogą
+zawierać wyłącznie \texttt{TAK} lub \texttt{NIE}.
+
+% ──────────────────────────────────────────────────────────────────
+\subsection{Testy regresyjne}
+
+Część testów powstała w~odpowiedzi na konkretne, naprawione błędy interpretacji
+semantyki --- utrwalają one decyzje opisane w~\emph{dokumentacji teoretycznej}
+(wersja~2) i~chronią przed ich cofnięciem:
+
+\begin{itemize}
+  \item \textbf{$\Sigma_0$ nie jest zawężane} przez zdania \textbf{after} ani
+        \textbf{observable}. Zdanie \textbf{after} jest warunkiem poprawności
+        modelu (M2): jego naruszenie unieważnia całą dziedzinę
+        ($\Sigma_0=\emptyset$), a~nie usuwa pojedynczego stanu
+        (\texttt{After\_Assertion\_Is\_Validity\_Condition\_Not\_A\_Filter\dots}).
+        Zdanie \textbf{observable} jest egzystencjalne i~również nie usuwa
+        stanów początkowych, nawet jeśli z~niektórych celu nie da się osiągnąć
+        (\texttt{Observable\_After\_Does\_Not\_Trim\_Initial\_States\dots}).
+  \item \textbf{\emph{possibly} kwantyfikuje uniwersalnie po $\Sigma_0$}
+        (dla \emph{każdego} stanu początkowego istnieje ścieżka do celu),
+        a~nie egzystencjalnie. Plik \texttt{PossiblySemanticsTests} (7~testów)
+        sprawdza m.in., że brak ścieżki z~jednego stanu daje odpowiedź NIE,
+        oraz że dla jednoelementowego $\Sigma_0$ wynik pokrywa się ze starą,
+        egzystencjalną semantyką.
+  \item \textbf{warunkowe \textbf{causes}} (\texttt{$A$ causes $q$ if $p$})
+        działają tylko na gałęziach, gdzie warunek $p$ zachodzi
+        (\texttt{ConditionalCauseRegressionTests}, 6~testów).
+\end{itemize}
+
+% ──────────────────────────────────────────────────────────────────
+\subsection{Uruchamianie i powtarzalność}
+
+Cały zestaw uruchamia polecenie \texttt{dotnet test} w~katalogu \texttt{app/}
+(na Windows także skrypt \texttt{RUN\_TESTS.bat}). Wymagane jest jedynie
+.NET~8; brak zależności zewnętrznych sprawia, że wynik jest identyczny na
+każdej maszynie. Przypisanie testów do członków zespołu znajduje się
+w~osobnym dokumencie ,,Wkład osobowy''.
 
 \end{document}
