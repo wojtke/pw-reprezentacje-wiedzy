@@ -128,6 +128,31 @@ public sealed class FullSemanticsIntegrationTests
     }
 
     [Fact]
+    public void Observable_After_Does_Not_Trim_Initial_States_That_Cannot_Reach_Goal()
+    {
+        // Regresja na semantykę Σ₀: zdanie observable NIE może usuwać stanów z Σ₀.
+        // initially !seen pozostawia dwa stany początkowe: {g,!seen} oraz {!g,!seen}.
+        // `observable seen after act` jest spełnione egzystencjalnie (ze stanu z g akcja
+        // act ustala seen), więc dziedzina ma model i Σ₀ zachowuje OBA stany. Ze stanu
+        // {!g,!seen} akcja act nie ustala seen (causes seen if g), więc `possibly seen
+        // after act` jest FAŁSZYWE — kwantyfikator po Σ₀ jest uniwersalny.
+        // Gdyby observable przycinało Σ₀ do {g,!seen} (stara, błędna semantyka), kwerenda
+        // byłaby PRAWDZIWA; ten test pilnuje, by trim nie wrócił.
+        var domain = """
+            fluents g, seen
+            actions act
+            initially !seen
+            act causes seen if g
+            observable seen after act
+            """;
+
+        var result = TestData.Solve(domain, "possibly seen after act");
+
+        Assert.True(result.Ok, result.Error); // model istnieje: observable spełnione przez {g,!seen}
+        Assert.False(result.Answer);          // {!g,!seen} pozostaje w Σ₀ i nie osiąga seen
+    }
+
+    [Fact]
     public void Every_Returned_Successor_Of_An_Active_Cause_Satisfies_That_Cause_Effect()
     {
         var model = TestData.BuildModel("""
