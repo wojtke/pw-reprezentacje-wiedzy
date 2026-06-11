@@ -1,8 +1,0 @@
-# name: Demo 05 - impossible i executable NIE
-# description: Akcja load jest niewykonalna, gdy loaded jest juz prawdziwe.
-
-fluents loaded
-actions load
-initially loaded
-impossible load if loaded
-load causes loaded if !loaded

@@ -1,0 +1,4 @@
+# name: Demo 08 - releases daje possibly TAK z kazdego stanu poczatkowego
+# description: toss uwalnia p, wiec z kazdej wartosci p istnieje sciezka konczaca sie z p.
+initially true
+toss releases p if true

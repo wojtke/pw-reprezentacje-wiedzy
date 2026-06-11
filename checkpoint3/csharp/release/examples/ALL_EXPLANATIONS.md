@@ -1,565 +1,332 @@
 # Zbiorcze wyjaśnienia przykładów
 
-# Demo 01 - warunkowy efekt i possibly
+# Demo 01 - action jako nazwa akcji, possibly q daje NIE
 
-## Cel przykładu
+Oczekiwany wynik: NIE
 
-Ten przykład pokazuje działanie reguły:
+Ten przykład jest najważniejszy po poprawce semantyki `possibly`.
 
-```text
-action causes q if p
-```
-
-Czyli akcja `action` powoduje `q`, ale tylko wtedy, gdy przed wykonaniem akcji prawdziwe jest `p`.
-
-## Domena
+Nie deklarujemy osobno:
 
 ```text
 fluents p, q
 actions action
-initially !q
-action causes q if p
 ```
 
-Mamy dwa fluenty: `p` i `q`. Warunek początkowy mówi tylko, że `q` jest fałszywe. Nie mówi nic o `p`, więc reasoner musi rozważyć oba przypadki:
+Parser powinien sam wywnioskować:
+
+```text
+p, q    - fluenty
+action  - akcja
+```
+
+Stan początkowy mówi tylko `!q`, więc `p` pozostaje nieokreślone. Są więc dwa stany początkowe:
 
 ```text
 {¬p, ¬q}
 {p, ¬q}
 ```
 
-## Kwerenda
+Reguła:
 
 ```text
-possibly q after action
-```
-
-Pytamy, czy istnieje jakakolwiek ścieżka wykonania, po której po akcji `action` fluent `q` będzie prawdziwy.
-
-## Przebieg
-
-Dla stanu początkowego `{¬p, ¬q}` warunek `p` nie zachodzi. Akcja nie wymusza `q`, więc przez inercję zostaje:
-
-```text
-{¬p, ¬q} -> {¬p, ¬q}
-```
-
-Dla stanu początkowego `{p, ¬q}` warunek `p` zachodzi. Akcja wymusza `q`, więc wynik to:
-
-```text
-{p, ¬q} -> {p, q}
-```
-
-## Odpowiedź
-
-Odpowiedź powinna być:
-
-```text
-TAK
-```
-
-Istnieje ścieżka prowadząca do stanu z `q`, więc kwerenda `possibly q after action` jest prawdziwa.
-
-
----
-
-# Demo 02 - warunkowy efekt i necessary
-
-## Cel przykładu
-
-Ten przykład pokazuje różnicę między `possibly` i `necessary`.
-
-Domena jest taka sama jak w Demo 01:
-
-```text
-fluents p, q
-actions action
-initially !q
 action causes q if p
 ```
 
-## Stany początkowe
+działa tylko w gałęzi, gdzie `p` jest prawdziwe.
 
-Warunek `initially !q` ustala tylko wartość `q`. Fluent `p` nie jest określony, więc możliwe są dwa stany początkowe:
-
-```text
-{¬p, ¬q}
-{p, ¬q}
-```
-
-## Kwerenda
-
-```text
-necessary q after action
-```
-
-Pytamy, czy po wykonaniu akcji `action` na każdej możliwej ścieżce `q` będzie prawdziwe.
-
-## Przebieg
-
-Gałąź pierwsza:
+Trace logicznie powinien zawierać:
 
 ```text
 {¬p, ¬q} -> {¬p, ¬q}
+{p, ¬q}  -> {p, q}
 ```
 
-Tutaj warunek `p` nie zachodzi, więc `q` nie zostaje ustawione.
+Po poprawce `possibly` nie znaczy już tylko "istnieje jedna dobra gałąź globalnie". Znaczy:
 
-Gałąź druga:
+```text
+dla każdego stanu początkowego istnieje pełna ścieżka spełniająca cel
+```
+
+Z początkowego `{¬p, ¬q}` nie da się dojść do `q`, więc wynik to NIE.
+
+
+---
+
+# Demo 02 - action jako nazwa akcji, possibly q daje TAK przy initially p
+
+Oczekiwany wynik: TAK
+
+To jest pozytywna wersja poprzedniego przykładu.
+
+Nadal nie deklarujemy osobno fluentów ani akcji. Parser wyciąga je z kontekstu.
+
+Stan początkowy jest teraz jednoznaczny:
+
+```text
+initially p and !q
+```
+
+Czyli jedyny stan początkowy to:
+
+```text
+{p, ¬q}
+```
+
+Reguła:
+
+```text
+action causes q if p
+```
+
+ma spełniony warunek, więc po akcji dostajemy:
 
 ```text
 {p, ¬q} -> {p, q}
 ```
 
-Tutaj warunek `p` zachodzi, więc akcja ustawia `q`.
-
-## Odpowiedź
-
-Odpowiedź powinna być:
-
-```text
-NIE
-```
-
-`q` jest prawdziwe tylko w jednej z możliwych gałęzi. Kwerenda `necessary` wymaga, żeby warunek był spełniony we wszystkich gałęziach, więc wynik jest fałszywy.
+Dla każdego stanu początkowego istnieje ścieżka kończąca się z `q`. Jest tylko jeden stan początkowy, więc `possibly q after action` daje TAK.
 
 
 ---
 
-# Demo 03 - niedeterminizm przez releases i possibly
+# Demo 03 - possibly true, bo akcja ustawia q z każdego stanu początkowego
 
-## Cel przykładu
+Oczekiwany wynik: TAK
 
-Ten przykład pokazuje regułę `releases`, czyli zwolnienie fluentu spod zwykłej inercji.
+Ten przykład pokazuje poprawne pozytywne `possibly` przy wielu stanach początkowych.
 
-## Domena
-
-```text
-fluents loaded, alive
-actions spin, shoot, load
-initially alive
-spin releases loaded if true
-shoot causes !alive if loaded
-impossible load if loaded
-load causes loaded if !loaded
-```
-
-Fluent `alive` oznacza, że postać żyje. Fluent `loaded` oznacza, że broń jest załadowana.
-
-Reguła:
+`initially true` nie narzuca wartości `q`, więc są dwa stany początkowe:
 
 ```text
-spin releases loaded if true
+{¬q}
+{q}
 ```
 
-mówi, że po akcji `spin` wartość `loaded` może się zmienić niedeterministycznie. Reasoner nie musi zachować poprzedniej wartości `loaded`.
-
-Reguła:
+Akcja:
 
 ```text
-shoot causes !alive if loaded
+setQ causes q if true
 ```
 
-mówi, że strzał zabija tylko wtedy, gdy broń jest załadowana.
+ustawia `q` niezależnie od stanu początkowego.
 
-## Kwerenda
+Z każdego stanu początkowego istnieje pełna ścieżka kończąca się z `q`:
 
 ```text
-possibly !alive after spin; shoot
+{¬q} -> {q}
+{q}  -> {q}
 ```
 
-Pytamy, czy istnieje ścieżka, w której po wykonaniu `spin`, a potem `shoot`, postać nie żyje.
-
-## Przebieg
-
-Po `spin` fluent `loaded` jest zwolniony. To znaczy, że możliwy jest stan, w którym `loaded` jest prawdziwe, oraz stan, w którym `loaded` jest fałszywe.
-
-Jeśli po `spin` mamy:
-
-```text
-loaded = true
-```
-
-wtedy `shoot` powoduje:
-
-```text
-!alive
-```
-
-Jeśli po `spin` mamy:
-
-```text
-loaded = false
-```
-
-wtedy `shoot` nie zabija.
-
-## Odpowiedź
-
-Odpowiedź powinna być:
-
-```text
-TAK
-```
-
-Istnieje przynajmniej jedna ścieżka, na której broń jest załadowana po `spin`, a potem `shoot` powoduje `!alive`.
+Dlatego `possibly q after setQ` daje TAK.
 
 
 ---
 
-# Demo 04 - releases i necessary
+# Demo 04 - fluent tylko z kwerendy, possibly p after epsilon daje NIE
 
-## Cel przykładu
+Oczekiwany wynik: NIE
 
-Ten przykład pokazuje, że `possibly` i `necessary` mogą dawać różne odpowiedzi w domenach niedeterministycznych.
+Tutaj `p` nie występuje w domenie, tylko w kwerendzie.
 
-## Domena
+Program powinien dodać `p` jako fluent z kontekstu kwerendy.
 
-Domena jest taka sama jak w Demo 03:
-
-```text
-fluents loaded, alive
-actions spin, shoot, load
-initially alive
-spin releases loaded if true
-shoot causes !alive if loaded
-impossible load if loaded
-load causes loaded if !loaded
-```
-
-## Kwerenda
+Domena:
 
 ```text
-necessary !alive after spin; shoot
+initially true
 ```
 
-Pytamy, czy po wykonaniu `spin`, a potem `shoot`, postać będzie martwa na każdej możliwej ścieżce.
-
-## Przebieg
-
-Po `spin` fluent `loaded` jest zwolniony. To daje co najmniej dwie intuicyjne możliwości:
+nie narzuca wartości `p`, więc są dwa stany początkowe:
 
 ```text
-loaded = true
-loaded = false
+{¬p}
+{p}
 ```
 
-Jeśli `loaded = true`, wtedy `shoot` powoduje `!alive`.
+Proces `epsilon` jest pusty, więc stan się nie zmienia.
 
-Jeśli `loaded = false`, wtedy `shoot` nie ma aktywnego efektu zabicia, więc `alive` zostaje zachowane przez inercję.
+Po poprawce `possibly p after epsilon` wymaga, aby dla każdego stanu początkowego istniała ścieżka kończąca się z `p`. Dla stanu `{¬p}` nie ma żadnej akcji, która mogłaby zmienić `p`.
 
-## Odpowiedź
-
-Odpowiedź powinna być:
-
-```text
-NIE
-```
-
-Nie wszystkie ścieżki prowadzą do `!alive`. Wystarczy jedna ścieżka, na której broń nie jest załadowana i postać przeżywa, żeby `necessary !alive` było fałszywe.
+Dlatego wynik to NIE.
 
 
 ---
 
-# Demo 05 - impossible i executable
+# Demo 05 - possibly p after epsilon daje TAK, gdy initially p
 
-## Cel przykładu
+Oczekiwany wynik: TAK
 
-Ten przykład pokazuje różnicę między akcją, która nic nie zmienia, a akcją, której nie wolno wykonać.
+To jest pozytywna wersja poprzedniego przykładu.
 
-## Domena
-
-```text
-fluents loaded
-actions load
-initially loaded
-impossible load if loaded
-load causes loaded if !loaded
-```
-
-Stan początkowy wymusza:
+Domena mówi:
 
 ```text
-loaded = true
+initially p
 ```
 
-Reguła:
-
-```text
-impossible load if loaded
-```
-
-mówi, że akcji `load` nie można wykonać, jeśli `loaded` jest już prawdziwe.
-
-## Kwerenda
-
-```text
-possibly executable after load
-```
-
-Pytamy, czy istnieje jakakolwiek ścieżka, na której proces składający się z akcji `load` jest wykonywalny.
-
-## Przebieg
-
-Jedyny stan początkowy to:
-
-```text
-{loaded}
-```
-
-W tym stanie zachodzi warunek `loaded`, więc reguła `impossible load if loaded` blokuje akcję `load`.
-
-Nie ma żadnego stanu następnego.
-
-## Odpowiedź
-
-Odpowiedź powinna być:
-
-```text
-NIE
-```
-
-Proces nie jest możliwy do wykonania, ponieważ akcja `load` jest zablokowana już w stanie początkowym.
-
-
----
-
-# Demo 06 - konflikt akcji złożonych i possibly
-
-## Cel przykładu
-
-Ten przykład pokazuje akcję złożoną oraz konflikt między akcjami.
-
-## Domena
-
-```text
-fluents p
-actions make_p, make_not_p
-initially !p
-make_p causes p if true
-make_not_p causes !p if true
-```
-
-Akcja `make_p` próbuje ustawić `p` na prawdę.
-
-Akcja `make_not_p` próbuje ustawić `p` na fałsz.
-
-## Kwerenda
-
-```text
-possibly p after {make_p,make_not_p}
-```
-
-Pytamy, czy po wykonaniu złożonego kroku `{make_p,make_not_p}` możliwe jest, że `p` będzie prawdziwe.
-
-## Konflikt
-
-Krok:
-
-```text
-{make_p,make_not_p}
-```
-
-oznacza próbę równoległego wykonania obu akcji.
-
-Akcje są jednak w konflikcie, bo jedna wymusza:
-
-```text
-p
-```
-
-a druga wymusza:
-
-```text
-!p
-```
-
-Reasoner nie wykonuje sprzecznych efektów naraz. Zamiast tego rozważa maksymalne bezkonfliktowe dekompozycje, czyli tutaj:
-
-```text
-{make_p}
-{make_not_p}
-```
-
-## Przebieg
-
-Po dekompozycji `{make_p}` dostajemy:
+Jest więc tylko jeden dopuszczalny stan początkowy względem fluentu `p`:
 
 ```text
 {p}
 ```
 
-Po dekompozycji `{make_not_p}` dostajemy:
+Proces jest pusty:
 
 ```text
-{¬p}
+epsilon
 ```
 
-## Odpowiedź
+Stan końcowy nadal spełnia `p`, więc `possibly p after epsilon` daje TAK.
 
-Odpowiedź powinna być:
-
-```text
-TAK
-```
-
-Istnieje dekompozycja prowadząca do stanu z `p`, więc kwerenda `possibly p` jest prawdziwa.
+Ten przykład dobrze pokazuje, że `possibly` z pustym procesem zachowuje się jak sprawdzenie celu dla wszystkich stanów początkowych.
 
 
 ---
 
-# Demo 07 - konflikt akcji złożonych i necessary
+# Demo 06 - akcja z kwerendy bez reguł jest no-op
 
-## Cel przykładu
+Oczekiwany wynik: TAK
 
-Ten przykład używa tej samej domeny co Demo 06, ale pokazuje odpowiedź dla kwerendy `necessary`.
+Akcja `do_nothing` nie jest zadeklarowana w domenie i nie ma żadnych reguł.
 
-## Domena
+Pojawia się jednak w kwerendzie:
 
 ```text
-fluents p
-actions make_p, make_not_p
-initially !p
-make_p causes p if true
-make_not_p causes !p if true
+possibly p after do_nothing
 ```
 
-## Kwerenda
+Program powinien dodać ją jako akcję z kontekstu procesu.
+
+Ponieważ nie ma dla niej reguł `causes`, `releases` ani `impossible`, działa jak akcja pusta. Inercja zachowuje `p`.
 
 ```text
-necessary p after {make_p,make_not_p}
+{p} -> {p}
 ```
 
-Pytamy, czy po wykonaniu kroku złożonego `{make_p,make_not_p}` fluent `p` jest prawdziwy na każdej możliwej ścieżce.
+Dlatego wynik to TAK.
 
-## Dekompozycje
 
-Ponieważ akcje są w konflikcie, reasoner rozważa maksymalne bezkonfliktowe dekompozycje:
+---
+
+# Demo 07 - possibly executable daje NIE, gdy jakiś stan początkowy blokuje proces
+
+Oczekiwany wynik: NIE
+
+To jest przykład na `possibly executable` po poprawce semantyki.
+
+`initially true` zostawia `p` nieokreślone, więc są gałęzie z `p` i z `¬p`.
+
+Reguła:
 
 ```text
-{make_p}
-{make_not_p}
+impossible a if p
 ```
 
-Pierwsza prowadzi do:
+blokuje akcję `a` w stanach, gdzie `p` jest prawdziwe.
+
+Nawet jeśli z gałęzi `¬p` proces da się wykonać, to z gałęzi `p` nie da się go wykonać do końca.
+
+Po poprawce `possibly executable` wymaga pełnej ścieżki z każdego stanu początkowego, więc wynik to NIE.
+
+
+---
+
+# Demo 08 - releases daje possibly TAK z każdego stanu początkowego
+
+Oczekiwany wynik: TAK
+
+`initially true` dopuszcza dwa stany początkowe względem `p`:
 
 ```text
+{¬p}
 {p}
 ```
 
-Druga prowadzi do:
+Akcja:
 
 ```text
-{¬p}
+toss releases p if true
 ```
 
-## Odpowiedź
+uwalnia fluent `p`. To oznacza, że po akcji `p` może przyjąć różne wartości, zamiast być zwyczajnie utrzymany przez inercję.
 
-Odpowiedź powinna być:
+Z obu stanów początkowych istnieje ścieżka kończąca się z `p`:
 
 ```text
-NIE
+{¬p} -> {p}
+{p}  -> {p}
 ```
 
-Nie każda możliwa dekompozycja prowadzi do `p`. Kwerenda `necessary p` jest więc fałszywa.
+Dlatego `possibly p after toss` daje TAK.
 
 
 ---
 
-# Demo 08 - always, noninertial i konsekwencje stanu
+# Demo 09 - fluent jako nazwa akcji
 
-## Cel przykładu
+Oczekiwany wynik: TAK
 
-Ten przykład pokazuje ograniczenia `always` oraz fluenty `noninertial`.
+Ten przykład potwierdza, że nazwa akcji może wyglądać jak słowo kluczowe.
 
-## Domena
-
-```text
-fluents s1, s2, light, alarm
-actions toggle1, toggle2
-always (s1 or s2) -> light
-always light -> alarm
-noninertial light
-noninertial alarm
-initially !s1 and !s2
-toggle1 causes s1 if !s1
-toggle1 causes !s1 if s1
-toggle2 causes s2 if !s2
-toggle2 causes !s2 if s2
-```
-
-Fluenty `s1` i `s2` oznaczają przełączniki.
-
-Fluent `light` oznacza światło.
-
-Fluent `alarm` oznacza alarm.
-
-## Reguły always
-
-Pierwsza reguła:
+Akcja nazywa się:
 
 ```text
-always (s1 or s2) -> light
+fluent
 ```
 
-mówi, że jeśli którykolwiek przełącznik jest włączony, to światło musi być włączone.
-
-Druga reguła:
+Linia:
 
 ```text
-always light -> alarm
+fluent causes q if p
 ```
 
-mówi, że jeśli światło jest włączone, to alarm musi być włączony.
+ma zostać rozpoznana jako reguła akcji, a nie jako deklaracja fluentów.
 
-## Noninertial
-
-Reguły:
+Stan początkowy:
 
 ```text
-noninertial light
-noninertial alarm
+{p, ¬q}
 ```
 
-oznaczają, że `light` i `alarm` nie są zwykłymi fluentami pamiętającymi poprzednią wartość przez inercję. Ich wartość jest traktowana bardziej jak konsekwencja ograniczeń stanu.
-
-## Kwerenda
+spełnia warunek `p`, więc po akcji dostajemy:
 
 ```text
-necessary alarm after {toggle1,toggle2}
+{p, q}
 ```
 
-Pytamy, czy po równoległym wykonaniu `toggle1` i `toggle2` alarm jest koniecznie prawdziwy.
+Wynik `possibly q after fluent` to TAK.
 
-## Przebieg
 
-Początkowo:
+---
+
+# Demo 10 - mieszanka deklaracji jawnych i symboli z kontekstu
+
+Oczekiwany wynik: TAK
+
+Ten przykład pokazuje, że deklaracje jawne i automatyczne wykrywanie symboli mogą działać razem.
+
+Jawnie deklarujemy tylko:
 
 ```text
-s1 = false
-s2 = false
+fluents p
 ```
 
-Akcja `toggle1` ustawia `s1`, a akcja `toggle2` ustawia `s2`. Po kroku złożonym mamy więc włączony co najmniej jeden przełącznik, w praktyce oba:
+Ale w regule pojawia się `r` oraz akcja `setR`:
 
 ```text
-s1 = true
-s2 = true
+setR causes r if p
 ```
 
-Z reguły `always (s1 or s2) -> light` wynika, że `light` musi być prawdziwe.
+Program powinien dodać je z kontekstu.
 
-Z reguły `always light -> alarm` wynika, że `alarm` musi być prawdziwe.
-
-## Odpowiedź
-
-Odpowiedź powinna być:
+Stan początkowy spełnia `p`, więc akcja ustawia `r`.
 
 ```text
-TAK
+{p, ¬r} -> {p, r}
 ```
 
-Każdy legalny stan końcowy po tym kroku musi spełniać `alarm`.
+Wynik `possibly r after setR` to TAK.
 
 
 ---

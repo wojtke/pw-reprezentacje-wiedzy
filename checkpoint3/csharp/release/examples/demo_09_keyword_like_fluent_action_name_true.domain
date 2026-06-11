@@ -1,0 +1,4 @@
+# name: Demo 09 - fluent jako nazwa akcji
+# description: Akcja nazywa sie fluent, ale parser ma rozpoznac regule fluent causes q if p.
+initially p and !q
+fluent causes q if p

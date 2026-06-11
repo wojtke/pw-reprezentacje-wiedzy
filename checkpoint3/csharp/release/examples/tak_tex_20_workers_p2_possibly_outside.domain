@@ -22,5 +22,6 @@ impossible carryOut if !tableUp
 carryOut releases holdA if !doorOpen
 carryOut releases holdB if !doorOpen
 carryOut releases broken if !doorOpen
-initially !holdA and !holdB and !outside
+# note: stan początkowy doprecyzowany (and doorOpen and !broken) względem checkpoint2_v1.tex, żeby kwerenda possibly outside miała sens przy semantyce ∀σ ∃ścieżka (proces P2 nie zawiera openA).
+initially !holdA and !holdB and !outside and doorOpen and !broken
 observable !broken after liftA; liftB; carryOut

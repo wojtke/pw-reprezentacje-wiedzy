@@ -1,0 +1,3 @@
+# name: Demo 05 - possibly p after epsilon daje TAK, gdy initially p
+# description: p jest wywnioskowane z initially i kwerendy.
+initially p

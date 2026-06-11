@@ -41,12 +41,14 @@ public sealed class ConditionalCauseRegressionTests
     }
 
     [Fact]
-    public void Query_Possibly_Q_After_Action_Is_True_For_Regression_Domain()
+    public void Query_Possibly_Q_After_Action_Is_False_Under_Partial_Initial()
     {
+        // Sigma0 zawiera {p, ¬q} oraz {¬p, ¬q}. Galaz bez p nigdy nie produkuje q,
+        // wiec pod semantyka possibly = (dla kazdego sigma0 istnieje sciezka) odpowiedz jest NIE.
         var result = TestData.Solve(DomainText, "possibly q after action");
 
         Assert.True(result.Ok, result.Error);
-        Assert.True(result.Answer);
+        Assert.False(result.Answer);
     }
 
     [Fact]
@@ -59,13 +61,15 @@ public sealed class ConditionalCauseRegressionTests
     }
 
     [Fact]
-    public void Trace_Shows_P_Q_Successor_For_The_P_Branch()
+    public void Trace_Shows_Both_Branches_Under_Partial_Initial()
     {
         var result = TestData.Solve(DomainText, "possibly q after action");
 
         Assert.True(result.Ok, result.Error);
         Assert.Contains("[0] start -> {p, ¬q}", result.Trace);
         Assert.Contains("[1] action -> {p, q}", result.Trace);
+        Assert.Contains("[0] start -> {¬p, ¬q}", result.Trace);
+        Assert.Contains("[1] action -> {¬p, ¬q}", result.Trace);
     }
 
     [Fact]

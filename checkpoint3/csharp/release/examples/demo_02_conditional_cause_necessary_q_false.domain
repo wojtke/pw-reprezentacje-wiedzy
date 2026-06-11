@@ -1,7 +1,0 @@
-# name: Demo 02 - warunkowy efekt, necessary NIE
-# description: Ten sam przykład co Demo 01, ale pytamy o necessary.
-
-fluents p, q
-actions action
-initially !q
-action causes q if p
