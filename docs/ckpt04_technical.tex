@@ -786,42 +786,6 @@ Assert.Single(domain.CauseRules);
 Assert.Single(domain.ImpossibleRules);
 \end{lstlisting}
 
-\textit{Operatory słowne formuł (\texttt{[Theory]}, wybrane przypadki przy
-$\sigma=\{p\}$):}
-\begin{lstlisting}[style=ds4code]
-[InlineData("p and not q", true)]
-[InlineData("p implies q", false)]
-[InlineData("p iff not q", true)]
-public void FormulaParser_Evaluates_Common_Operators(string text, bool expected)
-{
-    var formula = FormulaParser.Parse(text);
-    Assert.Equal(expected, formula.Evaluate(new State(new[] { "p" })));
-}
-\end{lstlisting}
-
-\textit{Składnia słowna --- symbole są odrzucane:}
-\begin{lstlisting}[style=ds4code]
-[InlineData("not p")] [InlineData("p and q")] [InlineData("p implies q")]
-public void Word_Operators_Are_Accepted(string text)
-    => Assert.NotNull(FormulaParser.Parse(text));
-
-[InlineData("!p")] [InlineData("~p")]   // symbole -> ParseException
-public void Symbolic_Operators_Are_Rejected(string text)
-    => Assert.Throws<ParseException>(() => FormulaParser.Parse(text));
-\end{lstlisting}
-
-\textit{$\Sigma_0$ wyznaczają tylko zdania \textbf{initially}:}
-\begin{lstlisting}[style=ds4code]
-var model = TestData.BuildModel("""
-    fluents p, q
-    actions noop
-    initially p
-    """);
-Assert.Equal(4, model.Sigma.Count);     // 2^2 wartosciowan
-Assert.Equal(2, model.Sigma0.Count);    // tylko stany z p
-Assert.All(model.Sigma0, s => Assert.True(s.IsTrue("p")));
-\end{lstlisting}
-
 \textit{\textbf{releases} daje niedeterminizm ($\Res$ zwraca oba wartościowania):}
 \begin{lstlisting}[style=ds4code]
 var result = engine.Res("spin", model.Sigma0.Single());  // spin releases loaded
@@ -889,47 +853,105 @@ zawierać wyłącznie \texttt{TAK} lub \texttt{NIE}.
 
 Test parametryzowany (\texttt{[Theory]}~+~\texttt{[MemberData]}) wczytuje każdą
 trójkę plików, wywołuje \texttt{Ds4Facade.Solve} i~porównuje wynik z~plikiem
-\texttt{.expected}. Poniżej trzy reprezentatywne przykłady \emph{wejścia} wraz
-z~oczekiwaną odpowiedzią i~uzasadnieniem.
+\texttt{.expected}. Poniżej reprezentatywne przykłady \emph{wejścia} z~rodzin
+\texttt{tex} i~\texttt{scenario} --- każdy odpowiada plikom
+\texttt{.domain}/\texttt{.query}/\texttt{.expected} w~katalogu \texttt{examples/}
+--- wraz z~oczekiwaną odpowiedzią i~krótkim uzasadnieniem.
 
-\textbf{1. Rosyjska ruletka --- niedeterminizm przez \textbf{releases}.}
-\begin{verbatim}
+\textit{YSP --- problem strzelania (\texttt{tex}):}
+\begin{lstlisting}[style=ds4code]
 initially alive
-spin releases loaded if true
+load causes loaded if true
+impossible load if loaded
+shoot causes not loaded if true
 shoot causes not alive if loaded
-\end{verbatim}
-Kwerenda: \texttt{necessary not alive after spin; shoot}. \quad
-\emph{Oczekiwana odpowiedź:} \textbf{NIE}. \\
-\emph{Dlaczego:} po \texttt{spin} fluent \texttt{loaded} przyjmuje obie wartości
-(niedeterminizm). Na~gałęzi z~rozładowaną bronią \texttt{shoot} nie ma efektu ---
-ofiara przeżywa. Istnieje więc pełna ścieżka kończąca się stanem \texttt{alive},
-zatem cel \texttt{not alive} nie zachodzi \emph{koniecznie}.
+spin releases loaded if true
+not loaded after shoot
+# kwerenda:
+necessary not alive after load; spin; shoot
+\end{lstlisting}
+\emph{Odpowiedź:} \textbf{NIE}. \emph{Dlaczego:} \texttt{spin} zwalnia
+\texttt{loaded}, więc na~jednej gałęzi broń jest rozładowana i~\texttt{shoot} nie
+zabija. Istnieje gałąź kończąca się \texttt{alive}, zatem śmierć nie jest
+konieczna. (Zdanie \texttt{not loaded after shoot} to warunek poprawności~M2,
+spełniony przez model.)
 
-\textbf{2. Efekt alternatywny wsparty akcją --- akcja złożona bez konfliktu.}
-\begin{verbatim}
+\textit{Producent--konsument (\texttt{tex}):}
+\begin{lstlisting}[style=ds4code]
+initially not empty and hasA and hasB
+put causes not empty if true
+getA causes empty and hasA if not empty
+getB causes empty and hasB if not empty
+consumeA causes not hasA if hasA
+consumeB causes not hasB if hasB
+# kwerenda:
+possibly empty after {put,getA,getB,consumeA,consumeB}; {consumeA,consumeB}
+\end{lstlisting}
+\emph{Odpowiedź:} \textbf{TAK}. \emph{Dlaczego:} kroki to akcje złożone
+z~kolidujących producentów i~konsumentów; pewna dekompozycja prowadzi do~stanu
+\texttt{empty}, więc dla każdego stanu początkowego istnieje ścieżka realizująca
+cel.
+
+\textit{Dwa przełączniki --- ramifikacja i~zwolnienie (\texttt{tex}):}
+\begin{lstlisting}[style=ds4code]
+always light iff (sw1 or sw2)
+always light implies alarm
+noninertial alarm
+toggle1 causes sw1 if not sw1
+toggle1 causes not sw1 if sw1
+toggle2 causes sw2 if not sw2
+toggle2 causes not sw2 if sw2
+on causes light if true
+flicker releases light if true
+initially not sw1 and not sw2
+# kwerenda:
+necessary alarm after {toggle1,toggle2}; {on,flicker}
+\end{lstlisting}
+\emph{Odpowiedź:} \textbf{NIE}. \emph{Dlaczego:} \texttt{flicker} zwalnia
+\texttt{light}; istnieje gałąź, na~której światło gaśnie (a~spójność
+\texttt{light iff (sw1 or sw2)} wymusza wtedy także wyłączenie przełączników),
+więc nieinercyjny \texttt{alarm} nie jest już wymuszany i~może być fałszywy ---
+alarm nie zachodzi koniecznie.
+
+\textit{Robot dostawczy --- proces wieloetapowy (\texttt{scenario}):}
+\begin{lstlisting}[style=ds4code]
+initially not has_key and not door_open and not package_delivered
+find_key causes has_key if true
+open_door causes door_open if has_key
+impossible open_door if not has_key
+deliver causes package_delivered if door_open
+impossible deliver if not door_open
+# kwerenda:
+necessary package_delivered after find_key; open_door; deliver
+\end{lstlisting}
+\emph{Odpowiedź:} \textbf{TAK}. \emph{Dlaczego:} każda akcja spełnia swój warunek
+wstępny w~kolejności \texttt{find\_key} $\to$ \texttt{open\_door} $\to$
+\texttt{deliver}; proces jest deterministyczny, a~jedyny stan końcowy spełnia
+\texttt{package\_delivered}.
+
+\textit{Rzut monetą --- niedeterminizm przez \textbf{releases} (\texttt{scenario}):}
+\begin{lstlisting}[style=ds4code]
+initially heads
+toss releases heads if true
+# kwerenda:
+possibly not heads after toss
+\end{lstlisting}
+\emph{Odpowiedź:} \textbf{TAK}. \emph{Dlaczego:} \texttt{toss} zwalnia
+\texttt{heads}, więc $\Res$ zawiera stan z~\texttt{not heads}; z~jedynego stanu
+początkowego istnieje gałąź realizująca cel.
+
+\textit{Efekt alternatywny wsparty akcją --- akcja złożona bez konfliktu (\texttt{scenario}):}
+\begin{lstlisting}[style=ds4code]
 initially not f and not g
 choose causes f or g if true
 force_f causes f if true
-\end{verbatim}
-Kwerenda: \texttt{necessary f after \{choose, force\_f\}}. \quad
-\emph{Oczekiwana odpowiedź:} \textbf{TAK}. \\
-\emph{Dlaczego:} \texttt{choose} i~\texttt{force\_f} nie kolidują (nie wymuszają
-literałów komplementarnych, mimo wspólnego fluentu \texttt{f}), więc wykonują się
-wspólnie w~jednej dekompozycji. \texttt{force\_f} wymusza \texttt{f} niezależnie
-od~tego, czy \texttt{choose} wybrał \texttt{f}, czy \texttt{g} --- \texttt{f}
-zachodzi w~każdym stanie końcowym.
-
-\textbf{3. Niewykonalność --- reguła \textbf{impossible}.}
-\begin{verbatim}
-initially loaded
-impossible load if loaded
-load causes loaded if not loaded
-\end{verbatim}
-Kwerenda: \texttt{possibly executable after load}. \quad
-\emph{Oczekiwana odpowiedź:} \textbf{NIE}. \\
-\emph{Dlaczego:} w~jedynym stanie początkowym \texttt{loaded} jest prawdziwe,
-więc reguła \texttt{impossible load if loaded} blokuje akcję --- $\Res$ jest
-puste i~nie istnieje żadna pełna ścieżka procesu.
+# kwerenda:
+necessary f after {choose, force_f}
+\end{lstlisting}
+\emph{Odpowiedź:} \textbf{TAK}. \emph{Dlaczego:} \texttt{choose} i~\texttt{force\_f}
+nie kolidują (brak literałów komplementarnych mimo wspólnego \texttt{f}), więc
+tworzą jedną dekompozycję; \texttt{force\_f} wymusza \texttt{f} niezależnie
+od~wyboru \texttt{choose}, zatem \texttt{f} zachodzi w~każdym stanie końcowym.
 
 Niezależny test sprawdza ponadto, że \texttt{Ds4Facade.Solve} zwraca dla każdego
 przykładu poprawny opis grafu wykonań w~formacie Graphviz~DOT
