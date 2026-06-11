@@ -13,6 +13,7 @@
 \usepackage{tikz}
 \usetikzlibrary{positioning,fit,arrows.meta}
 \usepackage{listings}
+\renewcommand{\lstlistingname}{Przykład}   % podpisy lstlisting: ,,Przykład N''
 \setlength{\parindent}{0pt}
 
 % Pseudokod: matematyka przez $...$ (mathescape), ramka, monospace.
@@ -769,8 +770,7 @@ winny moduł.
 Przykłady wybranych testów jednostkowych (każdy buduje minimalną dziedzinę
 i~sprawdza jeden aspekt):
 
-\textit{Parser dziedziny --- rozpoznanie wszystkich typów zdań:}
-\begin{lstlisting}[style=ds4code]
+\begin{lstlisting}[style=ds4code, caption={Parser dziedziny --- rozpoznanie wszystkich typów zdań}]
 var domain = DomainParser.Parse("""
     fluents loaded, alive
     actions spin, shoot
@@ -786,16 +786,14 @@ Assert.Single(domain.CauseRules);
 Assert.Single(domain.ImpossibleRules);
 \end{lstlisting}
 
-\textit{\textbf{releases} daje niedeterminizm ($\Res$ zwraca oba wartościowania):}
-\begin{lstlisting}[style=ds4code]
+\begin{lstlisting}[style=ds4code, caption={Reguła releases daje niedeterminizm w~funkcji Res}]
 var result = engine.Res("spin", model.Sigma0.Single());  // spin releases loaded
 Assert.Equal(2, result.Count);
 Assert.Contains(result, s => s.IsTrue("loaded"));
 Assert.Contains(result, s => !s.IsTrue("loaded"));
 \end{lstlisting}
 
-\textit{Konflikt rozkłada akcję złożoną na~jednoelementowe dekompozycje:}
-\begin{lstlisting}[style=ds4code]
+\begin{lstlisting}[style=ds4code, caption={Konflikt rozkłada akcję złożoną na jednoelementowe dekompozycje}]
 // make_p causes p ;  make_not_p causes not p   (literaly komplementarne)
 var decompositions = env.Decompositions.Generate(
     new CompositeAction(new[] { "make_p", "make_not_p" }), sigma);
@@ -858,8 +856,7 @@ trójkę plików, wywołuje \texttt{Ds4Facade.Solve} i~porównuje wynik z~plikie
 \texttt{.domain}/\texttt{.query}/\texttt{.expected} w~katalogu \texttt{examples/}
 --- wraz z~oczekiwaną odpowiedzią i~krótkim uzasadnieniem.
 
-\textit{YSP --- problem strzelania (\texttt{tex}):}
-\begin{lstlisting}[style=ds4code]
+\begin{lstlisting}[style=ds4code, caption={YSP --- problem strzelania (rodzina tex)}]
 initially alive
 load causes loaded if true
 impossible load if loaded
@@ -876,8 +873,7 @@ zabija. Istnieje gałąź kończąca się \texttt{alive}, zatem śmierć nie jes
 konieczna. (Zdanie \texttt{not loaded after shoot} to warunek poprawności~M2,
 spełniony przez model.)
 
-\textit{Producent--konsument (\texttt{tex}):}
-\begin{lstlisting}[style=ds4code]
+\begin{lstlisting}[style=ds4code, caption={Producent--konsument (rodzina tex)}]
 initially not empty and hasA and hasB
 put causes not empty if true
 getA causes empty and hasA if not empty
@@ -892,8 +888,7 @@ z~kolidujących producentów i~konsumentów; pewna dekompozycja prowadzi do~stan
 \texttt{empty}, więc dla każdego stanu początkowego istnieje ścieżka realizująca
 cel.
 
-\textit{Dwa przełączniki --- ramifikacja i~zwolnienie (\texttt{tex}):}
-\begin{lstlisting}[style=ds4code]
+\begin{lstlisting}[style=ds4code, caption={Dwa przełączniki --- ramifikacja i~zwolnienie (rodzina tex)}]
 always light iff (sw1 or sw2)
 always light implies alarm
 noninertial alarm
@@ -913,8 +908,7 @@ necessary alarm after {toggle1,toggle2}; {on,flicker}
 więc nieinercyjny \texttt{alarm} nie jest już wymuszany i~może być fałszywy ---
 alarm nie zachodzi koniecznie.
 
-\textit{Robot dostawczy --- proces wieloetapowy (\texttt{scenario}):}
-\begin{lstlisting}[style=ds4code]
+\begin{lstlisting}[style=ds4code, caption={Robot dostawczy --- proces wieloetapowy (rodzina scenario)}]
 initially not has_key and not door_open and not package_delivered
 find_key causes has_key if true
 open_door causes door_open if has_key
@@ -929,8 +923,7 @@ wstępny w~kolejności \texttt{find\_key} $\to$ \texttt{open\_door} $\to$
 \texttt{deliver}; proces jest deterministyczny, a~jedyny stan końcowy spełnia
 \texttt{package\_delivered}.
 
-\textit{Rzut monetą --- niedeterminizm przez \textbf{releases} (\texttt{scenario}):}
-\begin{lstlisting}[style=ds4code]
+\begin{lstlisting}[style=ds4code, caption={Rzut monetą --- niedeterminizm przez releases (rodzina scenario)}]
 initially heads
 toss releases heads if true
 # kwerenda:
@@ -940,8 +933,7 @@ possibly not heads after toss
 \texttt{heads}, więc $\Res$ zawiera stan z~\texttt{not heads}; z~jedynego stanu
 początkowego istnieje gałąź realizująca cel.
 
-\textit{Efekt alternatywny wsparty akcją --- akcja złożona bez konfliktu (\texttt{scenario}):}
-\begin{lstlisting}[style=ds4code]
+\begin{lstlisting}[style=ds4code, caption={Efekt alternatywny wsparty akcją --- akcja złożona bez konfliktu (rodzina scenario)}]
 initially not f and not g
 choose causes f or g if true
 force_f causes f if true
@@ -984,9 +976,7 @@ semantyki --- utrwalają one decyzje opisane w~\emph{dokumentacji teoretycznej}
         (\texttt{ConditionalCauseRegressionTests}, 6~testów).
 \end{itemize}
 
-\textit{Przykład regresji warunkowego \textbf{causes} (\texttt{action causes q
-if p}) na~gałęzi, gdzie warunek $p$ zachodzi:}
-\begin{lstlisting}[style=ds4code]
+\begin{lstlisting}[style=ds4code, caption={Regresja: warunkowe causes na gałęzi, gdzie warunek p zachodzi}]
 // dziedzina: initially not q ;  action causes q if p
 var start = model.Sigma0.Single(s => s.IsTrue("p") && !s.IsTrue("q"));
 var result = engine.Res("action", start);
