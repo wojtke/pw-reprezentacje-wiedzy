@@ -188,10 +188,9 @@ Panel \emph{Wynik} zawiera kolejno:
 
 \begin{itemize}
   \item \textbf{ODPOWIEDŹ: TAK / NIE} --- odpowiedź na kwerendę;
-  \item \textbf{Sigma / Sigma0} --- liczbę stanów dopuszczalnych (zgodnych
-        z~\texttt{always}) i~liczbę możliwych stanów początkowych; jeśli
-        \texttt{Sigma0:~0}, opis początkowy jest sprzeczny i~warto poprawić
-        dziedzinę;
+  \item \textbf{liczba stanów} --- liczbę stanów dopuszczalnych $|\Sigma|$
+        (zgodnych z~\texttt{always}) oraz liczbę możliwych stanów
+        początkowych $|\Sigma_0|$;
   \item \textbf{uzasadnienie} --- jedno--dwa zdania, np. wskazanie ścieżki
         (dla TAK przy \texttt{possibly}) albo kontrprzykładu (dla NIE przy
         \texttt{necessary});
@@ -210,6 +209,19 @@ Panel \emph{Wynik} zawiera kolejno:
         kolejnego kroku procesu} oznacza, że w~tym miejscu akcji nie dało się
         wykonać i~ścieżka się urywa.
 \end{itemize}
+
+\textbf{Sprzeczny opis.} Jeżeli dziedzina jest sprzeczna, program nie pokazuje
+odpowiedzi TAK/NIE ani śladu, lecz komunikat o~błędzie:
+\begin{itemize}
+  \item sprzeczne ograniczenia \texttt{always} (żaden stan ich nie spełnia,
+        $|\Sigma| = 0$) --- \texttt{BŁĄD: Model jest pusty: ograniczenia always
+        są sprzeczne.};
+  \item sprzeczny opis początkowy --- gdy zdania \texttt{initially},
+        \texttt{after} lub \texttt{observable after} nie mogą zostać spełnione
+        jednocześnie ($|\Sigma_0| = 0$) --- \texttt{BŁĄD: Brak stanów
+        początkowych: initially/after/observable after są sprzeczne.}
+\end{itemize}
+W~obu przypadkach należy poprawić opis dziedziny.
 
 % ══════════════════════════════════════════════════════════════════
 \section{Przykłady i~praca z~plikami}
