@@ -33,35 +33,21 @@ public sealed class ConflictDetector
         var leftReleases = _simple.ActiveReleases(leftAction, state);
         var rightReleases = _simple.ActiveReleases(rightAction, state);
 
-        // Project DS4 rule: concurrent simple actions are executable only when
-        // they influence disjoint sets of fluents in the current state.
-        var leftAffected = AffectedFluents(leftEffects, leftReleases);
-        var rightAffected = AffectedFluents(rightEffects, rightReleases);
-        if (leftAffected.Overlaps(rightAffected)) return true;
+        // Conflict is defined (theory v2, sec. Konflikty) by exactly two cases.
+        // Sharing a fluent alone is NOT a conflict (theorem: disjoint Vars => no
+        // conflict, but the converse does not hold).
 
-        // Lecture AC conflict, kept explicitly for clarity: complementary DNF terms.
+        // Case 1 (causes vs causes): complementary literals in some DNF terms.
         foreach (var l in leftEffects)
         foreach (var r in rightEffects)
             if (l.HasComplementWith(r)) return true;
 
-        // Lecture AC conflict: cause against release of the same fluent.
+        // Case 2 (causes vs releases): one action's effect mentions a fluent the
+        // other releases.
         if (leftEffects.Any(term => term.Literals.Keys.Any(f => rightReleases.Contains(f)))) return true;
         if (rightEffects.Any(term => term.Literals.Keys.Any(f => leftReleases.Contains(f)))) return true;
 
         return false;
-    }
-
-    private static HashSet<string> AffectedFluents(
-        IEnumerable<Ds4.Core.Formula.DnfTerm> effectTerms,
-        IEnumerable<string> releases)
-    {
-        var result = new HashSet<string>(StringComparer.OrdinalIgnoreCase);
-        foreach (var term in effectTerms)
-        foreach (var fluent in term.Literals.Keys)
-            result.Add(fluent);
-        foreach (var fluent in releases)
-            result.Add(fluent);
-        return result;
     }
 
     public static (string A, string B) NormalizeEdge(string a, string b)
