@@ -320,41 +320,47 @@ zwięzłe, niezmienne struktury C\#. Poniższa tabela zestawia najważniejsze
 z~nich wraz z~plikiem źródłowym.
 
 \begin{center}
-\small
-\renewcommand{\arraystretch}{1.35}
-\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{7.3cm}>{\raggedright\arraybackslash}p{3.4cm}@{}}
+\footnotesize
+\renewcommand{\arraystretch}{1.3}
+\setlength{\tabcolsep}{5pt}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{12.0cm}@{}}
 \toprule
-\textbf{Pojęcie} & \textbf{Reprezentacja w~C\#} & \textbf{Plik} \\
+\textbf{Pojęcie} & \textbf{Reprezentacja w~C\# (plik w~\texttt{src/Ds4.Core/})} \\
 \midrule
 Stan $\sigma$ &
   \texttt{SortedSet<string>} prawdziwych fluentów; równość przez
-  \texttt{SetEquals}, skrót \texttt{HashCode} (bez rozróżniania wielkości
-  liter) & \texttt{Model/State.cs} \\
+  \texttt{SetEquals}, skrót przez \texttt{HashCode} (bez rozróżniania wielkości
+  liter). \quad\textit{(\texttt{Model/State.cs})} \\
 Dziedzina &
-  \texttt{HashSet} fluentów/akcji/\textbf{noninertial}; listy rekordów
-  \texttt{CauseRule}, \texttt{ReleaseRule}, \texttt{AlwaysConstraint},
-  \texttt{InitiallyConstraint}, \texttt{AfterAssertion(Goal,Process,Observable)}
-  & \texttt{Model/Domain.cs} \\
+  zbiory \texttt{HashSet} fluentów, akcji i~fluentów \textbf{noninertial};
+  listy rekordów \texttt{CauseRule}, \texttt{ReleaseRule},
+  \texttt{AlwaysConstraint}, \texttt{InitiallyConstraint} oraz
+  \texttt{AfterAssertion} (cel, proces, znacznik \textit{observable}).
+  \quad\textit{(\texttt{Model/Domain.cs})} \\
 Formuła &
-  drzewo \texttt{IFormula} (\texttt{And}/\texttt{Or}/\texttt{Not}/\dots);
-  \texttt{Evaluate(State)}, \texttt{ToDnf()} & \texttt{Formula/} \\
+  drzewo \texttt{IFormula} (\texttt{And}, \texttt{Or}, \texttt{Not}, \dots)
+  z~metodami \texttt{Evaluate(State)} i~\texttt{ToDnf()}.
+  \quad\textit{(\texttt{Formula/})} \\
 Składnik DNF &
-  \texttt{DnfTerm} --- \texttt{Dictionary<string,bool>} (fluent $\to$
-  polaryzacja), \texttt{HasComplementWith} & \texttt{Formula/IFormula.cs} \\
+  \texttt{DnfTerm} --- mapa \texttt{Dictionary<string, bool>}
+  (fluent~$\to$~polaryzacja) z~metodą \texttt{HasComplementWith}.
+  \quad\textit{(\texttt{Formula/IFormula.cs})} \\
 Model przejść &
-  \texttt{TransitionModel}: $\Sigma$, $\Sigma_0$ jako
-  \texttt{IReadOnlyList<State>} & \texttt{Semantics/TransitionModel.cs} \\
+  \texttt{TransitionModel} przechowuje $\Sigma$ oraz $\Sigma_0$ jako
+  \texttt{IReadOnlyList<State>}. \quad\textit{(\texttt{Semantics/}\texttt{TransitionModel.cs})} \\
 Drzewo wykonań &
-  \texttt{ExecutionNode} (\texttt{State}, \texttt{Depth},
-  \texttt{IncomingStep}, \texttt{Blocked}, \texttt{Children});
-  \texttt{ExecutionTree} z~korzeniami i~\texttt{ProcessLength}
-  & \texttt{Semantics/ExecutionTrace.cs} \\
+  \texttt{ExecutionNode} (pola \texttt{State}, \texttt{Depth},
+  \texttt{IncomingStep}, \texttt{Blocked}, \texttt{Children}); \texttt{ExecutionTree}
+  z~listą korzeni i~\texttt{ProcessLength}.
+  \quad\textit{(\texttt{Semantics/}\texttt{ExecutionTrace.cs})} \\
 Kwerenda &
-  \texttt{CompositeAction}, \texttt{Ds4Process};
-  \texttt{Ds4Query(Quantifier,Kind,Process,Goal)} & \texttt{Query/QueryModel.cs} \\
+  \texttt{CompositeAction} i~\texttt{Ds4Process}; rekord \texttt{Ds4Query}
+  (kwantyfikator, rodzaj, proces, cel).
+  \quad\textit{(\texttt{Query/QueryModel.cs})} \\
 Pamięć podręczna &
-  cztery \texttt{ConcurrentDictionary} (formuły, modele, kwerendy, wyniki)
-  + \texttt{CacheStats} & \texttt{Api/Ds4Facade.cs} \\
+  cztery słowniki \texttt{ConcurrentDictionary} (formuły, modele dziedzin,
+  kwerendy, wyniki) oraz \texttt{CacheStats}.
+  \quad\textit{(\texttt{Api/Ds4Facade.cs})} \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -881,44 +887,53 @@ Spójności samego zestawu pilnują dodatkowe testy: każda dziedzina musi mieć
 parę \texttt{.query}~+~\texttt{.expected}, a~pliki \texttt{.expected} mogą
 zawierać wyłącznie \texttt{TAK} lub \texttt{NIE}.
 
-\textit{Parametryzowany przebieg po wszystkich przykładach:}
-\begin{lstlisting}[style=ds4code]
-[Theory] [MemberData(nameof(AllExamples))]
-public void Every_Example_Returns_Its_Expected_Answer(
-    string id, string domainPath, string queryPath, string expectedPath)
-{
-    var result = Ds4Facade.Solve(
-        File.ReadAllText(domainPath), File.ReadAllText(queryPath));
-    Assert.True(result.Ok, id + ": " + result.Error);
-    Assert.Equal(TestData.ExpectedAnswer(expectedPath), result.Answer);
-}
-\end{lstlisting}
+Test parametryzowany (\texttt{[Theory]}~+~\texttt{[MemberData]}) wczytuje każdą
+trójkę plików, wywołuje \texttt{Ds4Facade.Solve} i~porównuje wynik z~plikiem
+\texttt{.expected}. Poniżej trzy reprezentatywne przykłady \emph{wejścia} wraz
+z~oczekiwaną odpowiedzią i~uzasadnieniem.
 
-\textit{Pełny tor ,,od tekstu do TAK/NIE'' --- rosyjska ruletka, necessary = NIE:}
-\begin{lstlisting}[style=ds4code]
-var result = TestData.Solve("""
-    fluents loaded, alive
-    actions spin, shoot
-    initially alive
-    spin releases loaded if true
-    shoot causes not alive if loaded
-    """, "necessary not alive after spin; shoot");
-Assert.True(result.Ok);
-Assert.False(result.Answer);   // galaz {not loaded} nie zabija -> nie konieczne
-\end{lstlisting}
+\textbf{1. Rosyjska ruletka --- niedeterminizm przez \textbf{releases}.}
+\begin{verbatim}
+initially alive
+spin releases loaded if true
+shoot causes not alive if loaded
+\end{verbatim}
+Kwerenda: \texttt{necessary not alive after spin; shoot}. \quad
+\emph{Oczekiwana odpowiedź:} \textbf{NIE}. \\
+\emph{Dlaczego:} po \texttt{spin} fluent \texttt{loaded} przyjmuje obie wartości
+(niedeterminizm). Na~gałęzi z~rozładowaną bronią \texttt{shoot} nie ma efektu ---
+ofiara przeżywa. Istnieje więc pełna ścieżka kończąca się stanem \texttt{alive},
+zatem cel \texttt{not alive} nie zachodzi \emph{koniecznie}.
 
-\textit{Eksport drzewa wykonań do grafu Graphviz~DOT:}
-\begin{lstlisting}[style=ds4code]
-var result = Ds4Facade.Solve("""
-    fluents p, q
-    actions a, b
-    initially not p and not q
-    a causes p if true
-    b causes q if p
-    """, "necessary q after a; b");
-Assert.Contains("digraph ExecutionTrace", result.TraceGraphDot);
-Assert.Contains("final", result.TraceGraphDot);
-\end{lstlisting}
+\textbf{2. Efekt alternatywny wsparty akcją --- akcja złożona bez konfliktu.}
+\begin{verbatim}
+initially not f and not g
+choose causes f or g if true
+force_f causes f if true
+\end{verbatim}
+Kwerenda: \texttt{necessary f after \{choose, force\_f\}}. \quad
+\emph{Oczekiwana odpowiedź:} \textbf{TAK}. \\
+\emph{Dlaczego:} \texttt{choose} i~\texttt{force\_f} nie kolidują (nie wymuszają
+literałów komplementarnych, mimo wspólnego fluentu \texttt{f}), więc wykonują się
+wspólnie w~jednej dekompozycji. \texttt{force\_f} wymusza \texttt{f} niezależnie
+od~tego, czy \texttt{choose} wybrał \texttt{f}, czy \texttt{g} --- \texttt{f}
+zachodzi w~każdym stanie końcowym.
+
+\textbf{3. Niewykonalność --- reguła \textbf{impossible}.}
+\begin{verbatim}
+initially loaded
+impossible load if loaded
+load causes loaded if not loaded
+\end{verbatim}
+Kwerenda: \texttt{possibly executable after load}. \quad
+\emph{Oczekiwana odpowiedź:} \textbf{NIE}. \\
+\emph{Dlaczego:} w~jedynym stanie początkowym \texttt{loaded} jest prawdziwe,
+więc reguła \texttt{impossible load if loaded} blokuje akcję --- $\Res$ jest
+puste i~nie istnieje żadna pełna ścieżka procesu.
+
+Niezależny test sprawdza ponadto, że \texttt{Ds4Facade.Solve} zwraca dla każdego
+przykładu poprawny opis grafu wykonań w~formacie Graphviz~DOT
+(\texttt{TraceGraphDot}).
 
 % ──────────────────────────────────────────────────────────────────
 \subsection{Testy regresyjne}
