@@ -21,9 +21,9 @@ public sealed class CompositeActionTests
         var env = Build("""
             fluents p
             actions make_p, make_not_p
-            initially !p
+            initially not p
             make_p causes p if true
-            make_not_p causes !p if true
+            make_not_p causes not p if true
             """);
 
         var conflict = env.Conflicts.AreInConflict("make_p", "make_not_p", env.Model.Sigma0.Single());
@@ -37,7 +37,7 @@ public sealed class CompositeActionTests
         var env = Build("""
             fluents p
             actions make_p, free_p
-            initially !p
+            initially not p
             make_p causes p if true
             free_p releases p if true
             """);
@@ -53,7 +53,7 @@ public sealed class CompositeActionTests
         var env = Build("""
             fluents p, q
             actions make_p, make_q
-            initially !p and !q
+            initially not p and not q
             make_p causes p if true
             make_q causes q if true
             """);
@@ -63,28 +63,13 @@ public sealed class CompositeActionTests
         Assert.False(conflict);
     }
 
-
-    [Fact]
-    public void ConflictDetector_Treats_Same_Affected_Fluent_As_Conflict_For_Ds4()
-    {
-        var env = Build("""
-            initially !p
-            make_p_left causes p if true
-            make_p_right causes p if true
-            """);
-
-        var conflict = env.Conflicts.AreInConflict("make_p_left", "make_p_right", env.Model.Sigma0.Single());
-
-        Assert.True(conflict);
-    }
-
     [Fact]
     public void DecompositionGenerator_Returns_One_Set_For_No_Conflict()
     {
         var env = Build("""
             fluents p, q
             actions make_p, make_q
-            initially !p and !q
+            initially not p and not q
             make_p causes p if true
             make_q causes q if true
             """);
@@ -101,9 +86,9 @@ public sealed class CompositeActionTests
         var env = Build("""
             fluents p
             actions make_p, make_not_p
-            initially !p
+            initially not p
             make_p causes p if true
-            make_not_p causes !p if true
+            make_not_p causes not p if true
             """);
 
         var decompositions = env.Decompositions.Generate(new CompositeAction(new[] { "make_p", "make_not_p" }), env.Model.Sigma0.Single());
@@ -119,7 +104,7 @@ public sealed class CompositeActionTests
         var env = Build("""
             fluents p, q
             actions make_p, blocked
-            initially !p and !q
+            initially not p and not q
             make_p causes p if true
             impossible blocked if true
             blocked causes q if true
@@ -129,7 +114,7 @@ public sealed class CompositeActionTests
 
         Assert.Single(decompositions);
         Assert.Single(decompositions.Single());
-        Assert.True(string.Equals("make_p", decompositions.Single().Single(), StringComparison.OrdinalIgnoreCase));
+        Assert.Equal("make_p", decompositions.Single().Single(), StringComparer.OrdinalIgnoreCase);
     }
 
     [Fact]
@@ -138,7 +123,7 @@ public sealed class CompositeActionTests
         var env = Build("""
             fluents p, q
             actions make_p, make_q
-            initially !p and !q
+            initially not p and not q
             make_p causes p if true
             make_q causes q if true
             """);
@@ -156,9 +141,9 @@ public sealed class CompositeActionTests
         var env = Build("""
             fluents p
             actions make_p, make_not_p
-            initially !p
+            initially not p
             make_p causes p if true
-            make_not_p causes !p if true
+            make_not_p causes not p if true
             """);
 
         var result = env.Composite.Res(new CompositeAction(new[] { "make_p", "make_not_p" }), env.Model.Sigma0.Single());

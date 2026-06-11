@@ -7,7 +7,9 @@ public static class ProcessParser
     public static Ds4Process Parse(string text)
     {
         text = text.Trim();
-        if (text.Length == 0 || text == "ε" || text.Equals("epsilon", StringComparison.OrdinalIgnoreCase))
+        if (text == "ε")
+            throw new ParseException("Use word process constant 'epsilon' instead of 'ε'.");
+        if (text.Length == 0 || text.Equals("epsilon", StringComparison.OrdinalIgnoreCase))
             return Ds4Process.Empty;
 
         var parts = SplitTopLevel(text, ';');

@@ -3,24 +3,26 @@
 # source: checkpoint2_v1.tex, sekcja Dwóch robotników P2
 # expected: TAK
 
-always tableUp <-> (holdA and holdB)
+fluents holdA, holdB, tableUp, doorOpen, broken, outside
+actions liftA, liftB, dropA, dropB, openA, openB, closeA, closeB, carryOut
+always tableUp iff (holdA and holdB)
 noninertial tableUp
 liftA causes holdA if true
 liftB causes holdB if true
-dropA causes !holdA if true
-dropB causes !holdB if true
+dropA causes not holdA if true
+dropB causes not holdB if true
 openA causes doorOpen if true
 openB causes doorOpen if true
-closeA causes !doorOpen if true
-closeB causes !doorOpen if true
+closeA causes not doorOpen if true
+closeB causes not doorOpen if true
 impossible openA if holdA
 impossible openB if holdB
 impossible closeA if holdA
 impossible closeB if holdB
 carryOut causes outside if doorOpen
-impossible carryOut if !tableUp
-carryOut releases holdA if !doorOpen
-carryOut releases holdB if !doorOpen
-carryOut releases broken if !doorOpen
-initially !holdA and !holdB and !outside and !(doorOpen and broken)
-observable !broken after liftA; liftB; carryOut
+impossible carryOut if not tableUp
+carryOut releases holdA if not doorOpen
+carryOut releases holdB if not doorOpen
+carryOut releases broken if not doorOpen
+initially not holdA and not holdB and not outside
+observable not broken after liftA; liftB; carryOut

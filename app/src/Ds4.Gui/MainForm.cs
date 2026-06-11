@@ -51,8 +51,33 @@ public sealed class MainForm : Form
     private readonly ComboBox _examples = new()
     {
         DropDownStyle = ComboBoxStyle.DropDownList,
-        Width = 320
+        Width = 320,
+        Visible = false
     };
+
+    private readonly Button _toggleExamplesButton = new()
+    {
+        Text = "Pokaż przykłady",
+        Height = 38,
+        Width = 130
+    };
+
+    private readonly Button _loadExampleButton = new()
+    {
+        Text = "Wczytaj",
+        Height = 38,
+        Width = 90,
+        Visible = false
+    };
+
+    private readonly Button _graphButton = new()
+    {
+        Text = "Graf DOT",
+        Height = 38,
+        Width = 100
+    };
+
+    private string _lastGraphDot = string.Empty;
 
     private readonly Button _solveButton = new()
     {
@@ -88,16 +113,23 @@ public sealed class MainForm : Form
         _examples.Font = _uiFont;
         _solveButton.Font = _titleFont;
         _clearButton.Font = _uiFont;
+        _toggleExamplesButton.Font = _uiFont;
+        _loadExampleButton.Font = _uiFont;
+        _graphButton.Font = _uiFont;
 
         BuildLayout();
         LoadExamples();
 
+        _toggleExamplesButton.Click += (_, _) => ToggleExamples();
+        _loadExampleButton.Click += (_, _) => LoadSelectedExample();
         _solveButton.Click += (_, _) => Solve();
         _clearButton.Click += (_, _) => SetTextNoUndo(_result, "");
+        _graphButton.Click += (_, _) => ShowGraph();
         _examples.SelectedIndexChanged += (_, _) => LoadSelectedExample();
 
         if (_examples.Items.Count > 0)
             _examples.SelectedIndex = 0;
+        _status.Text = "Gotowe. Przykłady są opcjonalne, możesz od razu wpisać własną dziedzinę i kwerendę.";
     }
 
     private void BuildLayout()
@@ -117,28 +149,25 @@ public sealed class MainForm : Form
         var top = new TableLayoutPanel
         {
             Dock = DockStyle.Fill,
-            ColumnCount = 5,
+            ColumnCount = 7,
             RowCount = 1,
             Padding = new Padding(0, 0, 0, 8)
         };
-        top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 90));
+        top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 140));
         top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 340));
+        top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 95));
         top.ColumnStyles.Add(new ColumnStyle(SizeType.Percent, 100));
         top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 140));
         top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 130));
+        top.ColumnStyles.Add(new ColumnStyle(SizeType.Absolute, 105));
         main.Controls.Add(top, 0, 0);
 
-        var exampleLabel = new Label
-        {
-            Text = "Przykład:",
-            Dock = DockStyle.Fill,
-            TextAlign = ContentAlignment.MiddleLeft,
-            Font = _titleFont
-        };
-        top.Controls.Add(exampleLabel, 0, 0);
+        top.Controls.Add(_toggleExamplesButton, 0, 0);
         top.Controls.Add(_examples, 1, 0);
-        top.Controls.Add(_clearButton, 3, 0);
-        top.Controls.Add(_solveButton, 4, 0);
+        top.Controls.Add(_loadExampleButton, 2, 0);
+        top.Controls.Add(_clearButton, 4, 0);
+        top.Controls.Add(_solveButton, 5, 0);
+        top.Controls.Add(_graphButton, 6, 0);
 
         var content = new TableLayoutPanel
         {
@@ -190,8 +219,44 @@ public sealed class MainForm : Form
             _examples.Items.Add(new ExampleItem(ex.Id, ex.Name));
     }
 
+
+    private void ToggleExamples()
+    {
+        var visible = !_examples.Visible;
+        _examples.Visible = visible;
+        _loadExampleButton.Visible = visible;
+        _toggleExamplesButton.Text = visible ? "Ukryj przykłady" : "Pokaż przykłady";
+        _status.Text = visible ? "Wybierz przykład albo wpisz własną dziedzinę i kwerendę." : "Tryb prostego IDE.";
+    }
+
+    private void ShowGraph()
+    {
+        using var form = new Form
+        {
+            Text = "Graf wykonania - DOT",
+            Width = 980,
+            Height = 720,
+            StartPosition = FormStartPosition.CenterParent
+        };
+        var box = new TextBox
+        {
+            Multiline = true,
+            WordWrap = true,
+            ScrollBars = ScrollBars.Both,
+            Dock = DockStyle.Fill,
+            ReadOnly = true,
+            Font = _editorFont,
+            Text = string.IsNullOrWhiteSpace(_lastGraphDot)
+                ? "Najpierw kliknij Oblicz, żeby wygenerować graf trace w formacie DOT."
+                : _lastGraphDot
+        };
+        form.Controls.Add(box);
+        form.ShowDialog(this);
+    }
+
     private void LoadSelectedExample()
     {
+        if (!_examples.Visible) return;
         if (_examples.SelectedItem is not ExampleItem item) return;
 
         var ex = Ds4Facade.LoadExample(item.Id);
@@ -225,6 +290,7 @@ public sealed class MainForm : Form
                 return;
             }
 
+            _lastGraphDot = result.TraceGraphDot;
             var output =
                 (result.Answer == true ? "TAK" : "NIE") + Environment.NewLine + Environment.NewLine +
                 result.Explanation + Environment.NewLine + Environment.NewLine +

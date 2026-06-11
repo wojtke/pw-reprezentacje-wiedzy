@@ -3,5 +3,7 @@
 # source: dodatkowy przykład testowy
 # expected: NIE
 
-initially !key and !opened
+fluents key, opened
+actions open
+initially not key and not opened
 open causes opened if key

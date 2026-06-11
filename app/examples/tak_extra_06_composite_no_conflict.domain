@@ -3,6 +3,8 @@
 # source: dodatkowy przykład testowy
 # expected: TAK
 
-initially !p and !q
+fluents p, q
+actions makeP, makeQ
+initially not p and not q
 makeP causes p if true
 makeQ causes q if true

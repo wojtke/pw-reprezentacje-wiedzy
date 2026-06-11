@@ -1,5 +1,7 @@
 # name: NIE bugfix 01 conditional cause not necessary q
 # description: Same domain as the regression case, but necessary q is false because the not p branch remains not q.
 
-initially !q
+fluents p, q
+actions action
+initially not q
 action causes q if p

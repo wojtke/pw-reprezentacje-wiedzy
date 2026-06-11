@@ -27,7 +27,7 @@ public sealed class State : IEquatable<State>
     public string ToPrettyString(IEnumerable<string> allFluents)
     {
         var parts = allFluents.OrderBy(x => x, StringComparer.OrdinalIgnoreCase)
-            .Select(f => IsTrue(f) ? f : "¬" + f);
+            .Select(f => IsTrue(f) ? f : "not " + f);
         return "{" + string.Join(", ", parts) + "}";
     }
 

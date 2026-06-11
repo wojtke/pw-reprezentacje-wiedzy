@@ -8,7 +8,7 @@ public sealed class ConditionalCauseRegressionTests
     private const string DomainText = """
         fluents p, q
         actions action
-        initially !q
+        initially not q
         action causes q if p
         """;
 
@@ -41,14 +41,13 @@ public sealed class ConditionalCauseRegressionTests
     }
 
     [Fact]
-    public void Query_Possibly_Q_After_Action_Is_False_For_Regression_Domain()
+    public void Query_Possibly_Q_After_Action_Is_False_When_Some_Initial_State_Cannot_Reach_Goal()
     {
-        // possibly = z każdego stanu początkowego istnieje pełna ścieżka spełniająca cel;
-        // stan początkowy {¬p, ¬q} nie ma ścieżki do q, więc odpowiedź brzmi NIE.
         var result = TestData.Solve(DomainText, "possibly q after action");
 
         Assert.True(result.Ok, result.Error);
         Assert.False(result.Answer);
+        Assert.Contains("istnieje stan początkowy", result.Explanation);
     }
 
     [Fact]
@@ -63,11 +62,11 @@ public sealed class ConditionalCauseRegressionTests
     [Fact]
     public void Trace_Shows_P_Q_Successor_For_The_P_Branch()
     {
-        var result = TestData.Solve(DomainText, "possibly q after action");
+        var result = TestData.Solve(DomainText, "possibly executable after action");
 
         Assert.True(result.Ok, result.Error);
-        Assert.Contains("[0] start -> {p, ¬q}", result.Trace);
-        Assert.Contains("[1] action -> {p, q}", result.Trace);
+        Assert.Contains("[0] start: {p, not q}", result.Trace);
+        Assert.Contains("[1] action: {p, q}", result.Trace);
     }
 
     [Fact]

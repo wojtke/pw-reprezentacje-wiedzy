@@ -13,10 +13,10 @@ public sealed class ParserTests
             fluents loaded, alive
             actions spin, shoot
             initially alive
-            always alive or !loaded
+            always alive or not loaded
             spin releases loaded if true
-            shoot causes !alive if loaded
-            impossible shoot if !loaded
+            shoot causes not alive if loaded
+            impossible shoot if not loaded
             noninertial loaded
             """);
 
@@ -36,7 +36,7 @@ public sealed class ParserTests
         var domain = DomainParser.Parse("""
             fluents p.
             actions a.
-            initially !p.
+            initially not p.
             a causes p if true.
             """);
 
@@ -51,7 +51,7 @@ public sealed class ParserTests
         var domain = DomainParser.Parse("""
             fluents p
             actions make_p
-            initially !p
+            initially not p
             make_p causes p if true
             p after make_p
             observable p after make_p
@@ -60,51 +60,6 @@ public sealed class ParserTests
         Assert.Equal(2, domain.AfterAssertions.Count);
         Assert.Contains(domain.AfterAssertions, a => a.Observable == false);
         Assert.Contains(domain.AfterAssertions, a => a.Observable == true);
-    }
-
-
-    [Fact]
-    public void DomainParser_Infers_Fluents_And_Actions_Without_Declarations()
-    {
-        var domain = DomainParser.Parse("""
-            initially !q
-            action causes q if p
-            """);
-
-        Assert.Contains(domain.Fluents, f => string.Equals(f, "p", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(domain.Fluents, f => string.Equals(f, "q", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(domain.Actions, a => string.Equals(a, "action", StringComparison.OrdinalIgnoreCase));
-        Assert.Single(domain.CauseRules);
-    }
-
-    [Fact]
-    public void DomainParser_Allows_Action_Literally_Named_Action()
-    {
-        var result = TestData.Solve("""
-            initially p and !q
-            action causes q if p
-            """, "possibly q after action");
-
-        Assert.True(result.Ok, result.Error);
-        Assert.True(result.Answer);
-        Assert.Contains("[1] action -> {p, q}", result.Trace);
-    }
-
-    [Fact]
-    public void DomainParser_Parses_Lecture_Style_Semicolon_Terminated_Statements()
-    {
-        var domain = DomainParser.Parse("""
-            initially !loaded and alive;
-            Load causes loaded;
-            Shoot causes !loaded;
-            Shoot causes !alive if loaded;
-            """);
-
-        Assert.Contains(domain.Fluents, f => string.Equals(f, "loaded", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(domain.Fluents, f => string.Equals(f, "alive", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(domain.Actions, a => string.Equals(a, "Load", StringComparison.OrdinalIgnoreCase));
-        Assert.Contains(domain.Actions, a => string.Equals(a, "Shoot", StringComparison.OrdinalIgnoreCase));
-        Assert.Equal(3, domain.CauseRules.Count);
     }
 
     [Theory]

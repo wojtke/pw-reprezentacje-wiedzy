@@ -3,6 +3,8 @@
 # source: dodatkowy przykład testowy
 # expected: TAK
 
-initially !locked and !opened
+fluents locked, opened
+actions open
+initially not locked and not opened
 impossible open if locked
 open causes opened if true

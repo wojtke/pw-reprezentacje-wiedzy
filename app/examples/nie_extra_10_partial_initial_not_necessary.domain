@@ -3,5 +3,7 @@
 # source: dodatkowy przykład testowy
 # expected: NIE
 
+fluents p, r
+actions setP
 initially true
-setP causes p if !r
+setP causes p if not r

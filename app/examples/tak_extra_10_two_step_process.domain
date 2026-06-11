@@ -3,6 +3,8 @@
 # source: dodatkowy przykład testowy
 # expected: TAK
 
-initially !key and !opened
+fluents key, opened
+actions getKey, open
+initially not key and not opened
 getKey causes key if true
 open causes opened if key

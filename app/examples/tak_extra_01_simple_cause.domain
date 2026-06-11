@@ -3,5 +3,7 @@
 # source: dodatkowy przykład testowy
 # expected: TAK
 
-initially !p
+fluents p
+actions make
+initially not p
 make causes p if true

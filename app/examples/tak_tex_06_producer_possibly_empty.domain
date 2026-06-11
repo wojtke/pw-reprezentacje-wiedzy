@@ -3,9 +3,11 @@
 # source: checkpoint2_v1.tex, sekcja Producent i konsumenci
 # expected: TAK
 
-initially !empty and hasA and hasB
-put causes !empty if true
-getA causes empty and hasA if !empty
-getB causes empty and hasB if !empty
-consumeA causes !hasA if hasA
-consumeB causes !hasB if hasB
+fluents empty, hasA, hasB
+actions put, getA, getB, consumeA, consumeB
+initially not empty and hasA and hasB
+put causes not empty if true
+getA causes empty and hasA if not empty
+getB causes empty and hasB if not empty
+consumeA causes not hasA if hasA
+consumeB causes not hasB if hasB

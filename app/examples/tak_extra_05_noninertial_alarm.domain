@@ -3,7 +3,9 @@
 # source: dodatkowy przykład testowy
 # expected: TAK
 
-always light -> alarm
+fluents light, alarm
+actions on
+always light implies alarm
 noninertial alarm
-initially !light
+initially not light
 on causes light if true

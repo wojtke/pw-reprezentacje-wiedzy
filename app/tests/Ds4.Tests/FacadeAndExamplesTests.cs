@@ -53,6 +53,7 @@ public sealed class FacadeAndExamplesTests
         Assert.True(ids.Count(id => id.StartsWith("nie_tex_", StringComparison.OrdinalIgnoreCase)) >= 5);
         Assert.Equal(10, ids.Count(id => id.StartsWith("tak_extra_", StringComparison.OrdinalIgnoreCase)));
         Assert.Equal(10, ids.Count(id => id.StartsWith("nie_extra_", StringComparison.OrdinalIgnoreCase)));
+        Assert.True(ids.Count(id => id.StartsWith("scenario_", StringComparison.OrdinalIgnoreCase)) >= 14);
     }
 
     [Fact]

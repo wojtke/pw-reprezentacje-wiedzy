@@ -1,4 +1,6 @@
+using System.Collections.Concurrent;
 using System.Text;
+using System.Text.RegularExpressions;
 using Ds4.Core.Model;
 using Ds4.Core.Parser;
 using Ds4.Core.Query;
@@ -8,14 +10,24 @@ namespace Ds4.Core.Api;
 
 public static class Ds4Facade
 {
+    private static readonly ConcurrentDictionary<string, SolveResult> SolveCache = new(StringComparer.Ordinal);
+    private static readonly ConcurrentDictionary<string, TransitionModel> DomainModelCache = new(StringComparer.Ordinal);
+    private static readonly ConcurrentDictionary<string, Ds4Query> QueryCache = new(StringComparer.Ordinal);
+    private static readonly ConcurrentDictionary<string, IReadOnlyList<Example>> ExamplesCache = new(StringComparer.Ordinal);
+
     public static SolveResult Solve(string domainText, string queryText)
+    {
+        var cacheKey = NormalizeCacheKey(domainText) + "\n---QUERY---\n" + NormalizeCacheKey(queryText);
+        return SolveCache.GetOrAdd(cacheKey, _ => SolveUncached(domainText, queryText));
+    }
+
+    private static SolveResult SolveUncached(string domainText, string queryText)
     {
         try
         {
-            var domain = DomainParser.Parse(domainText);
-            var query = QueryParser.Parse(PrepareQueryText(queryText));
-            RegisterQuerySymbols(domain, query);
-            var model = ModelBuilder.Build(domain);
+            var query = GetParsedQuery(queryText);
+            var model = GetBuiltModel(domainText);
+            ValidateQuerySymbols(model.Domain, query);
 
             if (model.Sigma.Count == 0)
                 return new SolveResult { Ok = false, Error = "Model jest pusty: ograniczenia always są sprzeczne.", SigmaCount = 0, Sigma0Count = 0 };
@@ -31,7 +43,8 @@ public static class Ds4Facade
                 Explanation = result.Explanation,
                 SigmaCount = model.Sigma.Count,
                 Sigma0Count = model.Sigma0.Count,
-                Trace = TraceRenderer.Render(result.Tree, model.Domain, maxChars: 60000)
+                Trace = TraceRenderer.Render(result.Tree, model.Domain, maxChars: 60000),
+                TraceGraphDot = TraceGraphRenderer.RenderDot(result.Tree, model.Domain)
             };
         }
         catch (Exception ex) when (ex is ParseException or ArgumentException or InvalidOperationException)
@@ -44,8 +57,7 @@ public static class Ds4Facade
     {
         try
         {
-            var domain = DomainParser.Parse(domainText);
-            var model = ModelBuilder.Build(domain);
+            var model = GetBuiltModel(domainText);
             if (model.Sigma.Count == 0)
                 return new ValidationResult { Ok = false, Error = "Model jest pusty: sprzeczne always.", SigmaCount = 0, Sigma0Count = 0 };
             if (model.Sigma0.Count == 0)
@@ -60,17 +72,58 @@ public static class Ds4Facade
 
     public static IReadOnlyList<ExampleSummary> ListExamples()
     {
-        return LoadExamplesFromFolder()
+        return LoadExamplesCached()
             .Select(e => new ExampleSummary(e.Id, e.Name, e.Description))
             .ToArray();
     }
 
     public static Example LoadExample(string id)
     {
-        var fromFolder = LoadExamplesFromFolder()
+        var fromFolder = LoadExamplesCached()
             .FirstOrDefault(e => string.Equals(e.Id, id, StringComparison.OrdinalIgnoreCase));
         if (fromFolder is not null) return fromFolder;
         throw new ArgumentException("Unknown example id: " + id);
+    }
+
+
+    public static CacheStats GetCacheStats()
+        => new(
+            FormulaParser.CacheCount,
+            DomainModelCache.Count,
+            QueryCache.Count,
+            SolveCache.Count,
+            LoadExamplesCached().Count);
+
+    public static void ClearCaches()
+    {
+        SolveCache.Clear();
+        DomainModelCache.Clear();
+        QueryCache.Clear();
+        ExamplesCache.Clear();
+        FormulaParser.ClearCache();
+    }
+
+    private static TransitionModel GetBuiltModel(string domainText)
+    {
+        var key = NormalizeCacheKey(domainText);
+        return DomainModelCache.GetOrAdd(key, _ =>
+        {
+            var domain = DomainParser.Parse(domainText);
+            return ModelBuilder.Build(domain);
+        });
+    }
+
+    private static Ds4Query GetParsedQuery(string queryText)
+    {
+        var prepared = PrepareQueryText(queryText);
+        var key = NormalizeCacheKey(prepared);
+        return QueryCache.GetOrAdd(key, _ => QueryParser.Parse(prepared));
+    }
+
+    private static IReadOnlyList<Example> LoadExamplesCached()
+    {
+        var directory = FindExamplesDirectory() ?? "<missing>";
+        return ExamplesCache.GetOrAdd(directory, _ => LoadExamplesFromFolder());
     }
 
     private static IReadOnlyList<Example> LoadExamplesFromFolder()
@@ -170,12 +223,28 @@ public static class Ds4Facade
     private static string NormalizeLineEndings(string text)
         => text.Replace("\r\n", "\n").Replace("\r", "\n").Replace("\n", Environment.NewLine);
 
-    private static void RegisterQuerySymbols(Domain domain, Ds4Query query)
+    private static string NormalizeCacheKey(string text)
+        => string.Join("\n", text.Replace("\r\n", "\n").Replace("\r", "\n")
+            .Split('\n')
+            .Select(line => Regex.Replace(line.Trim(), "\\s+", " "))
+            .Where(line => line.Length > 0));
+
+    private static void ValidateQuerySymbols(Domain domain, Ds4Query query)
     {
         foreach (var step in query.Process.Steps)
         foreach (var action in step.Actions)
-            domain.AddAction(action);
-        if (query.Goal is not null) domain.RegisterFormula(query.Goal);
+        {
+            if (!domain.Actions.Contains(action))
+                throw new ArgumentException($"Akcja '{action}' użyta w kwerendzie nie występuje w deklaracji actions ani w regułach dziedziny.");
+        }
+
+        if (query.Goal is null) return;
+
+        foreach (var fluent in query.Goal.Atoms())
+        {
+            if (!domain.Fluents.Contains(fluent))
+                throw new ArgumentException($"Fluent '{fluent}' użyty w kwerendzie nie występuje w deklaracji fluents ani w regułach dziedziny.");
+        }
     }
 }
 
@@ -213,7 +282,7 @@ public static class TraceRenderer
         }
         var prefix = new string(' ', indent * 2);
         var label = node.Depth == 0 ? "start" : node.IncomingStep?.ToString() ?? "?";
-        sb.Append(prefix).Append("[").Append(node.Depth).Append("] ").Append(label).Append(" -> ")
+        sb.Append(prefix).Append("[").Append(node.Depth).Append("] ").Append(label).Append(": ")
             .Append(node.State.ToPrettyString(domain.Fluents)).AppendLine();
 
         if (node.Blocked)

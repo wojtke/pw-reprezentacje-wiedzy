@@ -12,7 +12,7 @@ public sealed class ProcessAndQueryTests
         var model = TestData.BuildModel("""
             fluents p, q
             actions make_p, make_q
-            initially !p and !q
+            initially not p and not q
             make_p causes p if true
             make_q causes q if p
             """);
@@ -50,7 +50,7 @@ public sealed class ProcessAndQueryTests
         var result = TestData.Solve("""
             fluents p
             actions free, stop
-            initially !p
+            initially not p
             free releases p if true
             impossible stop if p
             """, "possibly executable after free; stop");
@@ -65,7 +65,7 @@ public sealed class ProcessAndQueryTests
         var result = TestData.Solve("""
             fluents p
             actions free, stop
-            initially !p
+            initially not p
             free releases p if true
             impossible stop if p
             """, "necessary executable after free; stop");
@@ -82,8 +82,8 @@ public sealed class ProcessAndQueryTests
             actions spin, shoot
             initially alive
             spin releases loaded if true
-            shoot causes !alive if loaded
-            """, "possibly !alive after spin; shoot");
+            shoot causes not alive if loaded
+            """, "possibly not alive after spin; shoot");
 
         Assert.True(result.Ok);
         Assert.True(result.Answer);
@@ -97,8 +97,8 @@ public sealed class ProcessAndQueryTests
             actions spin, shoot
             initially alive
             spin releases loaded if true
-            shoot causes !alive if loaded
-            """, "necessary !alive after spin; shoot");
+            shoot causes not alive if loaded
+            """, "necessary not alive after spin; shoot");
 
         Assert.True(result.Ok);
         Assert.False(result.Answer);
@@ -138,7 +138,7 @@ public sealed class ProcessAndQueryTests
         var result = TestData.Solve("""
             fluents p
             actions make_p
-            initially !p
+            initially not p
             make_p causes p if true
             """, "possibly p after make_p");
 

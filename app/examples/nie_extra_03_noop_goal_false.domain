@@ -3,4 +3,6 @@
 # source: dodatkowy przykład testowy
 # expected: NIE
 
-initially !p
+fluents p
+actions wait
+initially not p

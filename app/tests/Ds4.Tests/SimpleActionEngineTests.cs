@@ -17,7 +17,7 @@ public sealed class SimpleActionEngineTests
         var engine = Engine("""
             fluents p
             actions make_p
-            initially !p
+            initially not p
             make_p causes p if true
             """, out var model);
 
@@ -35,7 +35,7 @@ public sealed class SimpleActionEngineTests
             actions load
             initially loaded
             impossible load if loaded
-            load causes loaded if !loaded
+            load causes loaded if not loaded
             """, out var model);
 
         var result = engine.Res("load", model.Sigma0.Single());
@@ -49,9 +49,9 @@ public sealed class SimpleActionEngineTests
         var engine = Engine("""
             fluents loaded
             actions load
-            initially !loaded
+            initially not loaded
             impossible load if loaded
-            load causes loaded if !loaded
+            load causes loaded if not loaded
             """, out var model);
 
         var result = engine.Res("load", model.Sigma0.Single());
@@ -66,7 +66,7 @@ public sealed class SimpleActionEngineTests
         var engine = Engine("""
             fluents p, q
             actions make_p
-            initially !p and q
+            initially not p and q
             make_p causes p if true
             """, out var model);
 
@@ -83,7 +83,7 @@ public sealed class SimpleActionEngineTests
         var engine = Engine("""
             fluents loaded
             actions spin
-            initially !loaded
+            initially not loaded
             spin releases loaded if true
             """, out var model);
 
@@ -100,8 +100,8 @@ public sealed class SimpleActionEngineTests
         var engine = Engine("""
             fluents switch_on, lamp_on
             actions flip
-            initially !switch_on and !lamp_on
-            always switch_on -> lamp_on
+            initially not switch_on and not lamp_on
+            always switch_on implies lamp_on
             flip causes switch_on if true
             """, out var model);
 
@@ -118,9 +118,9 @@ public sealed class SimpleActionEngineTests
         var engine = Engine("""
             fluents p, q
             actions a
-            initially p and !q
+            initially p and not q
             a causes q if p
-            a causes !q if !p
+            a causes not q if not p
             """, out var model);
 
         var effects = engine.ActiveEffects("a", model.Sigma0.Single());

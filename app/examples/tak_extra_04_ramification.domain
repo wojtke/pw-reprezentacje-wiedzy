@@ -3,6 +3,8 @@
 # source: dodatkowy przykład testowy
 # expected: TAK
 
-always p -> q
-initially !p and !q
+fluents p, q
+actions makeP
+always p implies q
+initially not p and not q
 makeP causes p if true

@@ -1,0 +1,27 @@
+DS4 Reasoner - checkpoint 4
+
+Wymagania do budowania:
+- .NET SDK 8
+
+Testy:
+  dotnet restore
+  dotnet test Ds4Reasoner.sln -c Release
+
+GUI Windows:
+  dotnet run --project src/Ds4.Gui/Ds4.Gui.csproj
+
+GUI Linux/macOS/Windows przez Avalonia:
+  dotnet run --project src/Ds4.CrossGui/Ds4.CrossGui.csproj
+
+Publikacja Windows WinForms:
+  dotnet publish src/Ds4.Gui/Ds4.Gui.csproj -c Release -r win-x64 --self-contained true /p:PublishSingleFile=true
+
+Publikacja Linux Avalonia:
+  dotnet publish src/Ds4.CrossGui/Ds4.CrossGui.csproj -c Release -r linux-x64 --self-contained true /p:PublishSingleFile=true
+
+Uwagi:
+- src/Ds4.Core zawiera logike reasonera.
+- src/Ds4.Gui to GUI Windows.
+- src/Ds4.CrossGui to GUI cross-platform.
+- examples zawiera przyklady ladowane opcjonalnie z GUI.
+- tests/Ds4.Tests zawiera testy xUnit.

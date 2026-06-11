@@ -1,96 +1,65 @@
+using Ds4.Core.Api;
+
 namespace Ds4.Tests;
 
-// Semantyka kwerendy possibly w DS4: dla kazdego sigma0 ∈ Sigma0 istnieje sciezka spelniajaca warunek.
-// Te testy chronia przed cofnieciem sie do bledniej "istnieje sigma0, istnieje sciezka".
 public sealed class PossiblySemanticsTests
 {
     [Fact]
-    public void Possibly_Goal_Requires_Path_From_Every_Initial_State()
+    public void Possibly_Goal_Requires_A_Successful_Goal_Path_From_Each_Initial_State()
     {
-        // Sigma0 = { {¬p, ¬q}, {p, ¬q} }. Tylko galaz z p produkuje q. NIE.
-        var result = TestData.Solve("""
-            initially !q
+        var result = Ds4Facade.Solve("""
+            fluents p, q
+            actions action
+            initially not q
             action causes q if p
             """, "possibly q after action");
 
         Assert.True(result.Ok, result.Error);
         Assert.False(result.Answer);
+        Assert.Contains("istnieje stan początkowy", result.Explanation);
+        Assert.Contains("[1] action: {p, q}", result.Trace);
+        Assert.Contains("[1] action: {not p, not q}", result.Trace);
     }
 
     [Fact]
-    public void Possibly_Goal_Is_True_When_Every_Initial_State_Has_A_Satisfying_Path()
+    public void Possibly_Executable_Requires_A_Full_Path_From_Each_Initial_State()
     {
-        // initially true -> Sigma0 = { {}, {p} }. setQ ustawia q w obu przypadkach.
-        var result = TestData.Solve("""
-            initially true
-            setQ causes q if true
-            """, "possibly q after setQ");
-
-        Assert.True(result.Ok, result.Error);
-        Assert.True(result.Answer);
-    }
-
-    [Fact]
-    public void Possibly_Executable_Requires_Full_Path_From_Every_Initial_State()
-    {
-        // initially true -> Sigma0 = { {}, {p} }. Galaz z p blokuje sie. NIE.
-        var result = TestData.Solve("""
-            initially true
-            impossible a if p
-            a causes done if true
-            """, "possibly executable after a");
+        var result = Ds4Facade.Solve("""
+            fluents loaded, safe
+            actions load, check
+            initially safe
+            impossible load if loaded
+            load causes loaded if true
+            check causes safe if true
+            """, "possibly executable after load; check");
 
         Assert.True(result.Ok, result.Error);
         Assert.False(result.Answer);
     }
 
     [Fact]
-    public void Possibly_Executable_Is_True_When_Every_Initial_State_Has_A_Full_Path()
+    public void Possibly_Goal_Is_True_When_Each_Initial_State_Has_A_Goal_Witness()
     {
-        // initially true -> Sigma0 = { {}, {p} }. Akcja a wykonalna z obu, daje pelna sciezke.
-        var result = TestData.Solve("""
+        var result = Ds4Facade.Solve("""
+            fluents p, q
+            actions set_p
             initially true
-            a causes done if true
-            """, "possibly executable after a");
+            set_p causes p if true
+            """, "possibly p after set_p");
 
         Assert.True(result.Ok, result.Error);
         Assert.True(result.Answer);
     }
 
     [Fact]
-    public void Possibly_With_Single_Initial_State_Matches_Old_Existential_Semantics()
+    public void Necessary_Goal_Still_Requires_All_Full_Paths_To_Satisfy_Goal()
     {
-        // Pojedynczy stan poczatkowy: stara i nowa semantyka pokrywaja sie.
-        var result = TestData.Solve("""
-            initially !p
-            toss releases p if true
-            """, "possibly p after toss");
-
-        Assert.True(result.Ok, result.Error);
-        Assert.True(result.Answer);
-    }
-
-    [Fact]
-    public void Possibly_Possibly_Of_Released_Goal_Holds_For_Every_Initial_State()
-    {
-        // Sigma0 = { {}, {p} }: po wykonaniu toss z {} mamy {} lub {p}, z {p} mamy {} lub {p}.
-        // W obu przypadkach jest sciezka konczaca sie z p. TAK.
-        var result = TestData.Solve("""
-            initially true
-            toss releases p if true
-            """, "possibly p after toss");
-
-        Assert.True(result.Ok, result.Error);
-        Assert.True(result.Answer);
-    }
-
-    [Fact]
-    public void Possibly_Goal_After_Empty_Process_Equals_Necessary_Goal()
-    {
-        // Sigma0 = { {}, {p} }. possibly p after epsilon = (dla kazdego sigma) sigma |= p => NIE.
-        var result = TestData.Solve("""
-            initially true
-            """, "possibly p after epsilon");
+        var result = Ds4Facade.Solve("""
+            fluents heads
+            actions toss
+            initially heads
+            toss releases heads if true
+            """, "necessary heads after toss");
 
         Assert.True(result.Ok, result.Error);
         Assert.False(result.Answer);

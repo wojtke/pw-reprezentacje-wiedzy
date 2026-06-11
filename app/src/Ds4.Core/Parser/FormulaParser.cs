@@ -1,9 +1,11 @@
+using System.Collections.Concurrent;
 using Ds4.Core.Formula;
 
 namespace Ds4.Core.Parser;
 
 public sealed class FormulaParser
 {
+    private static readonly ConcurrentDictionary<string, IFormula> Cache = new(StringComparer.Ordinal);
     private readonly List<Token> _tokens;
     private int _pos;
 
@@ -14,11 +16,22 @@ public sealed class FormulaParser
 
     public static IFormula Parse(string text)
     {
-        var parser = new FormulaParser(text);
-        var formula = parser.ParseIff();
-        parser.Expect(TokenKind.End);
-        return formula;
+        var normalized = Normalize(text);
+        return Cache.GetOrAdd(normalized, key =>
+        {
+            var parser = new FormulaParser(key);
+            var formula = parser.ParseIff();
+            parser.Expect(TokenKind.End);
+            return formula;
+        });
     }
+
+    public static int CacheCount => Cache.Count;
+    public static void ClearCache() => Cache.Clear();
+
+    private static string Normalize(string text)
+        => string.Join(" ", text.Replace("\r\n", "\n").Replace("\r", "\n")
+            .Split((char[]?)null, StringSplitOptions.RemoveEmptyEntries));
 
     private IFormula ParseIff()
     {
@@ -70,8 +83,8 @@ public sealed class FormulaParser
         if (Peek().Kind == TokenKind.Identifier)
         {
             var name = Next().Text;
-            if (name.Equals("true", StringComparison.OrdinalIgnoreCase) || name == "⊤") return FormulaTools.True;
-            if (name.Equals("false", StringComparison.OrdinalIgnoreCase) || name == "⊥") return FormulaTools.False;
+            if (name.Equals("true", StringComparison.OrdinalIgnoreCase)) return FormulaTools.True;
+            if (name.Equals("false", StringComparison.OrdinalIgnoreCase)) return FormulaTools.False;
             return new Atom(name);
         }
         throw new ParseException($"Expected formula near '{Peek().Text}'.");
@@ -104,12 +117,15 @@ public sealed class FormulaParser
             if (char.IsWhiteSpace(c)) { i++; continue; }
             if (c == '(') { tokens.Add(new(TokenKind.LParen, "(")); i++; continue; }
             if (c == ')') { tokens.Add(new(TokenKind.RParen, ")")); i++; continue; }
-            if (c == '&' || c == '∧') { tokens.Add(new(TokenKind.And, c.ToString())); i++; continue; }
-            if (c == '|' || c == '∨') { tokens.Add(new(TokenKind.Or, c.ToString())); i++; continue; }
-            if (c == '!' || c == '~' || c == '¬') { tokens.Add(new(TokenKind.Not, c.ToString())); i++; continue; }
-            if (c == '-' && i + 1 < text.Length && text[i + 1] == '>') { tokens.Add(new(TokenKind.Implies, "->")); i += 2; continue; }
-            if (c == '<' && i + 2 < text.Length && text[i + 1] == '-' && text[i + 2] == '>') { tokens.Add(new(TokenKind.Iff, "<->")); i += 3; continue; }
-            if (char.IsLetter(c) || c == '_' || c == '⊤' || c == '⊥')
+            if (c is '&' or '∧' or '|' or '∨' or '!' or '~' or '¬' or '⊤' or '⊥')
+                throw new ParseException("Use word operators only: not, and, or, implies, iff, true, false.");
+            if (c == '-' && i + 1 < text.Length && text[i + 1] == '>')
+                throw new ParseException("Use word operator 'implies' instead of '->'.");
+            if (c == '<' && i + 2 < text.Length && text[i + 1] == '-' && text[i + 2] == '>')
+                throw new ParseException("Use word operator 'iff' instead of '<->'.");
+            if (c == '=' && i + 1 < text.Length && text[i + 1] == '>')
+                throw new ParseException("Use word operator 'implies' instead of '=>'.");
+            if (char.IsLetter(c) || c == '_')
             {
                 var start = i;
                 i++;
@@ -120,6 +136,8 @@ public sealed class FormulaParser
                     "and" => new Token(TokenKind.And, word),
                     "or" => new Token(TokenKind.Or, word),
                     "not" => new Token(TokenKind.Not, word),
+                    "implies" => new Token(TokenKind.Implies, word),
+                    "iff" => new Token(TokenKind.Iff, word),
                     _ => new Token(TokenKind.Identifier, word)
                 });
                 continue;

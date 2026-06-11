@@ -31,7 +31,7 @@ public sealed record Not(IFormula Inner) : IFormula
     public bool Evaluate(State state) => !Inner.Evaluate(state);
     public IEnumerable<string> Atoms() => Inner.Atoms();
     public IReadOnlyList<DnfTerm> ToDnf() => FormulaTools.ToNegationNormalForm(this).ToDnf();
-    public override string ToString() => "¬(" + Inner + ")";
+    public override string ToString() => "not (" + Inner + ")";
 }
 
 public sealed record And(IFormula Left, IFormula Right) : IFormula
@@ -49,7 +49,7 @@ public sealed record And(IFormula Left, IFormula Right) : IFormula
         }
         return result;
     }
-    public override string ToString() => "(" + Left + " ∧ " + Right + ")";
+    public override string ToString() => "(" + Left + " and " + Right + ")";
 }
 
 public sealed record Or(IFormula Left, IFormula Right) : IFormula
@@ -57,7 +57,7 @@ public sealed record Or(IFormula Left, IFormula Right) : IFormula
     public bool Evaluate(State state) => Left.Evaluate(state) || Right.Evaluate(state);
     public IEnumerable<string> Atoms() => Left.Atoms().Concat(Right.Atoms()).Distinct(StringComparer.OrdinalIgnoreCase);
     public IReadOnlyList<DnfTerm> ToDnf() => Left.ToDnf().Concat(Right.ToDnf()).ToArray();
-    public override string ToString() => "(" + Left + " ∨ " + Right + ")";
+    public override string ToString() => "(" + Left + " or " + Right + ")";
 }
 
 public sealed record Implies(IFormula Left, IFormula Right) : IFormula
@@ -65,7 +65,7 @@ public sealed record Implies(IFormula Left, IFormula Right) : IFormula
     public bool Evaluate(State state) => !Left.Evaluate(state) || Right.Evaluate(state);
     public IEnumerable<string> Atoms() => Left.Atoms().Concat(Right.Atoms()).Distinct(StringComparer.OrdinalIgnoreCase);
     public IReadOnlyList<DnfTerm> ToDnf() => new Or(new Not(Left), Right).ToDnf();
-    public override string ToString() => "(" + Left + " → " + Right + ")";
+    public override string ToString() => "(" + Left + " implies " + Right + ")";
 }
 
 public sealed record Iff(IFormula Left, IFormula Right) : IFormula
@@ -74,5 +74,5 @@ public sealed record Iff(IFormula Left, IFormula Right) : IFormula
     public IEnumerable<string> Atoms() => Left.Atoms().Concat(Right.Atoms()).Distinct(StringComparer.OrdinalIgnoreCase);
     public IReadOnlyList<DnfTerm> ToDnf()
         => new And(new Implies(Left, Right), new Implies(Right, Left)).ToDnf();
-    public override string ToString() => "(" + Left + " ↔ " + Right + ")";
+    public override string ToString() => "(" + Left + " iff " + Right + ")";
 }

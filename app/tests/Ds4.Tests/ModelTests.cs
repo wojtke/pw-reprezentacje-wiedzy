@@ -42,8 +42,8 @@ public sealed class ModelTests
     {
         var domain = DomainParser.Parse("""
             actions open
-            initially !closed
-            open causes opened if !closed
+            initially not closed
+            open causes opened if not closed
             """);
 
         Assert.Contains(domain.Fluents, f => string.Equals(f, "closed", StringComparison.OrdinalIgnoreCase));

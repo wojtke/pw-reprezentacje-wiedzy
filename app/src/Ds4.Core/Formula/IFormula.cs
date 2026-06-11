@@ -12,7 +12,7 @@ public interface IFormula
 public sealed record Literal(string Fluent, bool IsPositive)
 {
     public Literal Negated() => new(Fluent, !IsPositive);
-    public override string ToString() => IsPositive ? Fluent : "¬" + Fluent;
+    public override string ToString() => IsPositive ? Fluent : "not " + Fluent;
 }
 
 public sealed class DnfTerm
@@ -44,5 +44,5 @@ public sealed class DnfTerm
     }
 
     public override string ToString()
-        => _literals.Count == 0 ? "⊤" : string.Join(" ∧ ", _literals.OrderBy(kv => kv.Key).Select(kv => kv.Value ? kv.Key : "¬" + kv.Key));
+        => _literals.Count == 0 ? "true" : string.Join(" and ", _literals.OrderBy(kv => kv.Key).Select(kv => kv.Value ? kv.Key : "not " + kv.Key));
 }

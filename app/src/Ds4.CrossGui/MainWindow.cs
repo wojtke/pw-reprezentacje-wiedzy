@@ -10,6 +10,10 @@ namespace Ds4.CrossGui;
 public sealed class MainWindow : Window
 {
     private readonly ComboBox _examples = new();
+    private readonly Button _toggleExamplesButton = new() { Content = "Pokaż przykłady", MinWidth = 130 };
+    private readonly Button _loadExampleButton = new() { Content = "Wczytaj", MinWidth = 95, IsVisible = false };
+    private readonly Button _showGraphButton = new() { Content = "Pokaż graf DOT", MinWidth = 130 };
+    private string _lastGraphDot = string.Empty;
     private readonly TextBox _domain = MultilineBox();
     private readonly TextBox _query = MultilineBox();
     private readonly TextBox _result = MultilineBox(isReadOnly: true);
@@ -39,19 +43,23 @@ public sealed class MainWindow : Window
         DockPanel.SetDock(top, Dock.Top);
 
         _examples.Width = 420;
-        var load = new Button { Content = "Wczytaj przykład", MinWidth = 130 };
+        _examples.IsVisible = false;
         var solve = new Button { Content = "Oblicz", MinWidth = 120 };
         var clear = new Button { Content = "Wyczyść wynik", MinWidth = 130 };
 
-        load.Click += (_, _) => LoadSelectedExample();
+        _toggleExamplesButton.Click += (_, _) => ToggleExamples();
+        _loadExampleButton.Click += (_, _) => LoadSelectedExample();
         solve.Click += (_, _) => SolveCurrentInput();
         clear.Click += (_, _) => _result.Text = string.Empty;
+        _showGraphButton.Click += (_, _) => ShowGraphWindow();
+        _examples.SelectionChanged += (_, _) => LoadSelectedExample();
 
-        top.Children.Add(new TextBlock { Text = "Przykład:", VerticalAlignment = VerticalAlignment.Center });
+        top.Children.Add(_toggleExamplesButton);
         top.Children.Add(_examples);
-        top.Children.Add(load);
+        top.Children.Add(_loadExampleButton);
         top.Children.Add(solve);
         top.Children.Add(clear);
+        top.Children.Add(_showGraphButton);
         top.Children.Add(_status);
         root.Children.Add(top);
 
@@ -126,16 +134,27 @@ public sealed class MainWindow : Window
         if (items.Length > 0)
         {
             _examples.SelectedIndex = 0;
-            LoadSelectedExample();
+            _status.Text = "Gotowe. Przykłady są opcjonalne, kliknij Pokaż przykłady.";
         }
         else
         {
-            _status.Text = "Brak przykładów w folderze examples";
+            _status.Text = "Gotowe. Brak przykładów w folderze examples.";
         }
+    }
+
+
+    private void ToggleExamples()
+    {
+        var visible = !_examples.IsVisible;
+        _examples.IsVisible = visible;
+        _loadExampleButton.IsVisible = visible;
+        _toggleExamplesButton.Content = visible ? "Ukryj przykłady" : "Pokaż przykłady";
+        _status.Text = visible ? "Wybierz przykład albo wpisz własną dziedzinę i kwerendę." : "Tryb prostego IDE: wpisz własną dziedzinę i kwerendę.";
     }
 
     private void LoadSelectedExample()
     {
+        if (!_examples.IsVisible) return;
         if (_examples.SelectedItem is not ExampleItem item) return;
 
         try
@@ -163,6 +182,7 @@ public sealed class MainWindow : Window
             return;
         }
 
+        _lastGraphDot = result.TraceGraphDot;
         var answer = result.Answer == true ? "TAK" : "NIE";
         _result.Text =
             "ODPOWIEDŹ: " + answer + Environment.NewLine +
@@ -174,6 +194,25 @@ public sealed class MainWindow : Window
             "TRACE:" + Environment.NewLine +
             result.Trace;
         _status.Text = "Obliczono";
+    }
+
+
+    private void ShowGraphWindow()
+    {
+        var text = string.IsNullOrWhiteSpace(_lastGraphDot)
+            ? "Najpierw kliknij Oblicz, żeby wygenerować graf trace w formacie DOT."
+            : _lastGraphDot;
+
+        var box = MultilineBox(isReadOnly: true);
+        box.Text = text;
+        var window = new Window
+        {
+            Title = "Graf wykonania - DOT",
+            Width = 980,
+            Height = 720,
+            Content = box
+        };
+        window.Show(this);
     }
 
     private static string Normalize(string text)

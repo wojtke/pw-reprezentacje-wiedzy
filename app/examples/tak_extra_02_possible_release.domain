@@ -3,5 +3,7 @@
 # source: dodatkowy przykład testowy
 # expected: TAK
 
-initially !p
+fluents p
+actions toss
+initially not p
 toss releases p if true

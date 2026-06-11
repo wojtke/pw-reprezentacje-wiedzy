@@ -25,15 +25,15 @@ public sealed class FormulaTests
     }
 
     [Theory]
-    [InlineData("p and !q", true)]
+    [InlineData("p and not q", true)]
     [InlineData("p and q", false)]
     [InlineData("p or q", true)]
     [InlineData("q or r", false)]
-    [InlineData("p -> q", false)]
-    [InlineData("q -> p", true)]
-    [InlineData("p <-> q", false)]
-    [InlineData("p <-> !q", true)]
-    [InlineData("(p and !q) or r", true)]
+    [InlineData("p implies q", false)]
+    [InlineData("q implies p", true)]
+    [InlineData("p iff q", false)]
+    [InlineData("p iff not q", true)]
+    [InlineData("(p and not q) or r", true)]
     public void FormulaParser_Evaluates_Common_Operators(string text, bool expected)
     {
         var formula = FormulaParser.Parse(text);
@@ -65,7 +65,7 @@ public sealed class FormulaTests
     [Fact]
     public void ToDnf_Removes_Contradictory_Conjunction()
     {
-        var formula = FormulaParser.Parse("p and !p");
+        var formula = FormulaParser.Parse("p and not p");
         var dnf = formula.ToDnf();
 
         Assert.Empty(dnf);
@@ -74,7 +74,7 @@ public sealed class FormulaTests
     [Fact]
     public void Negation_Normal_Form_Handles_DeMorgan()
     {
-        var formula = FormulaParser.Parse("!(p and q)");
+        var formula = FormulaParser.Parse("not (p and q)");
         var dnf = formula.ToDnf();
 
         Assert.Equal(2, dnf.Count);

@@ -1,7 +1,7 @@
 # name: TAK bugfix 01 conditional cause possible q
 # description: Regression case. Conditional cause must fire on the p branch.
-# note: stan początkowy doprecyzowany (p and !q), żeby kwerenda possibly miała sens
+# note: stan początkowy doprecyzowany (p and not q), żeby kwerenda possibly miała sens
 # przy semantyce "dla każdego stanu początkowego istnieje ścieżka".
 
-initially p and !q
+initially p and not q
 action causes q if p

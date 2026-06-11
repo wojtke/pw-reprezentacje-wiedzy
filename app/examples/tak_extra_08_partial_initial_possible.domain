@@ -3,5 +3,7 @@
 # source: dodatkowy przykład testowy
 # expected: TAK
 
+fluents p, r
+actions setP
 initially true
 setP causes p if true

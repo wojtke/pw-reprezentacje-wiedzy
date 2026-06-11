@@ -10,7 +10,7 @@ public sealed record CompositeAction(IReadOnlyList<string> Actions)
 public sealed record Ds4Process(IReadOnlyList<CompositeAction> Steps)
 {
     public static Ds4Process Empty { get; } = new(Array.Empty<CompositeAction>());
-    public override string ToString() => Steps.Count == 0 ? "ε" : string.Join("; ", Steps);
+    public override string ToString() => Steps.Count == 0 ? "epsilon" : string.Join("; ", Steps);
 }
 
 public enum Quantifier

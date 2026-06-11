@@ -2,14 +2,13 @@
 # description: Proces z ruletki ma przynajmniej jedną pełną ścieżkę.
 # source: checkpoint2_v1.tex, sekcja YSP z rosyjską ruletką
 # expected: TAK
-# note: stan początkowy doprecyzowany (and !loaded) względem checkpoint2_v1.tex,
-# żeby kwerenda possibly miała sens przy semantyce "dla każdego stanu początkowego
-# istnieje ścieżka".
 
-initially alive and !loaded
+fluents loaded, alive
+actions load, shoot, spin
+initially alive and not loaded
 load causes loaded if true
 impossible load if loaded
-shoot causes !loaded if true
-shoot causes !alive if loaded
+shoot causes not loaded if true
+shoot causes not alive if loaded
 spin releases loaded if true
-!loaded after shoot
+not loaded after shoot

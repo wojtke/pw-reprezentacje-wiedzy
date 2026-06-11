@@ -43,5 +43,5 @@ public sealed record NegativeAtom(string Name) : IFormula
     public bool Evaluate(Ds4.Core.Model.State state) => !state.IsTrue(Name);
     public IEnumerable<string> Atoms() { yield return Name; }
     public IReadOnlyList<DnfTerm> ToDnf() => new[] { DnfTerm.Empty().Add(new Literal(Name, false)) };
-    public override string ToString() => "¬" + Name;
+    public override string ToString() => "not " + Name;
 }

@@ -9,6 +9,7 @@ public sealed class SolveResult
     public int SigmaCount { get; init; }
     public int Sigma0Count { get; init; }
     public string Trace { get; init; } = "";
+    public string TraceGraphDot { get; init; } = "";
 }
 
 public sealed class ValidationResult
@@ -21,3 +22,10 @@ public sealed class ValidationResult
 
 public sealed record ExampleSummary(string Id, string Name, string Description);
 public sealed record Example(string Id, string Name, string Description, string Domain, IReadOnlyList<string> Queries);
+
+public sealed record CacheStats(
+    int FormulaCount,
+    int DomainModelCount,
+    int ParsedQueryCount,
+    int SolveResultCount,
+    int ExampleCount);

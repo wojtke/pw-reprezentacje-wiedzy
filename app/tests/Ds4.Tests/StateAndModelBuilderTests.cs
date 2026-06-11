@@ -20,7 +20,7 @@ public sealed class StateAndModelBuilderTests
         var model = TestData.BuildModel("""
             fluents p, q
             actions noop
-            always p -> q
+            always p implies q
             initially true
             """);
 
@@ -61,7 +61,7 @@ public sealed class StateAndModelBuilderTests
             fluents p
             actions a
             always p
-            always !p
+            always not p
             initially p
             """, "possibly executable after a");
 
@@ -76,7 +76,7 @@ public sealed class StateAndModelBuilderTests
             fluents p
             actions a
             initially p
-            initially !p
+            initially not p
             """, "possibly executable after a");
 
         Assert.False(result.Ok);

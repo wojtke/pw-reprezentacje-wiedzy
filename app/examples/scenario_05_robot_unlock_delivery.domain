@@ -1,0 +1,10 @@
+# name: Robot kurierski - poprawne dostarczenie
+# description: Robot najpierw znajduje klucz, potem otwiera drzwi i dostarcza paczkę.
+fluents has_key, door_open, package_delivered
+actions find_key, open_door, deliver
+initially not has_key and not door_open and not package_delivered
+find_key causes has_key if true
+open_door causes door_open if has_key
+impossible open_door if not has_key
+deliver causes package_delivered if door_open
+impossible deliver if not door_open
