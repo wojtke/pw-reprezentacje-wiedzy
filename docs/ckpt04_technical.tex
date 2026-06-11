@@ -12,7 +12,19 @@
 \usepackage{booktabs}
 \usepackage{tikz}
 \usetikzlibrary{positioning,fit,arrows.meta}
+\usepackage{listings}
 \setlength{\parindent}{0pt}
+
+% Pseudokod: matematyka przez $...$ (mathescape), ramka, monospace.
+\lstdefinestyle{ds4pseudo}{%
+  basicstyle=\small\ttfamily, mathescape=true, columns=fullflexible,
+  keepspaces=true, frame=single, framesep=5pt, xleftmargin=6pt,
+  aboveskip=8pt, belowskip=4pt, breaklines=true}
+% Kod testów C#: dosłowny tekst (bez parsowania łańcuchów/komentarzy).
+\lstdefinestyle{ds4code}{%
+  basicstyle=\footnotesize\ttfamily, columns=fullflexible, keepspaces=true,
+  frame=single, framesep=5pt, xleftmargin=6pt, aboveskip=8pt, belowskip=4pt,
+  breaklines=true}
 
 \newcommand{\coursename}{Reprezentacja Wiedzy}
 \newcommand{\projecttitle}{Procesy działań złożonych\\[0.3em]
@@ -107,7 +119,7 @@ interfejsów. Całość spina jedna fasada.
 \node[draw, dashed, inner sep=8pt, fit=(parser)(sem),
       label={[font=\small]below:\texttt{Ds4.Core} --- silnik bez zależności od UI}] (core) {};
 
-\node[store, left=1.1cm of facade] (ex) {\texttt{examples/}\\57 przykładów};
+\node[store, left=1.1cm of facade] (ex) {\texttt{examples/}\\59 przykładów};
 \node[store, right=1.1cm of facade] (tests) {testy xUnit};
 
 \draw[arr] (gui) -- (facade);
@@ -126,11 +138,14 @@ interfejsów. Całość spina jedna fasada.
         korzystają z~tej samej logiki.
   \item \texttt{\textbf{Ds4Facade}} --- jedyne API używane przez interfejsy.
         Przyjmuje dwa napisy (dziedzina, kwerenda), zwraca odpowiedź TAK/NIE,
-        uzasadnienie, rozmiary $|\Sigma|$ i~$|\Sigma_0|$ oraz trace.
+        uzasadnienie, rozmiary $|\Sigma|$ i~$|\Sigma_0|$, tekstowy trace oraz
+        opis grafu wykonań w~formacie Graphviz~DOT (\texttt{TraceGraphDot}).
+        Wyniki na~czterech poziomach trafiają do~pamięci podręcznej
+        (statystyki: \texttt{CacheStats}).
   \item \texttt{\textbf{Ds4.Core}} --- czysty silnik: parser zamienia tekst na
         struktury danych, moduł semantyki buduje model i~ewaluuje kwerendę.
         Wymiana frontendu nie zmienia ani jednej linii silnika.
-  \item \texttt{\textbf{examples/}} --- 57 par plików
+  \item \texttt{\textbf{examples/}} --- 59 par plików
         \texttt{.domain}~+~\texttt{.query}, ładowane do listy w~GUI i~CLI.
   \item \textbf{Testy} --- xUnit; testują fasadę i~moduły semantyki, w~tym
         wszystkie przykłady względem plików \texttt{.expected}.
@@ -295,6 +310,202 @@ z~definicjami):
                 liście końcowe spełniają $\gamma$.
         \end{itemize}
 \end{enumerate}
+
+% ══════════════════════════════════════════════════════════════════
+\section{Struktury danych}
+\label{sec:struktury}
+
+Silnik \texttt{Ds4.Core} odwzorowuje pojęcia z~dokumentacji teoretycznej na
+zwięzłe, niezmienne struktury C\#. Poniższa tabela zestawia najważniejsze
+z~nich wraz z~plikiem źródłowym.
+
+\begin{center}
+\small
+\renewcommand{\arraystretch}{1.35}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{7.3cm}>{\raggedright\arraybackslash}p{3.4cm}@{}}
+\toprule
+\textbf{Pojęcie} & \textbf{Reprezentacja w~C\#} & \textbf{Plik} \\
+\midrule
+Stan $\sigma$ &
+  \texttt{SortedSet<string>} prawdziwych fluentów; równość przez
+  \texttt{SetEquals}, skrót \texttt{HashCode} (bez rozróżniania wielkości
+  liter) & \texttt{Model/State.cs} \\
+Dziedzina &
+  \texttt{HashSet} fluentów/akcji/\textbf{noninertial}; listy rekordów
+  \texttt{CauseRule}, \texttt{ReleaseRule}, \texttt{AlwaysConstraint},
+  \texttt{InitiallyConstraint}, \texttt{AfterAssertion(Goal,Process,Observable)}
+  & \texttt{Model/Domain.cs} \\
+Formuła &
+  drzewo \texttt{IFormula} (\texttt{And}/\texttt{Or}/\texttt{Not}/\dots);
+  \texttt{Evaluate(State)}, \texttt{ToDnf()} & \texttt{Formula/} \\
+Składnik DNF &
+  \texttt{DnfTerm} --- \texttt{Dictionary<string,bool>} (fluent $\to$
+  polaryzacja), \texttt{HasComplementWith} & \texttt{Formula/IFormula.cs} \\
+Model przejść &
+  \texttt{TransitionModel}: $\Sigma$, $\Sigma_0$ jako
+  \texttt{IReadOnlyList<State>} & \texttt{Semantics/TransitionModel.cs} \\
+Drzewo wykonań &
+  \texttt{ExecutionNode} (\texttt{State}, \texttt{Depth},
+  \texttt{IncomingStep}, \texttt{Blocked}, \texttt{Children});
+  \texttt{ExecutionTree} z~korzeniami i~\texttt{ProcessLength}
+  & \texttt{Semantics/ExecutionTrace.cs} \\
+Kwerenda &
+  \texttt{CompositeAction}, \texttt{Ds4Process};
+  \texttt{Ds4Query(Quantifier,Kind,Process,Goal)} & \texttt{Query/QueryModel.cs} \\
+Pamięć podręczna &
+  cztery \texttt{ConcurrentDictionary} (formuły, modele, kwerendy, wyniki)
+  + \texttt{CacheStats} & \texttt{Api/Ds4Facade.cs} \\
+\bottomrule
+\end{tabular}
+\end{center}
+
+Stan przechowuje \emph{tylko} fluenty prawdziwe, co czyni równość i~haszowanie
+niezależnymi od kolejności oraz pozwala używać stanów jako kluczy w~zbiorach
+(\texttt{HashSet<State>}) przy deduplikacji wyników $\Res$. Formuły efektów są
+sprowadzane do~DNF, ponieważ wykrywanie konfliktów i~komplementarności literałów
+operuje na~składnikach (zob.~\S\ref{sec:alg}).
+
+% ══════════════════════════════════════════════════════════════════
+\section{Algorytmy}
+\label{sec:alg}
+
+Poniżej zebrano kluczowe procedury silnika w~postaci pseudokodu, każdą wraz
+z~realizującą ją metodą. Procedury wprost realizują definicje z~dokumentacji
+teoretycznej; dla małych dziedzin pełne przeszukanie $2^{|\mathcal{F}|}$ stanów
+jest tanie, więc wybrano wierność definicjom zamiast optymalizacji.
+
+\subsection{Generacja przestrzeni stanów $\Sigma$}
+Metoda \texttt{StateGenerator.GenerateAll} wylicza wszystkie $2^{|\mathcal{F}|}$
+wartościowania (po bitach maski), a~\texttt{ModelBuilder.Build} odsiewa te,
+które łamią choć jedno ograniczenie \textbf{always}.
+
+\begin{lstlisting}[style=ds4pseudo]
+funkcja GenerujSigma(dziedzina D):
+  $\mathcal{F}$ := posortowane fluenty D
+  $\Sigma$ := []
+  dla maski m od 0 do $2^{|\mathcal{F}|}-1$:
+    $\sigma$ := { $\mathcal{F}$[i] : i-ty bit m ustawiony }
+    jeśli dla wszystkich (always $\alpha$) $\in$ D zachodzi $\sigma \models \alpha$:
+      dodaj $\sigma$ do $\Sigma$
+  zwróć $\Sigma$
+\end{lstlisting}
+
+\subsection{Stany początkowe $\Sigma_0$ i~walidacja modelu (M2)}
+Zbiór $\Sigma_0$ wyznaczają \emph{wyłącznie} zdania \textbf{initially}. Zdania
+\textbf{after} oraz \textbf{observable after} nie są filtrem $\Sigma_0$, lecz
+globalnym warunkiem poprawności (M2) sprawdzanym nad całym $\Sigma_0$; ich
+niespełnienie czyni dziedzinę sprzeczną ($\Sigma_0 := \emptyset$). Realizuje to
+\texttt{ModelBuilder.Build}.
+
+\begin{lstlisting}[style=ds4pseudo]
+funkcja GenerujSigma0(D, $\Sigma$):
+  $\Sigma_0$ := { $\sigma \in \Sigma$ : $\sigma \models \alpha$ dla wszystkich (initially $\alpha$) $\in$ D }
+  dla każdego zdania (obserwowalne?, $\alpha$ after P) $\in$ D:        // warunek M2
+    jeśli obserwowalne:   // istnieje stan początkowy ze sladem konczacym sie $\alpha$
+      ok := istnieje $\sigma \in \Sigma_0$: jakis lisc StanyKoncowe(${\sigma}$, P) $\models \alpha$
+    inaczej:              // z kazdego stanu kazdy slad konczy sie $\alpha$
+      ok := dla kazdego $\sigma \in \Sigma_0$: kazdy lisc StanyKoncowe(${\sigma}$, P) $\models \alpha$
+    jeśli nie ok: zwróć $\Sigma_0 := \emptyset$   // dziedzina sprzeczna
+  zwróć $\Sigma_0$
+\end{lstlisting}
+
+\subsection{$\Res$ akcji prostej}
+\texttt{SimpleActionEngine.Res}: jeśli aktywna jest reguła \textbf{impossible},
+wynik jest pusty; inaczej kandydatami są stany z~$\Sigma$ spełniające aktywne
+efekty, spośród których zostają te minimalne względem zbioru zmian $\New$.
+
+\begin{lstlisting}[style=ds4pseudo]
+funkcja Res(A, $\sigma$):
+  jeśli aktywna reguła (impossible A if $\pi$), $\sigma \models \pi$: zwróć $\varnothing$
+  E := aktywne efekty A w $\sigma$;   R := aktywne zwolnienia A w $\sigma$
+  $\mathrm{Res}_0$ := { $\sigma' \in \Sigma$ : $\sigma' \models \alpha$ dla wszystkich $\alpha \in$ E }
+  dla każdego $\sigma' \in \mathrm{Res}_0$:
+    New[$\sigma'$] := { literal l : $\sigma' \models l$ oraz
+                  ( (l zmienia fluent inercyjny: $\sigma(f)\neq\sigma'(f)$) lub (fluent l $\in$ R) ) }
+  zwróć { $\sigma' \in \mathrm{Res}_0$ : nie istnieje $\sigma''$ z New[$\sigma''$] $\subsetneq$ New[$\sigma'$] }
+\end{lstlisting}
+
+\subsection{Wykrywanie konfliktów}
+Zgodnie z~dokumentacją teoretyczną (sekcja \emph{Konflikty}) dwie akcje proste
+kolidują w~$\sigma$ \emph{tylko} w~dwóch przypadkach. Samo operowanie na~wspólnym
+fluencie konfliktu \emph{nie} powoduje. Realizuje to
+\texttt{ConflictDetector.AreInConflict}.
+
+\begin{lstlisting}[style=ds4pseudo]
+funkcja Koliduja(A, B, $\sigma$):
+  $E_A,E_B$ := skladniki DNF aktywnych efektow;   $R_A,R_B$ := aktywne zwolnienia
+  // Przypadek 1 (causes vs causes): literaly komplementarne
+  jeśli istnieja $C_A \in E_A$, $C_B \in E_B$ ze wspolnym fluentem f, f $\in C_A$, $\neg$f $\in C_B$ (lub odwrotnie):
+    zwróć prawda
+  // Przypadek 2 (causes vs releases): efekt jednej dotyka fluentu zwalnianego przez druga
+  jeśli ($E_A$ wymienia jakis f $\in R_B$) lub ($E_B$ wymienia jakis f $\in R_A$):
+    zwróć prawda
+  zwróć falsz
+\end{lstlisting}
+
+\subsection{Dekompozycje}
+\texttt{DecompositionGenerator.Generate}: spośród akcji indywidualnie
+wykonalnych ($\Res \neq \varnothing$) wyznacza \emph{maksymalne} podzbiory
+bezkonfliktowe --- maksymalne zbiory niezależne w~grafie konfliktu.
+
+\begin{lstlisting}[style=ds4pseudo]
+funkcja Dekompozycje($\mathbb{A}$, $\sigma$):
+  V := { A $\in \mathbb{A}$ : Res(A, $\sigma$) $\neq \varnothing$ }    // indywidualnie wykonalne
+  K := { {A,B} : A,B $\in$ V, Koliduja(A, B, $\sigma$) }       // krawedzie konfliktu
+  kandydaci := { X $\subseteq$ V : zaden konflikt wewnatrz X }
+  zwróć { X $\in$ kandydaci : X nie jest podzbiorem wiekszego kandydata }
+\end{lstlisting}
+
+\subsection{$\Res$ akcji złożonej}
+\texttt{CompositeActionEngine.Res}: dla każdej dekompozycji łączymy jej efekty
+i~zwolnienia, liczymy lokalnie $\Res$ jak dla akcji prostej, a~wynik akcji
+złożonej to \emph{suma} po~dekompozycjach. Minimalizacja $\New$ jest
+\emph{lokalna} w~obrębie dekompozycji --- świadoma decyzja projektowa względem
+globalnego warunku (M3) języka~$AC$. Konflikt daje więc niedeterminizm: może
+zajść wynik dowolnej z~dekompozycji.
+
+\begin{lstlisting}[style=ds4pseudo]
+funkcja Res($\mathbb{A}$, $\sigma$):
+  $\Delta$ := Dekompozycje($\mathbb{A}$, $\sigma$)
+  jeśli $\Delta = \varnothing$: zwróć $\varnothing$
+  wynik := $\varnothing$
+  dla każdej $\delta \in \Delta$:
+    E := $\bigcup_{A \in \delta}$ efekty(A,$\sigma$);   R := $\bigcup_{A \in \delta}$ zwolnienia(A,$\sigma$)
+    wynik := wynik $\cup$ ResZReguł(E, R, $\sigma$)   // jak w Res prostej, z minimalizacja New
+  zwróć wynik
+\end{lstlisting}
+
+\subsection{Drzewo wykonań i~ewaluacja kwerendy}
+\texttt{ProcessEvaluator.BuildTree} rozwija drzewo od~każdego $\sigma \in
+\Sigma_0$; gałąź z~pustym $\Res$ otrzymuje status \emph{Blocked}.
+\texttt{QueryEvaluator.Evaluate} odczytuje odpowiedź z~liści. Kwantyfikator po
+$\Sigma_0$ jest zawsze uniwersalny (przy opisie częściowym stan początkowy nie
+jest znany), więc \texttt{possibly} znaczy ,,dla każdego $\sigma_0$ istnieje
+gałąź'', a~nie ,,istnieje $\sigma_0$''.
+
+\begin{lstlisting}[style=ds4pseudo]
+funkcja Ewaluuj(kwerenda q):
+  drzewo := BuildTree($\Sigma_0$, q.proces)   // korzen na poziomie 0 dla kazdego $\sigma_0$
+  jeśli $\Sigma_0 = \varnothing$: zwróć NIE
+  zależnie od q:
+    possibly executable:  dla kazdego korzenia istnieje lisc na poziomie n
+    possibly $\gamma$:        dla kazdego korzenia istnieje lisc na poziomie n z $\models \gamma$
+    necessary executable: brak galezi zablokowanych i istnieja liscie na poziomie n
+    necessary $\gamma$:      jw. oraz wszystkie liscie na poziomie n $\models \gamma$
+\end{lstlisting}
+
+\subsection{Parsowanie, render grafu i~pamięć podręczna}
+\textbf{Parser} formuł (\texttt{FormulaParser}) to rekursywny zejściowy parser
+z~priorytetami \texttt{iff} $<$ \texttt{implies} $<$ \texttt{or} $<$ \texttt{and}
+$<$ \emph{unarne}; \texttt{DomainParser} czyta dziedzinę wierszami. Sparsowane
+formuły trafiają do~\texttt{ConcurrentDictionary} (po~normalizacji tekstu).
+\textbf{Render grafu} (\texttt{TraceGraphRenderer.RenderDot}) zamienia drzewo
+wykonań na~opis Graphviz~DOT (kolorowanie: stan początkowy, końcowy,
+zablokowany), z~limitem \texttt{maxNodes} chroniącym przed eksplozją.
+\textbf{Fasada} (\texttt{Ds4Facade.Solve}) spina całość i~zapamiętuje wyniki na
+czterech poziomach (formuły, modele dziedzin, sparsowane kwerendy, wyniki
+\texttt{Solve}); statystyki podaje \texttt{CacheStats}. Brak zależności
+zewnętrznych i~źródeł losowości czyni każdy przebieg powtarzalnym.
 
 % ══════════════════════════════════════════════════════════════════
 \section{Realizacja warunków Z1--Z7}
@@ -479,9 +690,9 @@ się czytelnym komunikatem zamiast odpowiedzi:
 \section{Testy}
 
 Poprawność silnika weryfikujemy zautomatyzowanym zestawem testów (framework
-xUnit, projekt \texttt{Ds4.Tests}). Zestaw liczy \textbf{113 metod testowych},
+xUnit, projekt \texttt{Ds4.Tests}). Zestaw liczy \textbf{114 metod testowych},
 które po rozwinięciu testów parametryzowanych (\texttt{[Theory]}) dają
-\textbf{242 przypadki testowe} --- wszystkie zielone, czas wykonania poniżej
+\textbf{247 przypadków testowych} --- wszystkie zielone, czas wykonania poniżej
 0{,}3~s. Testy działają w~trybie wsadowym (bez interfejsu graficznego) wprost
 na czystym silniku \texttt{Ds4.Core}, w~większości przez tę samą fasadę
 \texttt{Ds4Facade.Solve}, której używają wszystkie frontendy. Silnik nie ma
@@ -549,10 +760,84 @@ winny moduł.
 \end{tabular}
 \end{center}
 
+Przykłady wybranych testów jednostkowych (każdy buduje minimalną dziedzinę
+i~sprawdza jeden aspekt):
+
+\textit{Parser dziedziny --- rozpoznanie wszystkich typów zdań:}
+\begin{lstlisting}[style=ds4code]
+var domain = DomainParser.Parse("""
+    fluents loaded, alive
+    actions spin, shoot
+    initially alive
+    always alive or not loaded
+    spin releases loaded if true
+    shoot causes not alive if loaded
+    impossible shoot if not loaded
+    noninertial loaded
+    """);
+Assert.Single(domain.ReleaseRules);
+Assert.Single(domain.CauseRules);
+Assert.Single(domain.ImpossibleRules);
+\end{lstlisting}
+
+\textit{Operatory słowne formuł (\texttt{[Theory]}, wybrane przypadki przy
+$\sigma=\{p\}$):}
+\begin{lstlisting}[style=ds4code]
+[InlineData("p and not q", true)]
+[InlineData("p implies q", false)]
+[InlineData("p iff not q", true)]
+public void FormulaParser_Evaluates_Common_Operators(string text, bool expected)
+{
+    var formula = FormulaParser.Parse(text);
+    Assert.Equal(expected, formula.Evaluate(new State(new[] { "p" })));
+}
+\end{lstlisting}
+
+\textit{Składnia słowna --- symbole są odrzucane:}
+\begin{lstlisting}[style=ds4code]
+[InlineData("not p")] [InlineData("p and q")] [InlineData("p implies q")]
+public void Word_Operators_Are_Accepted(string text)
+    => Assert.NotNull(FormulaParser.Parse(text));
+
+[InlineData("!p")] [InlineData("~p")]   // symbole -> ParseException
+public void Symbolic_Operators_Are_Rejected(string text)
+    => Assert.Throws<ParseException>(() => FormulaParser.Parse(text));
+\end{lstlisting}
+
+\textit{$\Sigma_0$ wyznaczają tylko zdania \textbf{initially}:}
+\begin{lstlisting}[style=ds4code]
+var model = TestData.BuildModel("""
+    fluents p, q
+    actions noop
+    initially p
+    """);
+Assert.Equal(4, model.Sigma.Count);     // 2^2 wartosciowan
+Assert.Equal(2, model.Sigma0.Count);    // tylko stany z p
+Assert.All(model.Sigma0, s => Assert.True(s.IsTrue("p")));
+\end{lstlisting}
+
+\textit{\textbf{releases} daje niedeterminizm ($\Res$ zwraca oba wartościowania):}
+\begin{lstlisting}[style=ds4code]
+var result = engine.Res("spin", model.Sigma0.Single());  // spin releases loaded
+Assert.Equal(2, result.Count);
+Assert.Contains(result, s => s.IsTrue("loaded"));
+Assert.Contains(result, s => !s.IsTrue("loaded"));
+\end{lstlisting}
+
+\textit{Konflikt rozkłada akcję złożoną na~jednoelementowe dekompozycje:}
+\begin{lstlisting}[style=ds4code]
+// make_p causes p ;  make_not_p causes not p   (literaly komplementarne)
+var decompositions = env.Decompositions.Generate(
+    new CompositeAction(new[] { "make_p", "make_not_p" }), sigma);
+Assert.Equal(2, decompositions.Count);
+Assert.Contains(decompositions, d => d.Count == 1 && d.Contains("make_p"));
+Assert.Contains(decompositions, d => d.Count == 1 && d.Contains("make_not_p"));
+\end{lstlisting}
+
 % ──────────────────────────────────────────────────────────────────
 \subsection{Testy integracyjne}
 
-Najszerszą warstwę stanowi \textbf{57~wbudowanych przykładów} w~katalogu
+Najszerszą warstwę stanowi \textbf{59~wbudowanych przykładów} w~katalogu
 \texttt{app/examples/}. Każdy przykład to trójka plików o~wspólnej nazwie:
 \texttt{\textit{id}.domain} (dziedzina), \texttt{\textit{id}.query}
 (kwerenda) oraz \texttt{\textit{id}.expected} (oczekiwana odpowiedź: pojedyncze
@@ -564,7 +849,7 @@ listę w~GUI i~CLI, więc test pełni podwójną rolę: weryfikuje silnik
 \emph{oraz} gwarantuje, że każdy przykład pokazywany użytkownikowi daje
 deklarowaną odpowiedź.
 
-Zestaw przykładów dzieli się na \textbf{33 z~odpowiedzią TAK} i~\textbf{24 z~NIE},
+Zestaw przykładów dzieli się na \textbf{34 z~odpowiedzią TAK} i~\textbf{25 z~NIE},
 a~nazwa każdego koduje jego pochodzenie: pliki rozstrzygnięć mają schemat
 \texttt{\{tak$|$nie\}\_\{tex$|$extra$|$bugfix$|$regression\}\_\textit{nn}\_\textit{opis}},
 a~scenariusze fabularne --- \texttt{scenario\_\textit{nn}\_\textit{opis}}:
@@ -585,9 +870,9 @@ a~scenariusze fabularne --- \texttt{scenario\_\textit{nn}\_\textit{opis}}:
 \texttt{regression} & naprawione błędy interpretacji semantyki
   (częściowy stan początkowy) & 0 & 1 \\
 \texttt{scenario} & rozbudowane scenariusze fabularne (m.in.\ pięciu filozofów,
-  robot dostawczy, ramifikacje, rzut monetą) & 9 & 5 \\
+  robot dostawczy, ramifikacje, rzut monetą) & 10 & 6 \\
 \midrule
-\textbf{Razem} & & \textbf{33} & \textbf{24} \\
+\textbf{Razem} & & \textbf{34} & \textbf{25} \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -595,6 +880,45 @@ a~scenariusze fabularne --- \texttt{scenario\_\textit{nn}\_\textit{opis}}:
 Spójności samego zestawu pilnują dodatkowe testy: każda dziedzina musi mieć
 parę \texttt{.query}~+~\texttt{.expected}, a~pliki \texttt{.expected} mogą
 zawierać wyłącznie \texttt{TAK} lub \texttt{NIE}.
+
+\textit{Parametryzowany przebieg po wszystkich przykładach:}
+\begin{lstlisting}[style=ds4code]
+[Theory] [MemberData(nameof(AllExamples))]
+public void Every_Example_Returns_Its_Expected_Answer(
+    string id, string domainPath, string queryPath, string expectedPath)
+{
+    var result = Ds4Facade.Solve(
+        File.ReadAllText(domainPath), File.ReadAllText(queryPath));
+    Assert.True(result.Ok, id + ": " + result.Error);
+    Assert.Equal(TestData.ExpectedAnswer(expectedPath), result.Answer);
+}
+\end{lstlisting}
+
+\textit{Pełny tor ,,od tekstu do TAK/NIE'' --- rosyjska ruletka, necessary = NIE:}
+\begin{lstlisting}[style=ds4code]
+var result = TestData.Solve("""
+    fluents loaded, alive
+    actions spin, shoot
+    initially alive
+    spin releases loaded if true
+    shoot causes not alive if loaded
+    """, "necessary not alive after spin; shoot");
+Assert.True(result.Ok);
+Assert.False(result.Answer);   // galaz {not loaded} nie zabija -> nie konieczne
+\end{lstlisting}
+
+\textit{Eksport drzewa wykonań do grafu Graphviz~DOT:}
+\begin{lstlisting}[style=ds4code]
+var result = Ds4Facade.Solve("""
+    fluents p, q
+    actions a, b
+    initially not p and not q
+    a causes p if true
+    b causes q if p
+    """, "necessary q after a; b");
+Assert.Contains("digraph ExecutionTrace", result.TraceGraphDot);
+Assert.Contains("final", result.TraceGraphDot);
+\end{lstlisting}
 
 % ──────────────────────────────────────────────────────────────────
 \subsection{Testy regresyjne}
@@ -622,6 +946,16 @@ semantyki --- utrwalają one decyzje opisane w~\emph{dokumentacji teoretycznej}
         działają tylko na gałęziach, gdzie warunek $p$ zachodzi
         (\texttt{ConditionalCauseRegressionTests}, 6~testów).
 \end{itemize}
+
+\textit{Przykład regresji warunkowego \textbf{causes} (\texttt{action causes q
+if p}) na~gałęzi, gdzie warunek $p$ zachodzi:}
+\begin{lstlisting}[style=ds4code]
+// dziedzina: initially not q ;  action causes q if p
+var start = model.Sigma0.Single(s => s.IsTrue("p") && !s.IsTrue("q"));
+var result = engine.Res("action", start);
+Assert.Single(result);
+Assert.True(result.Single().IsTrue("q"));   // efekt wymuszony bo p
+\end{lstlisting}
 
 % ──────────────────────────────────────────────────────────────────
 \subsection{Uruchamianie i powtarzalność}
