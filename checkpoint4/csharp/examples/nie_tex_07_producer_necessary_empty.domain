@@ -1,0 +1,13 @@
+# name: NIE TEX 07 - Producent necessary empty
+# description: Jedna dekompozycja zostawia bufor niepusty.
+# source: checkpoint2_v1.tex, sekcja Producent i konsumenci
+# expected: NIE
+
+fluents empty, hasA, hasB
+actions put, getA, getB, consumeA, consumeB
+initially not empty and hasA and hasB
+put causes not empty if true
+getA causes empty and hasA if not empty
+getB causes empty and hasB if not empty
+consumeA causes not hasA if hasA
+consumeB causes not hasB if hasB

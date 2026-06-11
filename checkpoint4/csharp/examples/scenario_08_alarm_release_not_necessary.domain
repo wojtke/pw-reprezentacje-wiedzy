@@ -1,0 +1,6 @@
+# name: Test alarmu - niedeterminizm przez releases
+# description: Test zwalnia alarm spod inercji, więc alarm nie musi pozostać włączony.
+fluents alarm
+actions test_alarm
+initially alarm
+test_alarm releases alarm if true

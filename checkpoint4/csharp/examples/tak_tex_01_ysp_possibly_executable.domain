@@ -1,0 +1,14 @@
+# name: TAK TEX 01 - YSP possibly executable
+# description: Proces z ruletki ma przynajmniej jedną pełną ścieżkę.
+# source: checkpoint2_v1.tex, sekcja YSP z rosyjską ruletką
+# expected: TAK
+
+fluents loaded, alive
+actions load, shoot, spin
+initially alive and not loaded
+load causes loaded if true
+impossible load if loaded
+shoot causes not loaded if true
+shoot causes not alive if loaded
+spin releases loaded if true
+not loaded after shoot

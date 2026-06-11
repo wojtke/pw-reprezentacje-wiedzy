@@ -1,0 +1,10 @@
+# name: TAK EXTRA 04 - Ramifikacja always
+# description: Efekt p wymusza q przez always.
+# source: dodatkowy przykład testowy
+# expected: TAK
+
+fluents p, q
+actions makeP
+always p implies q
+initially not p and not q
+makeP causes p if true

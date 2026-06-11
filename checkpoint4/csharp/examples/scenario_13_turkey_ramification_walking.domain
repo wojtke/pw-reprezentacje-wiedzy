@@ -1,0 +1,10 @@
+# name: Indyk - ramifikacja chodzenia
+# description: Jeśli po strzale indyk nie żyje, ograniczenie walking implies alive wymusza także not walking.
+
+fluents loaded, alive, walking
+actions load, shoot
+initially not loaded and walking and alive
+always walking implies alive
+load causes loaded if true
+shoot causes not loaded if true
+shoot causes not alive if loaded

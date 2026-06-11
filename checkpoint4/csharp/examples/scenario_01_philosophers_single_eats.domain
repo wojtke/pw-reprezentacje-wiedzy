@@ -1,0 +1,25 @@
+# name: Pięciu filozofów - pojedynczy filozof
+# description: Scenariusz z pięcioma filozofami, widelcami i blokadą sąsiadów.
+fluents fork1_free, fork2_free, fork3_free, fork4_free, fork5_free, eating1, eating2, eating3, eating4, eating5
+actions start1, start2, start3, start4, start5, stop1, stop2, stop3, stop4, stop5
+initially fork1_free and fork2_free and fork3_free and fork4_free and fork5_free and not eating1 and not eating2 and not eating3 and not eating4 and not eating5
+always not (eating1 and eating2)
+always not (eating2 and eating3)
+always not (eating3 and eating4)
+always not (eating4 and eating5)
+always not (eating5 and eating1)
+start1 causes eating1 and not fork1_free and not fork2_free if fork1_free and fork2_free
+start2 causes eating2 and not fork2_free and not fork3_free if fork2_free and fork3_free
+start3 causes eating3 and not fork3_free and not fork4_free if fork3_free and fork4_free
+start4 causes eating4 and not fork4_free and not fork5_free if fork4_free and fork5_free
+start5 causes eating5 and not fork5_free and not fork1_free if fork5_free and fork1_free
+impossible start1 if not fork1_free or not fork2_free
+impossible start2 if not fork2_free or not fork3_free
+impossible start3 if not fork3_free or not fork4_free
+impossible start4 if not fork4_free or not fork5_free
+impossible start5 if not fork5_free or not fork1_free
+stop1 causes not eating1 and fork1_free and fork2_free if eating1
+stop2 causes not eating2 and fork2_free and fork3_free if eating2
+stop3 causes not eating3 and fork3_free and fork4_free if eating3
+stop4 causes not eating4 and fork4_free and fork5_free if eating4
+stop5 causes not eating5 and fork5_free and fork1_free if eating5

@@ -1,0 +1,11 @@
+# name: NIE EXTRA 09 - Blokada po pierwszym kroku
+# description: Po a zachodzi not p, więc b staje się niewykonalne.
+# source: dodatkowy przykład testowy
+# expected: NIE
+
+fluents p
+actions a, b
+initially p
+a causes not p if true
+impossible b if not p
+b causes p if true

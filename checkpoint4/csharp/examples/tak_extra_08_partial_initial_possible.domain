@@ -1,0 +1,9 @@
+# name: TAK EXTRA 08 - Częściowy stan początkowy
+# description: Przy częściowym opisie istnieje ścieżka do p.
+# source: dodatkowy przykład testowy
+# expected: TAK
+
+fluents p, r
+actions setP
+initially true
+setP causes p if true

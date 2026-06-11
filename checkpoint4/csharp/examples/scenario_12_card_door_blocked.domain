@@ -1,0 +1,8 @@
+# name: Drzwi i karta - brak karty
+# description: Bez karty akcja insert_card jest niewykonalna.
+
+fluents open, has_card
+actions insert_card
+initially not open and not has_card
+insert_card causes open if true
+impossible insert_card if not has_card

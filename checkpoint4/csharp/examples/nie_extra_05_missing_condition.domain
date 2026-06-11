@@ -1,0 +1,9 @@
+# name: NIE EXTRA 05 - Warunek efektu niespełniony
+# description: Brak klucza, więc opened nie może się pojawić.
+# source: dodatkowy przykład testowy
+# expected: NIE
+
+fluents key, opened
+actions open
+initially not key and not opened
+open causes opened if key
