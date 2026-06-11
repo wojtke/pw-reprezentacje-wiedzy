@@ -317,54 +317,38 @@ z~definicjami):
 \label{sec:struktury}
 
 Silnik \texttt{Ds4.Core} odwzorowuje pojęcia z~dokumentacji teoretycznej na
-zwięzłe, niezmienne struktury C\#. Poniższa tabela zestawia najważniejsze
-z~nich wraz z~plikiem źródłowym.
+zwięzłe, niezmienne struktury C\#. Poniżej zestawiono najważniejsze z~nich wraz
+z~plikiem źródłowym w~katalogu \texttt{src/Ds4.Core/}.
 
-\begin{center}
-\footnotesize
-\renewcommand{\arraystretch}{1.3}
-\setlength{\tabcolsep}{5pt}
-\begin{tabular}{@{}>{\raggedright\arraybackslash}p{3.0cm}>{\raggedright\arraybackslash}p{12.0cm}@{}}
-\toprule
-\textbf{Pojęcie} & \textbf{Reprezentacja w~C\# (plik w~\texttt{src/Ds4.Core/})} \\
-\midrule
-Stan $\sigma$ &
-  \texttt{SortedSet<string>} prawdziwych fluentów; równość przez
-  \texttt{SetEquals}, skrót przez \texttt{HashCode} (bez rozróżniania wielkości
-  liter). \quad\textit{(\texttt{Model/State.cs})} \\
-Dziedzina &
-  zbiory \texttt{HashSet} fluentów, akcji i~fluentów \textbf{noninertial};
-  listy rekordów \texttt{CauseRule}, \texttt{ReleaseRule},
-  \texttt{AlwaysConstraint}, \texttt{InitiallyConstraint} oraz
-  \texttt{AfterAssertion} (cel, proces, znacznik \textit{observable}).
-  \quad\textit{(\texttt{Model/Domain.cs})} \\
-Formuła &
-  drzewo \texttt{IFormula} (\texttt{And}, \texttt{Or}, \texttt{Not}, \dots)
-  z~metodami \texttt{Evaluate(State)} i~\texttt{ToDnf()}.
-  \quad\textit{(\texttt{Formula/})} \\
-Składnik DNF &
-  \texttt{DnfTerm} --- mapa \texttt{Dictionary<string, bool>}
-  (fluent~$\to$~polaryzacja) z~metodą \texttt{HasComplementWith}.
-  \quad\textit{(\texttt{Formula/IFormula.cs})} \\
-Model przejść &
-  \texttt{TransitionModel} przechowuje $\Sigma$ oraz $\Sigma_0$ jako
-  \texttt{IReadOnlyList<State>}. \quad\textit{(\texttt{Semantics/}\texttt{TransitionModel.cs})} \\
-Drzewo wykonań &
-  \texttt{ExecutionNode} (pola \texttt{State}, \texttt{Depth},
-  \texttt{IncomingStep}, \texttt{Blocked}, \texttt{Children}); \texttt{ExecutionTree}
-  z~listą korzeni i~\texttt{ProcessLength}.
-  \quad\textit{(\texttt{Semantics/}\texttt{ExecutionTrace.cs})} \\
-Kwerenda &
-  \texttt{CompositeAction} i~\texttt{Ds4Process}; rekord \texttt{Ds4Query}
-  (kwantyfikator, rodzaj, proces, cel).
-  \quad\textit{(\texttt{Query/QueryModel.cs})} \\
-Pamięć podręczna &
-  cztery słowniki \texttt{ConcurrentDictionary} (formuły, modele dziedzin,
-  kwerendy, wyniki) oraz \texttt{CacheStats}.
-  \quad\textit{(\texttt{Api/Ds4Facade.cs})} \\
-\bottomrule
-\end{tabular}
-\end{center}
+\begin{itemize}\setlength\itemsep{0.35em}
+  \item \textbf{Stan $\sigma$} --- \texttt{SortedSet<string>} prawdziwych
+    fluentów; równość przez \texttt{SetEquals}, skrót przez \texttt{HashCode}
+    (bez rozróżniania wielkości liter). Plik~\texttt{Model/State.cs}.
+  \item \textbf{Dziedzina} --- zbiory \texttt{HashSet} fluentów, akcji
+    i~fluentów \textbf{noninertial}; listy rekordów \texttt{CauseRule},
+    \texttt{ReleaseRule}, \texttt{AlwaysConstraint}, \texttt{InitiallyConstraint}
+    oraz \texttt{AfterAssertion} (cel, proces, znacznik \textit{observable}).
+    Plik~\texttt{Model/Domain.cs}.
+  \item \textbf{Formuła} --- drzewo \texttt{IFormula} (\texttt{And},
+    \texttt{Or}, \texttt{Not}, \dots) z~metodami \texttt{Evaluate(State)}
+    i~\texttt{ToDnf()}. Katalog~\texttt{Formula/}.
+  \item \textbf{Składnik DNF} --- \texttt{DnfTerm}, czyli mapa
+    \texttt{Dictionary<string,\,bool>} (fluent~$\to$~polaryzacja) z~metodą
+    \texttt{HasComplementWith}. Plik~\texttt{Formula/IFormula.cs}.
+  \item \textbf{Model przejść} --- \texttt{TransitionModel} przechowuje $\Sigma$
+    oraz $\Sigma_0$ jako \texttt{IReadOnlyList<State>}.
+    Plik~\texttt{Semantics/TransitionModel.cs}.
+  \item \textbf{Drzewo wykonań} --- \texttt{ExecutionNode} (pola \texttt{State},
+    \texttt{Depth}, \texttt{IncomingStep}, \texttt{Blocked}, \texttt{Children})
+    oraz \texttt{ExecutionTree} z~listą korzeni i~\texttt{ProcessLength}.
+    Plik~\texttt{Semantics/ExecutionTrace.cs}.
+  \item \textbf{Kwerenda} --- \texttt{CompositeAction} i~\texttt{Ds4Process};
+    rekord \texttt{Ds4Query} (kwantyfikator, rodzaj, proces, cel).
+    Plik~\texttt{Query/QueryModel.cs}.
+  \item \textbf{Pamięć podręczna} --- cztery słowniki
+    \texttt{ConcurrentDictionary} (formuły, modele dziedzin, kwerendy, wyniki)
+    oraz \texttt{CacheStats}. Plik~\texttt{Api/Ds4Facade.cs}.
+\end{itemize}
 
 Stan przechowuje \emph{tylko} fluenty prawdziwe, co czyni równość i~haszowanie
 niezależnymi od kolejności oraz pozwala używać stanów jako kluczy w~zbiorach

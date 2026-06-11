@@ -17,112 +17,142 @@
 \begin{center}
   {\Large Reprezentacja Wiedzy --- Projekt nr~4: Procesy działań złożonych\par}
   \vspace{0.4em}
-  {\huge \bfseries Wkład osobowy\par}
+  {\huge \bfseries Podział pracy\par}
   \vspace{0.4em}
   {\large Zespół projektowy nr~4 \quad $\cdot$ \quad Warszawa, 11 czerwca 2026\par}
 \end{center}
 
 \vspace{1.2em}
 
-Wkład zestawiono w~podziale na cztery punkty kontrolne: \textbf{PK1} (teoria
-wstępna, 26.03), \textbf{PK2} (pełna teoria w~\LaTeX{}, wydruk, 23.04),
-\textbf{PK3} (prototyp aplikacji, 12.05) oraz \textbf{PK4} (wersja końcowa ---
-poprawiona teoria, aplikacja, testy i~dokumentacja, 11.06). Zasada: autor danej
-części teorii odpowiada też za~jej implementację i~testy. Wkład wszystkich
-członków zespołu był zrównoważony.
+Pracę podzielono \emph{pionowo}: każdy mechanizm semantyczny klasy~$\mathit{DS4}$
+(model dziedziny, akcje proste, akcje złożone, proces i~kwerendy, formuły,
+interfejsy) ma jednego właściciela, prowadzącego go od~formalizacji w~teorii,
+przez implementację modułów, po~testy; granice części pokrywają się z~granicami
+modułów projektu \texttt{Ds4.Core}.
+
+Wkład zestawiono w~czterech punktach kontrolnych: \textbf{PK1} (teoria wstępna,
+26.03), \textbf{PK2} (pełna teoria, 23.04), \textbf{PK3} (prototyp aplikacji,
+12.05) oraz \textbf{PK4} (wersja końcowa: teoria, aplikacja, testy,
+dokumentacja, 11.06). Poza ogólną koordynacją (W.~Jasiński) wyróżniono dwie
+role wiodące: \textbf{Krzysztof Gryboś} --- lider części teoretycznej (PK2)
+oraz \textbf{Jarosław Bieniek} --- lider części programistycznej (PK3). Wkład
+wszystkich członków był zrównoważony.
 
 \section*{Podział prac według punktów kontrolnych}
 
 \subsection*{Wojciech Jasiński (koordynator)}
+\textbf{Obszar:} warstwa API i~integracja (\texttt{Api/Ds4Facade}, \texttt{Api/Contracts}), struktura repozytorium, przykłady demonstracyjne i~wydanie aplikacji.
 \begin{itemize}\setlength\itemsep{0.1em}
-  \item \textbf{PK1:} koordynacja zespołu, ustalenie zakresu klasy $\mathbb{DS4}$ i~struktury dokumentu teorii wstępnej.
-  \item \textbf{PK2:} złożenie pełnej teorii w~\LaTeX{}, spójność notacji, przygotowanie wydruku.
-  \item \textbf{PK3:} szkielet rozwiązania (projekty \texttt{Ds4.Core}/\texttt{Cli}/\texttt{Gui}), integracja modułów, zestaw przykładów demonstracyjnych.
-  \item \textbf{PK4:} reorganizacja teorii wg~uwag, dokument techniczny, kompilacja i~wydanie aplikacji, scalenie gałęzi.
+  \item \textbf{PK1:} koordynacja zespołu, ustalenie zakresu klasy $\mathit{DS4}$ (warunki Z1--Z7) i~struktury dokumentu teorii wstępnej; podział mechanizmów semantycznych między członków.
+  \item \textbf{PK2:} złożenie pełnej teorii w~\LaTeX{}, ujednolicenie notacji ($\Sigma$, $\Sigma_0$, $\Res$) między częściami, przygotowanie wydruku.
+  \item \textbf{PK3:} szkielet rozwiązania i~układ projektów (\texttt{Ds4.Core}/\texttt{Cli}/\texttt{Gui}/\texttt{CrossGui}), fasada \texttt{Ds4Facade} spinająca parser i~semantykę w~jeden punkt wejścia, zestaw przykładów demonstracyjnych.
+  \item \textbf{PK4:} reorganizacja teorii do~wersji~v2 wg~uwag recenzji, redakcja dokumentu technicznego, ujednolicenie kontraktu wyniku (TAK/NIE, uzasadnienie, $|\Sigma|$/$|\Sigma_0|$, trace, opis grafu DOT), kompilacja i~wydanie aplikacji wieloplatformowej, scalanie gałęzi i~higiena repozytorium.
 \end{itemize}
 
-\subsection*{Krzysztof Gryboś}
+\subsection*{Krzysztof Gryboś (lider części teoretycznej)}
+\textbf{Obszar:} język kwerend i~procesów (\texttt{Semantics/ProcessEvaluator}, \texttt{Semantics/QueryEvaluator}, \texttt{Semantics/ExecutionTrace}, \texttt{Query/QueryModel}, \texttt{Parser/ProcessParser}, \texttt{Parser/QueryParser}).
 \begin{itemize}\setlength\itemsep{0.1em}
-  \item \textbf{PK1:} wstępny opis języka kwerend i~rodzajów pytań (\textit{executable}, cel).
-  \item \textbf{PK2:} formalna semantyka \textit{necessary}/\textit{possibly} dla wielu stanów początkowych, proces i~ślad wykonania.
-  \item \textbf{PK3:} silnik procesów i~kwerend (drzewo wykonań, ewaluacja czterech wariantów pytań).
-  \item \textbf{PK4:} korekta semantyki \textit{possibly} (kwantyfikacja uniwersalna po~$\Sigma_0$), testy procesów i~kwerend.
+  \item \textbf{PK1:} wstępny opis języka kwerend i~rodzajów pytań (\textit{executable}, \textit{accessible}, cel), pojęcie procesu jako sekwencji akcji.
+  \item \textbf{PK2:} formalna semantyka \textit{necessary}/\textit{possibly} dla wielu stanów początkowych, definicja procesu i~śladu wykonania, kwantyfikacja po~$\Sigma_0$.
+  \item \textbf{PK3:} silnik procesów i~kwerend --- budowa drzewa wykonań (poziom~$i$ to $\Res(\mathbb{A}_i,\cdot)$), oznaczanie gałęzi uciętych ($\Res=\emptyset$) oraz ewaluacja czterech wariantów pytań na~tym drzewie.
+  \item \textbf{PK4:} korekta semantyki \textit{possibly} do~postaci ,,dla każdego $\sigma\in\Sigma_0$ istnieje ścieżka'' (kwantyfikacja uniwersalna po~$\Sigma_0$), rozdzielenie \textbf{after}/\textbf{observable} jako warunków ważności $M2$ zamiast filtrów~$\Sigma_0$, testy procesów i~wszystkich wariantów kwerend.
 \end{itemize}
 
-\subsection*{Jarosław Bieniek}
+\subsection*{Jarosław Bieniek (lider części programistycznej)}
+\textbf{Obszar:} parser dziedziny i~obsługa wejścia (\texttt{Parser/DomainParser}, \texttt{Parser/ParseException}) oraz interfejs wiersza poleceń (\texttt{Ds4.Cli/Program}).
 \begin{itemize}\setlength\itemsep{0.1em}
-  \item \textbf{PK1:} przegląd algorytmiczny --- zarys generacji modelu i~ewaluacji.
-  \item \textbf{PK2:} pseudokod algorytmów (Res, konflikty, kwerendy) w~części teoretycznej.
-  \item \textbf{PK3:} parser dziedziny i~kwerend, wczytywanie plików, interfejs wiersza poleceń (\texttt{Ds4.Cli}).
-  \item \textbf{PK4:} obsługa błędnego wejścia, przeniesienie algorytmów do~dokumentu technicznego, testy parsera i~regresyjne.
+  \item \textbf{PK1:} przegląd algorytmiczny --- zarys generacji modelu i~ewaluacji, identyfikacja głównych kroków przetwarzania.
+  \item \textbf{PK2:} pseudokod algorytmów ($\Res$, wykrywanie konfliktów, ewaluacja kwerend) w~części teoretycznej.
+  \item \textbf{PK3:} parser dziedziny (fluenty, akcje proste, zdania \textbf{causes}/\textbf{releases}/\textbf{impossible}/\textbf{initially}/\textbf{always}), wczytywanie plików wejściowych oraz interfejs wiersza poleceń (\texttt{Ds4.Cli}).
+  \item \textbf{PK4:} obsługa błędnego wejścia i~czytelne komunikaty (\texttt{ParseException}), rozpoznawanie nazw akcji podobnych do~słów kluczowych, ujednolicenie składni słownej operatorów, przeniesienie algorytmów do~dokumentu technicznego, testy parsera i~regresyjne (m.in.\ warunkowe \textbf{causes}).
 \end{itemize}
 
 \subsection*{Filip Filipkowski}
+\textbf{Obszar:} model dziedziny i~semantyka akcji prostych (\texttt{Model/Domain}, \texttt{Model/State}, \texttt{Model/Symbols}, \texttt{Semantics/SimpleActionEngine}, \texttt{Semantics/ModelBuilder}).
 \begin{itemize}\setlength\itemsep{0.1em}
-  \item \textbf{PK1:} wstępny opis języka akcji i~zdań \textbf{causes}/\textbf{releases}.
-  \item \textbf{PK2:} składnia i~semantyka akcji prostych (efekty, inercja, minimalizacja, zwolnienia, niewykonalność), model dziedziny.
-  \item \textbf{PK3:} silnik akcji prostych ($\Res$, generacja $\Sigma$/$\Sigma_0$, reguły \textbf{impossible}).
-  \item \textbf{PK4:} dopracowanie inercji i~ramifikacji wg~uwag, testy modelu i~akcji prostych.
+  \item \textbf{PK1:} wstępny opis języka akcji i~zdań \textbf{causes}/\textbf{releases}, intuicja efektów i~inercji.
+  \item \textbf{PK2:} składnia i~semantyka akcji prostych (efekty, inercja, minimalizacja zmian, zwolnienia fluentów, niewykonalność), definicja modelu dziedziny.
+  \item \textbf{PK3:} silnik akcji prostych --- operator $\Res(A,\sigma)$ z~minimalizacją zbioru zmienianych literałów, filtrowanie wartościowań do~$\Sigma$ (\textbf{always}) i~zbioru początkowego $\Sigma_0$ (\textbf{initially}, \texttt{ModelBuilder}), reguły \textbf{impossible}.
+  \item \textbf{PK4:} dopracowanie inercji i~ramifikacji wg~uwag recenzji, rozdzielenie roli \textbf{initially} (źródło $\Sigma_0$) od~\textbf{always} (ograniczenia integralności), testy modelu oraz $\Sigma$/$\Sigma_0$ i~akcji prostych.
 \end{itemize}
 
 \subsection*{Sebastian Rydz}
+\textbf{Obszar:} akcje złożone --- konflikty i~dekompozycja (\texttt{Semantics/CompositeActionEngine}, \texttt{Semantics/ConflictDetector}, \texttt{Semantics/DecompositionGenerator}) oraz reprezentacja zmian i~wyniku przejścia używana przez detekcję konfliktów (\texttt{Semantics/LiteralChange}, \texttt{Semantics/TransitionModel}).
 \begin{itemize}\setlength\itemsep{0.1em}
-  \item \textbf{PK1:} wstępny opis akcji złożonych i~problemu współbieżności.
-  \item \textbf{PK2:} formalizacja konfliktów (przypadki \textbf{causes}/\textbf{releases}) i~dekompozycji (zbiory maksymalne).
-  \item \textbf{PK3:} implementacja detekcji konfliktów i~generacji dekompozycji, $\Res$ akcji złożonej.
-  \item \textbf{PK4:} doprecyzowanie definicji konfliktu wg~teorii v2 (dwa przypadki), testy akcji złożonych.
+  \item \textbf{PK1:} wstępny opis akcji złożonych i~problemu współbieżnego wykonywania akcji prostych.
+  \item \textbf{PK2:} formalizacja konfliktów między parami akcji (przypadki sprzecznych efektów \textbf{causes}/\textbf{releases}) oraz dekompozycji jako maksymalnych bezkonfliktowych podzbiorów.
+  \item \textbf{PK3:} implementacja detekcji konfliktów w~stanie~$\sigma$ i~generacji maksymalnych dekompozycji; operator $\Res(\mathbb{A},\sigma)$ akcji złożonej jako suma wyników po~dekompozycjach (źródło niedeterminizmu Z3).
+  \item \textbf{PK4:} doprecyzowanie definicji konfliktu wg~teorii~v2 (dwa przypadki, usunięcie reguły nakładania się), testy konfliktów, dekompozycji i~akcji złożonych.
 \end{itemize}
 
 \subsection*{Jakub Pietrzak}
+\textbf{Obszar:} interfejsy graficzne i~wizualizacja wykonań (\texttt{Ds4.Gui}, \texttt{Ds4.CrossGui}, \texttt{Semantics/TraceGraphRenderer}), generacja przestrzeni stanów (\texttt{Semantics/StateGenerator}) oraz redakcja teorii.
 \begin{itemize}\setlength\itemsep{0.1em}
-  \item \textbf{PK1:} współudział w~redakcji teorii wstępnej i~przeglądzie literatury.
-  \item \textbf{PK2:} podsumowanie i~redakcja pełnej teorii, spójność terminologii.
-  \item \textbf{PK3:} interfejs graficzny (\texttt{Ds4.Gui}/\texttt{Ds4.CrossGui}), w~tym podgląd grafu wykonań (DOT).
-  \item \textbf{PK4:} testy pełnej semantyki i~źródeł GUI, dopracowanie prezentacji wyników.
+  \item \textbf{PK1:} współudział w~redakcji teorii wstępnej i~przeglądzie literatury (języki akcji).
+  \item \textbf{PK2:} podsumowanie i~redakcja pełnej teorii, spójność terminologii i~odsyłaczy.
+  \item \textbf{PK3:} interfejs graficzny w~dwóch wariantach (\texttt{Ds4.Gui} --- WinForms, \texttt{Ds4.CrossGui} --- Avalonia, Linux/\,macOS), generacja przestrzeni stanów (wyliczenie wszystkich wartościowań fluentów, \texttt{StateGenerator}) oraz renderowanie grafu wykonań do~formatu Graphviz~DOT (\texttt{TraceGraphRenderer}).
+  \item \textbf{PK4:} testy pełnej semantyki (scenariusze end-to-end) i~źródeł GUI (\texttt{CrossGuiSourceTests}), dopracowanie prezentacji wyników (TAK/NIE, uzasadnienie, podgląd grafu).
 \end{itemize}
 
 \subsection*{Sandra Adamiec}
+\textbf{Obszar:} formuły zdaniowe i~ich postać normalna (\texttt{Formula/IFormula}, \texttt{Formula/FormulaNodes}, \texttt{Formula/FormulaTools}, \texttt{Parser/FormulaParser}) oraz instrukcja użytkownika.
 \begin{itemize}\setlength\itemsep{0.1em}
-  \item \textbf{PK1:} wprowadzenie i~wstępny opis formuł zdaniowych.
-  \item \textbf{PK2:} formuły, literały i~postać normalna DNF, przegląd notacji.
-  \item \textbf{PK3:} reprezentacja i~parser formuł, konwersja do~DNF w~aplikacji.
-  \item \textbf{PK4:} instrukcja użytkownika, testy formuł i~pokrycia języka.
+  \item \textbf{PK1:} wprowadzenie i~wstępny opis formuł zdaniowych (fluenty jako zmienne, spójniki logiczne).
+  \item \textbf{PK2:} definicja formuł, literałów i~postaci normalnej DNF, przegląd notacji używanej w~zdaniach języka.
+  \item \textbf{PK3:} reprezentacja formuł jako drzewa (\texttt{FormulaNodes}), parser formuł oraz konwersja do~DNF (\texttt{FormulaTools}) wykorzystywana przy ewaluacji warunków.
+  \item \textbf{PK4:} instrukcja użytkownika, ujednolicenie składni słownej operatorów logicznych, testy formuł, postaci DNF i~pokrycia konstrukcji języka.
 \end{itemize}
 
 \section*{Autorstwo testów}
 
-Każdej grupie testów (plik klasy \texttt{xUnit} w~projekcie \texttt{Ds4.Tests})
-przypisano autora; każdy członek zespołu odpowiada za~co~najmniej 4--5 testów.
+Zestaw testów (projekt \texttt{Ds4.Tests}, framework xUnit) liczy \textbf{114
+testów} w~18~plikach. Każdy plik testów dotyczy przede wszystkim jednego
+obszaru, więc testy przypisano do~właścicieli obszarów --- tak samo jak
+implementację.
+Kolumna \textit{rodzaj}: \textbf{J}~--- jednostkowy, \textbf{I}~--- integracyjny
+lub systemowy, \textbf{R}~--- regresyjny; kolumna \textit{n}~--- liczba testów
+w~pliku.
 
 \begin{center}
-\renewcommand{\arraystretch}{1.35}
+\renewcommand{\arraystretch}{1.2}
 \small
-\begin{tabular}{@{}>{\raggedright\arraybackslash}p{9.6cm}>{\raggedright\arraybackslash}p{4.4cm}@{}}
+\begin{tabular}{@{}>{\raggedright\arraybackslash}p{6.2cm}>{\raggedright\arraybackslash}p{6.3cm}cr@{}}
 \toprule
-\textbf{Grupa testów (plik)} & \textbf{Autor} \\
+\textbf{Plik testów} & \textbf{Zakres} & \textbf{rodz.} & \textbf{n} \\
 \midrule
-\multicolumn{2}{@{}l}{\textit{Testy jednostkowe}} \\
-parser dziedziny (\texttt{ParserTests}) & Jarosław Bieniek \\
-nazwy akcji podobne do słów kluczowych (\texttt{KeywordLike\dots Tests}) & Jarosław Bieniek \\
-formuły i~postać DNF (\texttt{FormulaTests}) & Sandra Adamiec \\
-składnia słowna operatorów (\texttt{WordOnlySyntaxTests}) & Sandra Adamiec \\
-pokrycie konstrukcji języka (\texttt{LanguageCoverageTests}) & Sandra Adamiec \\
-model oraz $\Sigma$, $\Sigma_0$ (\texttt{ModelTests}, \texttt{StateAndModelBuilderTests}) & Filip Filipkowski \\
-$\Res$ akcji prostej (\texttt{SimpleActionEngineTests}) & Filip Filipkowski \\
-konflikty i~dekompozycje (\texttt{CompositeActionTests}) & Sebastian Rydz \\
-proces i~warianty kwerend (\texttt{ProcessAndQueryTests}) & Krzysztof Gryboś \\
-semantyka \textit{possibly} (\texttt{PossiblySemanticsTests}) & Krzysztof Gryboś \\
+\multicolumn{4}{@{}l}{\textit{Filip Filipkowski --- model dziedziny i~akcje proste \quad(18)}} \\
+\texttt{ModelTests} & stan, fluenty inercyjne, inferencja fluentów & J & 4 \\
+\texttt{StateAndModelBuilderTests} & generacja wartościowań, filtry $\Sigma$/$\Sigma_0$, walidacja dziedziny & J & 6 \\
+\texttt{SimpleActionEngineTests} & $\Res$: efekty, inercja, zwolnienia, \textbf{impossible}, ramifikacje & J & 8 \\
 \midrule
-\multicolumn{2}{@{}l}{\textit{Testy integracyjne i~systemowe}} \\
-przykłady end-to-end (\texttt{FacadeAndExamplesTests}) & Wojciech Jasiński \\
-scenariusze fabularne (\texttt{ScenarioExamplesTests}) & Wojciech Jasiński \\
-pamięć podręczna i~graf DOT (\texttt{CacheAndGraphTests}) & Wojciech Jasiński \\
-higiena repozytorium / testy statyczne (\texttt{StaticProjectTests}) & Wojciech Jasiński \\
-pełna semantyka (\texttt{FullSemanticsIntegrationTests}) & Jakub Pietrzak \\
-źródła interfejsu graficznego (\texttt{CrossGuiSourceTests}) & Jakub Pietrzak \\
+\multicolumn{4}{@{}l}{\textit{Sebastian Rydz --- akcje złożone \quad(8)}} \\
+\texttt{CompositeActionTests} & konflikty, dekompozycje, niedeterminizm akcji złożonej & J & 8 \\
 \midrule
-\multicolumn{2}{@{}l}{\textit{Testy regresyjne}} \\
-warunkowe \textbf{causes} (\texttt{ConditionalCauseRegressionTests}) & Jarosław Bieniek \\
+\multicolumn{4}{@{}l}{\textit{Krzysztof Gryboś --- proces i~kwerendy \quad(13)}} \\
+\texttt{ProcessAndQueryTests} & drzewo wykonań, cztery warianty kwerend, ślad & J & 9 \\
+\texttt{PossiblySemanticsTests} & \textit{possibly}/\textit{necessary} z~kwantyfikacją po~$\Sigma_0$ & J & 4 \\
+\midrule
+\multicolumn{4}{@{}l}{\textit{Sandra Adamiec --- formuły i~pokrycie języka \quad(21)}} \\
+\texttt{FormulaTests} & ewaluacja, precedencja, DNF, prawa de~Morgana & J & 7 \\
+\texttt{WordOnlySyntaxTests} & wyłącznie słowne operatory, odrzucanie symboli & J & 4 \\
+\texttt{LanguageCoverageTests} & pokrycie wszystkich konstrukcji języka i~parserów & J & 10 \\
+\midrule
+\multicolumn{4}{@{}l}{\textit{Jarosław Bieniek --- parser i~obsługa wejścia \quad(19)}} \\
+\texttt{ParserTests} & parsowanie dziedziny/kwerend/procesów, odrzucanie błędów & J & 9 \\
+\texttt{KeywordLikeActionName\allowbreak RegressionTests} & nazwy akcji podobne do~słów kluczowych & R & 4 \\
+\texttt{ConditionalCauseRegressionTests} & warunkowe \textbf{causes} (parser~$\to$~kwerenda) & R & 6 \\
+\midrule
+\multicolumn{4}{@{}l}{\textit{Jakub Pietrzak --- interfejs graficzny i~pełna semantyka \quad(12)}} \\
+\texttt{CrossGuiSourceTests} & źródła GUI Avalonia, panel przykładów, graf DOT & I & 6 \\
+\texttt{FullSemanticsIntegrationTests} & zgodność wszystkich mechanizmów end-to-end & I & 6 \\
+\midrule
+\multicolumn{4}{@{}l}{\textit{Wojciech Jasiński --- integracja, fasada, przykłady \quad(23)}} \\
+\texttt{FacadeAndExamplesTests} & ładowanie przykładów, zgodność wyników TAK/NIE & I & 7 \\
+\texttt{ScenarioExamplesTests} & scenariusze fabularne, filozofowie & I & 3 \\
+\texttt{CacheAndGraphTests} & pamięć podręczna fasady, czytelny graf DOT & I & 6 \\
+\texttt{StaticProjectTests} & higiena repozytorium, struktura rozwiązania & I & 7 \\
+\midrule
+\textbf{Razem} & & & \textbf{114} \\
 \bottomrule
 \end{tabular}
 \end{center}
