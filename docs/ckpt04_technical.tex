@@ -945,6 +945,66 @@ nie kolidują (brak literałów komplementarnych mimo wspólnego \texttt{f}), wi
 tworzą jedną dekompozycję; \texttt{force\_f} wymusza \texttt{f} niezależnie
 od~wyboru \texttt{choose}, zatem \texttt{f} zachodzi w~każdym stanie końcowym.
 
+\begin{lstlisting}[style=ds4code, caption={Niezależne akcje współbieżne --- brak konfliktu (rodzina scenario)}]
+initially not bowl_lifted and not door_open
+lift_bowl causes bowl_lifted if true
+open_door causes door_open if true
+# kwerenda:
+necessary bowl_lifted and door_open after {lift_bowl,open_door}
+\end{lstlisting}
+\emph{Odpowiedź:} \textbf{TAK}. \emph{Dlaczego:} obie akcje wpływają na~rozłączne
+fluenty (\texttt{bowl\_lifted} i~\texttt{door\_open}), więc nie kolidują ---
+jedyna dekompozycja \texttt{\{lift\_bowl, open\_door\}} wykonuje obie naraz
+i~jedyny stan końcowy spełnia oba cele.
+
+\begin{lstlisting}[style=ds4code, caption={Indyk --- ramifikacja przez always (rodzina scenario)}]
+initially not loaded and walking and alive
+always walking implies alive
+load causes loaded if true
+shoot causes not loaded if true
+shoot causes not alive if loaded
+# kwerenda:
+necessary not walking after load; shoot
+\end{lstlisting}
+\emph{Odpowiedź:} \textbf{TAK}. \emph{Dlaczego:} \texttt{load} nabija broń,
+\texttt{shoot} uśmierca (\texttt{not alive}); z~ograniczenia
+\texttt{always walking implies alive} wynika, że stan bez życia musi być też
+stanem bez chodzenia (ramifikacja), więc \texttt{not walking} zachodzi w~każdym
+stanie końcowym.
+
+\begin{lstlisting}[style=ds4code, caption={Karta i drzwi --- akcja zablokowana (rodzina scenario)}]
+initially not open and not has_card
+insert_card causes open if true
+impossible insert_card if not has_card
+# kwerenda:
+possibly executable after insert_card
+\end{lstlisting}
+\emph{Odpowiedź:} \textbf{NIE}. \emph{Dlaczego:} w~stanie początkowym brakuje
+\texttt{has\_card}, więc reguła \texttt{impossible insert\_card if not has\_card}
+blokuje akcję --- $\Res$ jest puste i~nie istnieje pełna ścieżka.
+
+\begin{lstlisting}[style=ds4code, caption={Malowanie --- więz integralności wymusza zmianę (rodzina scenario)}]
+initially yellowA and not yellowB
+always not (yellowA and yellowB)
+paintB causes yellowB if true
+# kwerenda:
+necessary yellowB and not yellowA after paintB
+\end{lstlisting}
+\emph{Odpowiedź:} \textbf{TAK}. \emph{Dlaczego:} \texttt{paintB} wymusza
+\texttt{yellowB}; ponieważ \texttt{always not (yellowA and yellowB)} zakazuje
+obu naraz, jako skutek uboczny (ramifikacja) \texttt{yellowA} zmienia się na
+fałsz --- jedyny stan końcowy spełnia \texttt{yellowB and not yellowA}.
+
+\begin{lstlisting}[style=ds4code, caption={Test alarmu --- releases znosi konieczność (rodzina scenario)}]
+initially alarm
+test_alarm releases alarm if true
+# kwerenda:
+necessary alarm after test_alarm
+\end{lstlisting}
+\emph{Odpowiedź:} \textbf{NIE}. \emph{Dlaczego:} \texttt{test\_alarm} zwalnia
+\texttt{alarm} spod~inercji, więc $\Res$ zawiera także stan z~\texttt{not alarm};
+istnieje gałąź bez alarmu, zatem alarm nie zachodzi koniecznie.
+
 Niezależny test sprawdza ponadto, że \texttt{Ds4Facade.Solve} zwraca dla każdego
 przykładu poprawny opis grafu wykonań w~formacie Graphviz~DOT
 (\texttt{TraceGraphDot}).
