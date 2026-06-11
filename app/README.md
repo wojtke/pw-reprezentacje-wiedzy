@@ -12,12 +12,14 @@ Aplikacja demonstracyjna do projektu z Reprezentacji Wiedzy: procesy działań z
 
 ## Przykłady
 
-Folder `examples` zawiera 42 przypadki:
+Folder `examples` zawiera 57 przypadków:
 
-- 24 przypadki z odpowiedzią TAK,
-- 18 przypadków z odpowiedzią NIE.
+- 33 przypadki z odpowiedzią TAK,
+- 24 przypadki z odpowiedzią NIE.
 
-Przykłady z prefiksem `tex` zostały przepisane z pliku `checkpoint2_v1.tex`. Przykłady z prefiksem `extra` są dodatkowymi przypadkami testowymi.
+Przykłady z prefiksem `tex` zostały przepisane z pliku `checkpoint2_v1.tex`, `extra` to dodatkowe przypadki testowe, `bugfix`/`regression` utrwalają naprawione błędy, a `scenario` to rozbudowane scenariusze fabularne (m.in. pięciu filozofów, robot dostawczy).
+
+Formuły zapisuje się operatorami słownymi (`not`, `and`, `or`, `implies`, `iff`, `true`, `false`); symbole (`!`, `&`, `->`, …) nie są akceptowane.
 
 GUI nie korzysta już z hardcodowanych przykładów. Lista w GUI jest budowana z plików `.domain` i `.query` w folderze `examples`.
 

@@ -107,7 +107,7 @@ interfejsów. Całość spina jedna fasada.
 \node[draw, dashed, inner sep=8pt, fit=(parser)(sem),
       label={[font=\small]below:\texttt{Ds4.Core} --- silnik bez zależności od UI}] (core) {};
 
-\node[store, left=1.1cm of facade] (ex) {\texttt{examples/}\\42 przykłady};
+\node[store, left=1.1cm of facade] (ex) {\texttt{examples/}\\57 przykładów};
 \node[store, right=1.1cm of facade] (tests) {testy xUnit};
 
 \draw[arr] (gui) -- (facade);
@@ -130,7 +130,7 @@ interfejsów. Całość spina jedna fasada.
   \item \texttt{\textbf{Ds4.Core}} --- czysty silnik: parser zamienia tekst na
         struktury danych, moduł semantyki buduje model i~ewaluuje kwerendę.
         Wymiana frontendu nie zmienia ani jednej linii silnika.
-  \item \texttt{\textbf{examples/}} --- 42 pary plików
+  \item \texttt{\textbf{examples/}} --- 57 par plików
         \texttt{.domain}~+~\texttt{.query}, ładowane do listy w~GUI i~CLI.
   \item \textbf{Testy} --- xUnit; testują fasadę i~moduły semantyki, w~tym
         wszystkie przykłady względem plików \texttt{.expected}.
@@ -149,11 +149,11 @@ teoretyczną z~zapisem plikowym.
 \toprule
 \textbf{Konstrukcja} & \textbf{Notacja teoretyczna} & \textbf{Zapis w~pliku} \\
 \midrule
-efekt akcji        & $A$ \textbf{causes} $\alpha$ \textbf{if} $\pi$ & \texttt{shoot causes !alive if loaded} \\
+efekt akcji        & $A$ \textbf{causes} $\alpha$ \textbf{if} $\pi$ & \texttt{shoot causes not alive if loaded} \\
 zwolnienie inercji & $A$ \textbf{releases} $f$ \textbf{if} $\pi$    & \texttt{spin releases loaded if true} \\
 niewykonalność     & \textbf{impossible} $A$ \textbf{if} $\pi$      & \texttt{impossible load if loaded} \\
-ograniczenie       & \textbf{always} $\alpha$                       & \texttt{always p -> q} \\
-stan początkowy    & \textbf{initially} $\alpha$                    & \texttt{initially !p and !q} \\
+ograniczenie       & \textbf{always} $\alpha$                       & \texttt{always p implies q} \\
+stan początkowy    & \textbf{initially} $\alpha$                    & \texttt{initially not p and not q} \\
 fluent nieinercyjny& \textbf{noninertial} $f$                       & \texttt{noninertial f} \\
 zdanie wartościujące & $\alpha$ \textbf{after} $\mathbb{A}_1;\dots;\mathbb{A}_n$ & \texttt{p after a; \{b,c\}} \\
 wariant obserwowalny & \textbf{observable} $\alpha$ \textbf{after} \dots & \texttt{observable p after a} \\
@@ -161,10 +161,13 @@ wariant obserwowalny & \textbf{observable} $\alpha$ \textbf{after} \dots & \text
 \end{tabular}
 \end{center}
 
-\textbf{Formuły} zapisuje się operatorami \texttt{!}~($\lnot$),
-\texttt{\&} lub \texttt{and}~($\land$), \texttt{|} lub \texttt{or}~($\lor$),
-\texttt{->}~($\rightarrow$), \texttt{<->}~($\leftrightarrow$) oraz stałymi
-\texttt{true}/\texttt{false}. Komentarze zaczynają się od~\texttt{\#}.
+\textbf{Formuły} zapisuje się wyłącznie operatorami słownymi:
+\texttt{not}~($\lnot$), \texttt{and}~($\land$), \texttt{or}~($\lor$),
+\texttt{implies}~($\rightarrow$), \texttt{iff}~($\leftrightarrow$) oraz stałymi
+\texttt{true}/\texttt{false}; pusty proces zapisuje się jako
+\texttt{epsilon}~($\varepsilon$). Symbole (\texttt{!}, \texttt{\&}, \texttt{|},
+\texttt{->}, \texttt{<->}) nie są akceptowane --- parser zgłasza wtedy błąd.
+Komentarze zaczynają się od~\texttt{\#}.
 Deklaracje \texttt{fluents \dots} i~\texttt{actions \dots} są opcjonalne ---
 parser sam zbiera symbole występujące w~zdaniach.
 
@@ -186,8 +189,8 @@ jednoelementowej), proces --- jako ciąg akcji złożonych rozdzielonych
 \midrule
 Q1: wykonywalność & zawsze       & \texttt{necessary executable after a; \{b,c\}} \\
                   & kiedykolwiek & \texttt{possibly executable after a; \{b,c\}} \\
-Q2: cel $\gamma$  & zawsze       & \texttt{necessary !alive after spin; shoot} \\
-                  & kiedykolwiek & \texttt{possibly !alive after spin; shoot} \\
+Q2: cel $\gamma$  & zawsze       & \texttt{necessary not alive after spin; shoot} \\
+                  & kiedykolwiek & \texttt{possibly not alive after spin; shoot} \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -342,14 +345,14 @@ Zapisy dziedzin i~kwerend są dosłownie tym, co przyjmuje program.
 \subsection{Prosty efekt --- inercja i~minimalizacja}
 
 \begin{verbatim}
-initially !p
+initially not p
 make causes p if true
 \end{verbatim}
 Kwerenda: \texttt{necessary p after make}
 
 \begin{itemize}
   \item $\mathcal{F}=\{p\}$, brak \textbf{always}, więc
-        $\Sigma = \{\{p\},\{\lnot p\}\}$; \textbf{initially} \texttt{!p} daje
+        $\Sigma = \{\{p\},\{\lnot p\}\}$; \textbf{initially} \texttt{not p} daje
         $\Sigma_0 = \{\{\lnot p\}\}$.
   \item $\Res(\mathit{make}, \lnot p)$: aktywny efekt $p$; kandydaci spełniający
         $p$: tylko $\{p\}$, $\New = \{p\}$ --- wynik $\{\{p\}\}$.
@@ -365,12 +368,12 @@ fluents loaded, alive
 actions spin, shoot, load
 initially alive
 spin releases loaded if true
-shoot causes !alive if loaded
+shoot causes not alive if loaded
 impossible load if loaded
-load causes loaded if !loaded
+load causes loaded if not loaded
 \end{verbatim}
-Kwerendy: \texttt{possibly !alive after spin; shoot} \quad oraz \quad
-\texttt{necessary !alive after spin; shoot}
+Kwerendy: \texttt{possibly not alive after spin; shoot} \quad oraz \quad
+\texttt{necessary not alive after spin; shoot}
 
 \begin{itemize}
   \item $|\Sigma| = 4$; \textbf{initially} \texttt{alive} ogranicza tylko
@@ -393,9 +396,9 @@ Kwerendy: \texttt{possibly !alive after spin; shoot} \quad oraz \quad
 \subsection{Konflikt w~akcji złożonej --- dekompozycje}
 
 \begin{verbatim}
-initially !p
+initially not p
 makeP causes p if true
-clearP causes !p if true
+clearP causes not p if true
 \end{verbatim}
 Kwerenda: \texttt{necessary p after \{makeP,clearP\}}
 
@@ -414,14 +417,14 @@ Kwerenda: \texttt{necessary p after \{makeP,clearP\}}
 \subsection{Ramifikacja --- skutek uboczny przez \textbf{always}}
 
 \begin{verbatim}
-always p -> q
-initially !p and !q
+always p implies q
+initially not p and not q
 makeP causes p if true
 \end{verbatim}
 Kwerenda: \texttt{necessary q after makeP}
 
 \begin{itemize}
-  \item Z~czterech wartościowań ograniczenie \texttt{always p -> q} odrzuca
+  \item Z~czterech wartościowań ograniczenie \texttt{always p implies q} odrzuca
         $\{p,\lnot q\}$, więc $|\Sigma| = 3$;
         $\Sigma_0 = \{\{\lnot p,\lnot q\}\}$.
   \item $\Res(\mathit{makeP}, \{\lnot p,\lnot q\})$: aktywny efekt $p$; jedynym
@@ -439,7 +442,7 @@ fluents loaded
 actions load
 initially loaded
 impossible load if loaded
-load causes loaded if !loaded
+load causes loaded if not loaded
 \end{verbatim}
 Kwerenda: \texttt{possibly executable after load}
 
@@ -476,10 +479,10 @@ się czytelnym komunikatem zamiast odpowiedzi:
 \section{Testy}
 
 Poprawność silnika weryfikujemy zautomatyzowanym zestawem testów (framework
-xUnit, projekt \texttt{Ds4.Tests}). Zestaw liczy \textbf{82 metody testowe},
+xUnit, projekt \texttt{Ds4.Tests}). Zestaw liczy \textbf{113 metod testowych},
 które po rozwinięciu testów parametryzowanych (\texttt{[Theory]}) dają
-\textbf{137 przypadków testowych} --- wszystkie zielone, czas wykonania poniżej
-0{,}1~s. Testy działają w~trybie wsadowym (bez interfejsu graficznego) wprost
+\textbf{242 przypadki testowe} --- wszystkie zielone, czas wykonania poniżej
+0{,}3~s. Testy działają w~trybie wsadowym (bez interfejsu graficznego) wprost
 na czystym silniku \texttt{Ds4.Core}, w~większości przez tę samą fasadę
 \texttt{Ds4Facade.Solve}, której używają wszystkie frontendy. Silnik nie ma
 zależności zewnętrznych ani żadnego źródła losowości, więc każdy przebieg jest
@@ -514,7 +517,7 @@ winny moduł.
 \midrule
 \texttt{ParserTests} &
   składnia dziedziny, kwerendy, procesu i~formuł; odrzucanie błędnych
-  zdań & 12 \\
+  zdań & 9 \\
 \texttt{FormulaTests} &
   wartościowanie formuł, priorytety operatorów, postać DNF, prawa
   de~Morgana & 7 \\
@@ -531,10 +534,17 @@ winny moduł.
   pusta & 8 \\
 \texttt{CompositeActionTests} &
   wykrywanie konfliktów, generacja dekompozycji, wykonanie akcji
-  złożonej & 9 \\
+  złożonej & 8 \\
 \texttt{ProcessAndQueryTests} &
   ewaluacja procesu, drzewo wykonań, cztery warianty kwerend
   (\emph{possibly}/\emph{necessary} $\times$ wykonalność/cel) & 9 \\
+\texttt{WordOnlySyntaxTests} &
+  wymóg operatorów słownych (\texttt{not}/\texttt{and}/\dots) i~odrzucanie
+  symboli & 4 \\
+\texttt{LanguageCoverageTests} &
+  pokrycie wszystkich konstrukcji języka akcji i~kwerend & 10 \\
+\texttt{CacheAndGraphTests} &
+  pamięć podręczna parsera/wyników oraz render grafu wykonań (DOT) & 6 \\
 \bottomrule
 \end{tabular}
 \end{center}
@@ -542,7 +552,7 @@ winny moduł.
 % ──────────────────────────────────────────────────────────────────
 \subsection{Testy integracyjne}
 
-Najszerszą warstwę stanowi \textbf{42~wbudowanych przykładów} w~katalogu
+Najszerszą warstwę stanowi \textbf{57~wbudowanych przykładów} w~katalogu
 \texttt{app/examples/}. Każdy przykład to trójka plików o~wspólnej nazwie:
 \texttt{\textit{id}.domain} (dziedzina), \texttt{\textit{id}.query}
 (kwerenda) oraz \texttt{\textit{id}.expected} (oczekiwana odpowiedź: pojedyncze
@@ -554,9 +564,10 @@ listę w~GUI i~CLI, więc test pełni podwójną rolę: weryfikuje silnik
 \emph{oraz} gwarantuje, że każdy przykład pokazywany użytkownikowi daje
 deklarowaną odpowiedź.
 
-Zestaw przykładów dzieli się na \textbf{24 z~odpowiedzią TAK} i~\textbf{18 z~NIE},
-a~nazwa każdego koduje jego pochodzenie w~schemacie
-\texttt{\{tak$|$nie\}\_\{tex$|$extra$|$bugfix\}\_\textit{nn}\_\textit{opis}}:
+Zestaw przykładów dzieli się na \textbf{33 z~odpowiedzią TAK} i~\textbf{24 z~NIE},
+a~nazwa każdego koduje jego pochodzenie: pliki rozstrzygnięć mają schemat
+\texttt{\{tak$|$nie\}\_\{tex$|$extra$|$bugfix$|$regression\}\_\textit{nn}\_\textit{opis}},
+a~scenariusze fabularne --- \texttt{scenario\_\textit{nn}\_\textit{opis}}:
 
 \begin{center}
 \small
@@ -571,8 +582,12 @@ a~nazwa każdego koduje jego pochodzenie w~schemacie
   & 10 & 10 \\
 \texttt{bugfix} & utrwalenie błędów wykrytych w~rozwoju
   (np. warunkowe \textbf{causes}) & 1 & 1 \\
+\texttt{regression} & naprawione błędy interpretacji semantyki
+  (częściowy stan początkowy) & 0 & 1 \\
+\texttt{scenario} & rozbudowane scenariusze fabularne (m.in.\ pięciu filozofów,
+  robot dostawczy, ramifikacje, rzut monetą) & 9 & 5 \\
 \midrule
-\textbf{Razem} & & \textbf{24} & \textbf{18} \\
+\textbf{Razem} & & \textbf{33} & \textbf{24} \\
 \bottomrule
 \end{tabular}
 \end{center}

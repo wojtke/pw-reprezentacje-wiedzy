@@ -80,7 +80,7 @@ skrypt \texttt{RUN\_GUI.bat} (Windows) albo \texttt{RUN\_CROSS\_GUI.sh}
 Okno ma cztery elementy:
 
 \begin{enumerate}
-  \item \textbf{Pasek przykładów} (góra) --- lista rozwijana z~42 wbudowanymi
+  \item \textbf{Pasek przykładów} (góra) --- lista rozwijana z~57 wbudowanymi
         przypadkami oraz przyciski \emph{Wczytaj przykład}, \emph{Oblicz}
         i~\emph{Wyczyść wynik}.
   \item \textbf{Dziedzina} (lewy panel) --- edytowalny opis dziedziny
@@ -112,8 +112,8 @@ initially alive
 \textbf{Efekt akcji} --- \texttt{causes \dots\ if \dots}. Strzał zabija,
 ale tylko gdy broń jest nabita:
 \begin{verbatim}
-shoot causes !alive if loaded
-load causes loaded if !loaded
+shoot causes not alive if loaded
+load causes loaded if not loaded
 \end{verbatim}
 
 \textbf{Efekt niedeterministyczny} --- \texttt{releases}. Zakręcenie bębenkiem
@@ -131,15 +131,16 @@ impossible load if loaded
 \textbf{Ograniczenie stałe} --- \texttt{always}. Gdyby w~dziedzinie były
 fluenty powiązane (np. $p$ zawsze pociąga $q$), zapisalibyśmy:
 \begin{verbatim}
-always p -> q
+always p implies q
 \end{verbatim}
 Takie ograniczenie działa we wszystkich stanach i~wymusza skutki uboczne
 akcji.
 
 W~formułach (warunkach \texttt{if}, \texttt{initially}, \texttt{always},
-celach kwerend) dostępne są operatory: \texttt{!}~(nie),
-\texttt{and}/\texttt{\&}, \texttt{or}/\texttt{|}, \texttt{->},
-\texttt{<->} oraz stałe \texttt{true}/\texttt{false}.
+celach kwerend) używa się wyłącznie operatorów słownych: \texttt{not}~(nie),
+\texttt{and}, \texttt{or}, \texttt{implies}, \texttt{iff} oraz stałych
+\texttt{true}/\texttt{false}. Program nie przyjmuje symboli
+(\texttt{!}, \texttt{\&}, \texttt{|}, \texttt{->}, \texttt{<->}) --- zgłasza wtedy błąd.
 
 % ══════════════════════════════════════════════════════════════════
 \section{Jak zadać kwerendę}
@@ -176,7 +177,7 @@ możliwego stanu początkowego istnieje przynajmniej jeden pełny przebieg.
 Przykład:
 
 \begin{verbatim}
-possibly !alive after spin; shoot
+possibly not alive after spin; shoot
 \end{verbatim}
 
 % ══════════════════════════════════════════════════════════════════
@@ -196,13 +197,13 @@ Panel \emph{Wynik} zawiera kolejno:
         \texttt{necessary});
   \item \textbf{TRACE} --- drzewo wykonań procesu. Każdy wiersz to jeden
         węzeł: numer kroku w~nawiasach kwadratowych, wykonywana akcja
-        i~stan po niej (znak \textlnot\ oznacza fluent fałszywy), np.
+        i~stan po niej (przedrostek \texttt{not} oznacza fluent fałszywy), np.
 \begin{verbatim}
-[0] start -> {alive, ¬loaded}
-  [1] spin -> {alive, ¬loaded}
-    [2] shoot -> {alive, ¬loaded}
-  [1] spin -> {alive, loaded}
-    [2] shoot -> {¬alive, loaded}
+[0] start: {alive, not loaded}
+  [1] spin: {alive, not loaded}
+    [2] shoot: {alive, not loaded}
+  [1] spin: {alive, loaded}
+    [2] shoot: {not alive, loaded}
 \end{verbatim}
         Wcięcie oznacza kolejny krok procesu; rozgałęzienie --- kilka możliwych
         wyników (niedeterminizm). Wiersz \texttt{BLOCKED: brak następników dla
@@ -213,7 +214,7 @@ Panel \emph{Wynik} zawiera kolejno:
 % ══════════════════════════════════════════════════════════════════
 \section{Przykłady i~praca z~plikami}
 
-\textbf{Wbudowane przykłady.} Lista na pasku górnym zawiera 42 przypadki.
+\textbf{Wbudowane przykłady.} Lista na pasku górnym zawiera 57 przypadków.
 Prefiks \texttt{tak\_}/\texttt{nie\_} mówi, jaka jest poprawna odpowiedź,
 a~komentarze na początku dziedziny opisują, co dany przykład pokazuje.
 
